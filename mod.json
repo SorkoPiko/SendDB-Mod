@@ -1,0 +1,48 @@
+{
+	"geode": "4.10.0",
+	"gd": {
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
+	},
+	"id": "sorkopiko.senddb-integration",
+	"name": "SendDB Integration",
+	"version": "v1.0.0",
+	"developer": "SorkoPiko",
+	"description": "View SendDB data in-game",
+	"links": {
+		"source": "https://github.com/SorkoPiko/SendDB-Mod",
+		"community": "https://discord.gg/MeWY462WJv"
+	},
+	"tags": [
+		"online",
+		"enhancement",
+		"utility"
+	],
+	"dependencies": [
+		{
+			"id": "geode.node-ids",
+			"version": ">=v1.21.1",
+			"importance": "required"
+		}
+	],
+	"settings": {
+		"cacheTime": {
+			"name": "Cache Time (minutes)",
+			"type": "int",
+			"default": 5,
+			"description": "How long to cache SendDB data for (in minutes)",
+			"min": 1,
+			"max": 60,
+			"control": {
+				"slider": true
+			}
+		}
+	},
+	"resources": {
+		"sprites": [
+			"resources/*.png"
+		]
+	}
+}
