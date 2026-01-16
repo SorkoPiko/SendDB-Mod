@@ -25,6 +25,11 @@
 			"id": "geode.node-ids",
 			"version": ">=v1.21.1",
 			"importance": "required"
+		},
+		{
+			"id": "camila314.geode-uri",
+			"version": ">=1.0.0",
+			"importance": "suggested"
 		}
 	],
 	"settings": {

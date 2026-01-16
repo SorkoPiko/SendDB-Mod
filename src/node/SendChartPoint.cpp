@@ -1,43 +1,39 @@
 #include "SendChartPoint.hpp"
 
-bool SendChartPoint::init(const ccColor3B& color, const std::optional<Send>& send) {
-    if (!CCMenuItem::init()) return false;
+bool SendChartPoint::init(const ccColor3B& color, const std::optional<Send>& send, const std::optional<Rate>& rate, const int index) {
+    if (!CCNode::init()) return false;
 
     if (send.has_value()) sendData = send.value();
+    sendIndex = index;
 
-    sprite = CCSprite::createWithSpriteFrameName("d_circle_02_001.png");
-    sprite->setColor(color);
+    if (rate.has_value()) {
+        rateData = rate.value();
+        sprite = CCSprite::createWithSpriteFrameName("rankIcon_top10_001.png");
+    } else {
+        sprite = CCSprite::createWithSpriteFrameName("d_circle_02_001.png");
+        sprite->setColor(color);
+    }
     sprite->setPosition(sprite->getContentSize());
     addChild(sprite);
 
     setContentSize(sprite->getContentSize() * 2.0f);
     setAnchorPoint({0.5f, 0.5f});
 
-    setEnabled(true);
-    scheduleUpdate();
-
     return true;
 }
 
-void SendChartPoint::update(const float delta) {
-    CCMenuItem::update(delta);
-
-    if (lastSelected != m_bSelected) {
-        if (m_bSelected) {
-            sprite->setScale(2.0f);
-            if (delegate) delegate->onSelectChartPoint(this);
-        } else {
-            sprite->setScale(1.0f);
-            if (delegate) delegate->onDeselectChartPoint(this);
-        }
+void SendChartPoint::onHover(const bool isHovering) {
+    hovering = isHovering;
+    if (isHovering) {
+        sprite->setScale(2.0f);
+    } else {
+        sprite->setScale(1.0f);
     }
-
-    lastSelected = m_bSelected;
 }
 
-SendChartPoint* SendChartPoint::create(const ccColor3B& color, const std::optional<Send>& send) {
+SendChartPoint* SendChartPoint::create(const ccColor3B& color, const std::optional<Send>& send, const int index) {
     auto node = new SendChartPoint();
-    if (node->init(color, send)) {
+    if (node->init(color, send, std::nullopt, index)) {
         node->autorelease();
         return node;
     }
@@ -45,10 +41,25 @@ SendChartPoint* SendChartPoint::create(const ccColor3B& color, const std::option
     return nullptr;
 }
 
-void SendChartPoint::setDelegate(ChartPointCallback* delegate) {
-    this->delegate = delegate;
+SendChartPoint* SendChartPoint::create(const std::optional<Rate>& rate) {
+    auto node = new SendChartPoint();
+    if (node->init({0, 0, 0}, std::nullopt, rate, 0)) {
+        if (rate.has_value()) node->rateData = rate.value();
+        node->autorelease();
+        return node;
+    }
+    CC_SAFE_DELETE(node);
+    return nullptr;
 }
 
 const std::optional<Send>& SendChartPoint::getSendData() const {
     return sendData;
+}
+
+const std::optional<Rate>& SendChartPoint::getRateData() const {
+    return rateData;
+}
+
+int SendChartPoint::getSendIndex() const {
+    return sendIndex;
 }

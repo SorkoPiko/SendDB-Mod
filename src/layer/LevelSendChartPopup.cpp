@@ -4,6 +4,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
 #include <node/SendChartNode.hpp>
+#include <utils/PointUtils.hpp>
 
 constexpr CCPoint popupSize = {400.0f, 250.0f};
 constexpr CCPoint menuSize = {390.0f, 240.0f};
@@ -41,17 +42,32 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
     closeBtn->setID("close-button"_spr);
     m_buttonMenu->addChild(closeBtn);
 
-    const auto chart = SendChartNode::create(
+    chartNode = SendChartNode::create(
         levelData,
         CCSize(300, 150),
-        ccColor3B(0, 255, 0),
         1.0f,
-        LineChartStyle_Step
+        LineChartStyle_Normal
     );
-    chart->setAnchorPoint({0.5f, 0.5f});
-    chart->setPosition({menuSize.x / 2.0f, menuSize.y / 2.0f});
-    chart->setID("line-chart"_spr);
-    m_buttonMenu->addChild(chart);
+    chartNode->setAnchorPoint({0.5f, 0.5f});
+    chartNode->setPosition({menuSize.x / 2.0f, menuSize.y / 2.0f});
+    chartNode->setID("send-chart"_spr);
+    m_buttonMenu->addChild(chartNode);
+
+    return true;
+}
+
+bool LevelSendChartPopup::ccTouchBegan(CCTouch* touch, CCEvent* event) {
+    if (!FLAlertLayer::ccTouchBegan(touch, event)) return false;
+
+    const CCPoint touchLocation = touch->getLocation();
+    if (!PointUtils::isPointInsideNode(m_mainLayer->getChildByID("bg"_spr), touchLocation)) {
+        onClose(nullptr);
+        return true;
+    }
+
+    if (PointUtils::isPointInsideNode(chartNode, touchLocation)) {
+        chartNode->onClick(touchLocation);
+    }
 
     return true;
 }

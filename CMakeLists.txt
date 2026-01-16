@@ -7,7 +7,7 @@ else()
     set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
 endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
+#set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 
 project(SendDB VERSION 1.0.0)
 
@@ -27,5 +27,8 @@ else()
 endif()
 
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
+
+CPMAddPackage("gh:prevter/rock#main")
+target_link_libraries(${PROJECT_NAME} rock)
 
 setup_geode_mod(${PROJECT_NAME})

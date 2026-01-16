@@ -4,6 +4,9 @@
 #include <Geode/Geode.hpp>
 #include <model/APIResponse.hpp>
 
+#include "SendChartPoint.hpp"
+#include "SendInfoBox.hpp"
+
 using namespace geode::prelude;
 
 enum ChartStyle {
@@ -14,33 +17,55 @@ enum ChartStyle {
 struct LineChartPoint {
     float x;
     float y;
+    bool rated;
 
-    LineChartPoint(const float x, const float y) : x(x), y(y) {}
+    LineChartPoint(const float x, const float y, const bool rated) : x(x), y(y), rated(rated) {}
+
+    [[nodiscard]] CCPoint toCCPoint() const {
+        return ccp(x, y);
+    }
 };
 
-class SendChartNode : public CCDrawNode {
-    std::vector<CCPoint> processedPoints;
-    ccColor3B lineColor = {255, 255, 255};
+class SendChartNode : public CCNode {
+    std::vector<LineChartPoint> processedPoints;
+    std::vector<SendChartPoint*> points;
     float lineWidth = 2.0f;
     CCSize chartSize;
     CCSize chartDimensions;
     ChartStyle chartStyle = LineChartStyle_Normal;
+    long long startTimestamp = 0;
     std::optional<Level> levelData;
 
-    bool init(const std::optional<Level>& level, const CCSize& size, const ccColor3B& color, float _lineWidth, ChartStyle style);
+    SendChartPoint* hoveredPoint = nullptr;
 
-    CCPoint scalePoint(const LineChartPoint& point) const;
+    CCNode* labelsNode = nullptr;
+    CCDrawNode* gridNode = nullptr;
+    CCDrawNode* graphLineNode = nullptr;
+    CCMenu* hoverMenu = nullptr;
+    CCDrawNode* selectNode = nullptr;
+    SendInfoBox* sendInfoBox = nullptr;
+    CCLabelBMFont* positionLabel = nullptr;
+
+    bool init(const std::optional<Level>& level, const CCSize& size, float _lineWidth, ChartStyle style);
+
+    void update(float delta) override;
+
+    void drawLabelsAndGrid() const;
+    LineChartPoint scalePoint(const LineChartPoint& point) const;
+
+    float getTimestampFromX(float x) const;
 
 public:
     static SendChartNode* create(
         const std::optional<Level>& level,
         const CCSize& size,
-        const ccColor3B& color = {255, 255, 255},
         float lineWidth = 2.0f,
         ChartStyle style = LineChartStyle_Normal
     );
 
     void draw() override;
+
+    void onClick(const CCPoint& position);
 };
 
 #endif

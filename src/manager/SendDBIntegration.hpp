@@ -3,6 +3,7 @@
 
 //#define SERVER_URL "https://api.senddb.dev/api/v1"
 #define SERVER_URL "http://127.0.0.1:8080/api/v1"
+//TODO: change back to production server url before release
 
 #include <Geode/Prelude.hpp>
 #include <Geode/loader/Event.hpp>

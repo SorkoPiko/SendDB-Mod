@@ -6,31 +6,26 @@
 
 using namespace geode::prelude;
 
-class ChartPointCallback;
 
-class SendChartPoint : public CCMenuItem {
-    CCSprite* sprite = nullptr;
+class SendChartPoint : public CCNode {
     std::optional<Send> sendData;
-    ChartPointCallback* delegate = nullptr;
+    std::optional<Rate> rateData;
+    int sendIndex = 0;
+    bool hovering = false;
 
-    bool lastSelected = false;
+    CCSprite* sprite = nullptr;
 
-    bool init(const ccColor3B& color, const std::optional<Send>& send);
-    void update(float delta) override;
+    bool init(const ccColor3B& color, const std::optional<Send>& send, const std::optional<Rate>& rate, int index);
 
 public:
-    static SendChartPoint* create(const ccColor3B& color, const std::optional<Send>& send);
+    static SendChartPoint* create(const ccColor3B& color, const std::optional<Send>& send, int index);
+    static SendChartPoint* create(const std::optional<Rate>& rate);
 
-    void setDelegate(ChartPointCallback* delegate);
+    void onHover(bool isHovering);
+
     const std::optional<Send>& getSendData() const;
-};
-
-class ChartPointCallback {
-public:
-    virtual ~ChartPointCallback() = default;
-
-    virtual void onSelectChartPoint(SendChartPoint* point) {}
-    virtual void onDeselectChartPoint(SendChartPoint* point) {}
+    const std::optional<Rate>& getRateData() const;
+    int getSendIndex() const;
 };
 
 #endif
