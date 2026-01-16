@@ -10,7 +10,7 @@
 using namespace geode::prelude;
 
 enum ChartStyle {
-    LineChartStyle_Normal,
+    LineChartStyle_Line,
     LineChartStyle_Step
 };
 
@@ -32,7 +32,7 @@ class SendChartNode : public CCNode {
     float lineWidth = 2.0f;
     CCSize chartSize;
     CCSize chartDimensions;
-    ChartStyle chartStyle = LineChartStyle_Normal;
+    ChartStyle chartStyle = LineChartStyle_Line;
     long long startTimestamp = 0;
     std::optional<Level> levelData;
 
@@ -60,12 +60,23 @@ public:
         const std::optional<Level>& level,
         const CCSize& size,
         float lineWidth = 2.0f,
-        ChartStyle style = LineChartStyle_Normal
+        ChartStyle style = LineChartStyle_Line
     );
 
     void draw() override;
 
     void onClick(const CCPoint& position);
 };
+
+static ChartStyle chartStyleFromString(const std::string& str) {
+    if (str == "Line") {
+        return LineChartStyle_Line;
+    } else if (str == "Step") {
+        return LineChartStyle_Step;
+    } else {
+        log::warn("Unknown chart style '{}', defaulting to Line", str);
+        return LineChartStyle_Line;
+    }
+}
 
 #endif

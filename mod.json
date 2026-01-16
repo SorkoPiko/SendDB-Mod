@@ -43,6 +43,13 @@
 			"control": {
 				"slider": true
 			}
+		},
+		"graphStyle": {
+			"name": "Graph Style",
+			"type": "string",
+			"default": "Line",
+			"description": "The style of the graphs displayed",
+			"one-of": ["Line", "Step"]
 		}
 	},
 	"resources": {

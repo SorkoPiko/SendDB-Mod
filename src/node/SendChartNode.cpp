@@ -200,7 +200,7 @@ void SendChartNode::update(const float delta) {
     }
 
     positionLabel->setVisible(true);
-    positionLabel->setString(TimeUtils::timestampToDate(getTimestampFromX(position.x) * 1000.0).c_str());
+    positionLabel->setString(TimeUtils::timestampToDate(getTimestampFromX(position.x)).c_str());
 }
 
 void SendChartNode::onClick(const CCPoint& position) {
@@ -284,8 +284,6 @@ void SendChartNode::drawLabelsAndGrid() const {
     auto localTime = std::chrono::zoned_time{std::chrono::current_zone(), now};
     auto offset = localTime.get_info().offset;
     int timezoneOffsetSeconds = std::chrono::duration_cast<std::chrono::seconds>(offset).count();
-
-    log::info("tz: {}", timezoneOffsetSeconds);
 
     const int localStartSeconds = startTimeSeconds + timezoneOffsetSeconds;
 
@@ -445,7 +443,7 @@ void SendChartNode::draw() {
     if (processedPoints.size() < 2) return;
 
     switch (chartStyle) {
-        case LineChartStyle_Normal:
+        case LineChartStyle_Line:
             for (size_t i = 1; i < processedPoints.size(); i++) {
                 ccColor4F color = sendColorF;
                 if (processedPoints[i - 1].rated) color = rateColorF;

@@ -46,7 +46,7 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
         levelData,
         CCSize(300, 150),
         1.0f,
-        LineChartStyle_Normal
+        chartStyleFromString(Mod::get()->getSettingValue<std::string>("graphStyle"))
     );
     chartNode->setAnchorPoint({0.5f, 0.5f});
     chartNode->setPosition({menuSize.x / 2.0f, menuSize.y / 2.0f});
