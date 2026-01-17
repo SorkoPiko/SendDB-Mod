@@ -1,5 +1,7 @@
 #include "SendChartNode.hpp"
 
+#include <UIBuilder.hpp>
+
 #include <utils/LayoutUtils.hpp>
 #include <utils/PointUtils.hpp>
 #include <utils/TimeUtils.hpp>
@@ -13,8 +15,8 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
     lineWidth = _lineWidth;
     chartStyle = style;
 
-    const auto clippingNode = CCClippingNode::create();
-    addChild(clippingNode);
+    CCClippingNode* clippingNode = Build<CCClippingNode>::create()
+            .parent(this);
 
     CCPoint maskShape[4] = {
         ccp(0, 0),
@@ -35,8 +37,8 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
     clippingNode->setStencil(mask);
     clippingNode->addChild(mask);
 
-    labelsNode = CCNode::create();
-    addChild(labelsNode);
+    labelsNode = Build<CCNode>::create()
+            .parent(this);
 
     gridNode = CCDrawNode::create();
     gridNode->m_bUseArea = false;
@@ -56,17 +58,17 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
     selectNode->m_bUseArea = false;
     clippingNode->addChild(selectNode);
 
-    positionLabel = CCLabelBMFont::create("", "chatFont.fnt");
-    positionLabel->setScale(0.4f);
-    positionLabel->setAnchorPoint({1.0f, 0.0f});
-    positionLabel->setPosition(size);
-    positionLabel->setVisible(false);
-    addChild(positionLabel);
+    positionLabel = Build<CCLabelBMFont>::create("", "chatFont.fnt")
+            .scale(0.4f)
+            .anchorPoint({1.0f, 0.0f})
+            .pos(size)
+            .visible(false)
+            .parent(this);
 
-    sendInfoBox = SendInfoBox::create();
-    sendInfoBox->setAnchorPoint({0.5f, 0.0f});
-    sendInfoBox->setPosition({size.width / 2, size.height});
-    addChild(sendInfoBox);
+    sendInfoBox = Build<SendInfoBox>::create()
+            .anchorPoint({0.5f, 0.0f})
+            .pos({size.width / 2, size.height})
+            .parent(this);
 
     if (level.has_value()) {
         auto levelValue = level.value();
@@ -124,10 +126,10 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
                 const auto scaledPoint = scalePoint(point);
                 processedPoints.push_back(scaledPoint);
 
-                auto chartPoint = SendChartPoint::create({200, 200, 200}, send, i);
-                chartPoint->setPosition(scaledPoint.toCCPoint());
-                chartPoint->setScale(0.1f);
-                hoverMenu->addChild(chartPoint);
+                SendChartPoint* chartPoint = Build<SendChartPoint>::create(ccColor3B{180, 180, 180}, send, i)
+                        .pos(scaledPoint.toCCPoint())
+                        .scale(0.1f)
+                        .parent(hoverMenu);
                 points.push_back(chartPoint);
             }
 
@@ -137,10 +139,10 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
                 processedPoints.push_back(scaledPoint);
                 placedRatePoint = true;
 
-                auto chartPoint = SendChartPoint::create(levelValue.rate.value());
-                chartPoint->setPosition(scaledPoint.toCCPoint());
-                chartPoint->setScale(0.4f);
-                hoverMenu->addChild(chartPoint);
+                SendChartPoint* chartPoint = Build<SendChartPoint>::create(levelValue.rate.value())
+                        .pos(scaledPoint.toCCPoint())
+                        .scale(0.4f)
+                        .parent(hoverMenu);
                 points.push_back(chartPoint);
             }
 
@@ -242,61 +244,61 @@ void SendChartNode::drawLabelsAndGrid() const {
 
         const float scaledX = static_cast<float>(seconds) / chartDimensions.width * chartSize.width;
 
-        const auto tickSprite = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
-        tickSprite->setPositionX(scaledX);
-        tickSprite->setRotation(90);
-        tickSprite->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
-        tickSprite->setOpacity(labelLineColor.a);
-        labelsNode->addChild(tickSprite);
+        auto tickSprite = Build<CCSprite>::createSpriteName("gridLine01_001.png")
+                .posX(scaledX)
+                .rotation(90)
+                .color({labelLineColor.r, labelLineColor.g, labelLineColor.b})
+                .opacity(labelLineColor.a)
+                .parent(labelsNode);
 
         const int absoluteTimeSeconds = startTimeSeconds + seconds;
 
         if ((seconds - xLayout.firstLabelOffset) % xLayout.labelIntervalSeconds == 0 && seconds >= xLayout.firstLabelOffset) {
-            tickSprite->setScaleX(0.2f);
-            tickSprite->setScaleX(0.2f);
+            tickSprite.scaleX(0.2f);
 
             std::string labelText = TimeUtils::timestampToDate(static_cast<long long>(absoluteTimeSeconds) * 1000LL);
 
-            const auto label = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
-            label->setPositionX(scaledX);
-            label->setScale(0.4f);
-            label->setPositionY(-tickSprite->getScaledContentSize().width - label->getScaledContentSize().height);
-            label->setColor({labelColor.r, labelColor.g, labelColor.b});
-            label->setOpacity(labelColor.a);
-            labelsNode->addChild(label);
+            Build<CCLabelBMFont>::create(labelText.c_str(), "chatFont.fnt")
+                    .posX(scaledX)
+                    .scale(0.4f)
+                    .posY(-tickSprite->getScaledContentSize().width - 6.0f)
+                    .anchorPoint({0.5f, 1.0f})
+                    .color({labelColor.r, labelColor.g, labelColor.b})
+                    .opacity(labelColor.a)
+                    .parent(labelsNode);
         } else {
-            tickSprite->setScaleX(0.1f);
-            tickSprite->setScaleY(0.8f);
+            tickSprite.scaleX(0.1f);
+            tickSprite.scaleY(0.8f);
         }
-        tickSprite->setPositionY(-tickSprite->getScaledContentSize().width);
+        tickSprite.posY(-tickSprite->getScaledContentSize().width);
     }
 
     for (int i = 0; i <= maxY; i++) {
         const float scaledY = static_cast<float>(i) / chartDimensions.height * chartSize.height;
 
-        const auto tickSprite = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
-        tickSprite->setPositionY(scaledY);
-        tickSprite->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
-        tickSprite->setOpacity(labelLineColor.a);
-        labelsNode->addChild(tickSprite);
+        auto tickSprite = Build<CCSprite>::createSpriteName("gridLine01_001.png")
+                .posY(scaledY)
+                .color({labelLineColor.r, labelLineColor.g, labelLineColor.b})
+                .opacity(labelLineColor.a)
+                .parent(labelsNode);
 
         if (i % labelEveryY == 0) {
-            tickSprite->setScaleX(0.2f);
+            tickSprite.scaleX(0.2f);
 
-            const auto labelText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
-            labelText->setPositionY(scaledY);
-            labelText->setScale(0.4f);
-            labelText->setPositionX(-tickSprite->getScaledContentSize().width - 6.0f);
-            labelText->setAnchorPoint({1.0f, 0.5f});
-            labelText->setColor({labelColor.r, labelColor.g, labelColor.b});
-            labelText->setOpacity(labelColor.a);
-            labelsNode->addChild(labelText);
+            Build<CCLabelBMFont>::create(std::to_string(i).c_str(), "chatFont.fnt")
+                    .posY(scaledY)
+                    .scale(0.4f)
+                    .posX(-tickSprite->getScaledContentSize().width - 6.0f)
+                    .anchorPoint({1.0f, 0.5f})
+                    .color({labelColor.r, labelColor.g, labelColor.b})
+                    .opacity(labelColor.a)
+                    .parent(labelsNode);
         } else {
-            tickSprite->setScaleX(0.1f);
-            tickSprite->setScaleY(0.8f);
+            tickSprite.scaleX(0.1f);
+            tickSprite.scaleY(0.8f);
         }
 
-        tickSprite->setPositionX(-tickSprite->getScaledContentSize().width);
+        tickSprite.posX(-tickSprite->getScaledContentSize().width);
     }
 
     for (int seconds = xLayout.firstGridOffset; seconds <= maxX; seconds += xLayout.gridLineIntervalSeconds) {

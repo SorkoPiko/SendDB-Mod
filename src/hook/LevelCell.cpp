@@ -1,5 +1,7 @@
 #include "LevelCell.hpp"
 
+#include <UIBuilder.hpp>
+
 void SendDBLevelCell::setLevelInfo(const std::optional<BatchLevel>& info) {
     auto& fields = *m_fields.self();
 
@@ -40,11 +42,11 @@ void SendDBLevelCell::createSendLabel() {
         }
     }
 
-    fields.sendLabel = CCLabelBMFont::create("0 sends", "bigFont.fnt");
-    fields.sendLabel->setScale(0.4f);
-    fields.sendLabel->setPosition({xPos, yPos});
-    fields.sendLabel->setAnchorPoint(anchor);
-    fields.sendLabel->setID("send-label"_spr);
-    fields.sendLabel->setVisible(false);
-    addChild(fields.sendLabel);
+    fields.sendLabel = Build<CCLabelBMFont>::create("0 sends", "bigFont.fnt")
+            .scale(0.4f)
+            .pos({xPos, yPos})
+            .anchorPoint(anchor)
+            .id("send-label"_spr)
+            .visible(false)
+            .parent(this);
 }

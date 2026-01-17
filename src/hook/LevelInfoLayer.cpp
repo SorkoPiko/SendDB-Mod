@@ -1,6 +1,9 @@
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
+
+#include <UIBuilder.hpp>
+
 #include <layer/LevelSendChartPopup.hpp>
 #include <manager/SendDBIntegration.hpp>
 
@@ -27,15 +30,14 @@ class $modify(SendDBLevelInfoLayer, LevelInfoLayer) {
 
     void placeButton() {
         const auto menu = getChildByID("other-menu");
-        const auto buttonPos = menu->getChildByID("favorite-button")->getPosition();
 
-        const auto sprite = CCSprite::create("logo-circle.png"_spr);
-        sprite->setScale(0.125f);
-
-        const auto button = CCMenuItemSpriteExtra::create(sprite, this, menu_selector(SendDBLevelInfoLayer::onChart));
-        button->setPosition(buttonPos.x + 38.0f, buttonPos.y);
-        button->setID("chart-button"_spr);
-        menu->addChild(button);
+        Build<CCSprite>::create("logo-circle.png"_spr)
+                .scale(0.125f)
+                .intoMenuItem(this, menu_selector(SendDBLevelInfoLayer::onLevelInfo))
+                .matchPos(menu->getChildByID("favorite-button"))
+                .move({38.0f, 0.0f})
+                .id("chart-button"_spr)
+                .parent(menu);
     }
 
     void onChart(CCObject* sender) {

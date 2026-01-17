@@ -1,6 +1,8 @@
 #include "SendInfoBox.hpp"
 
+#include <UIBuilder.hpp>
 #include <rock/RoundedRect.hpp>
+
 #include <utils/TimeUtils.hpp>
 
 std::string plural(const int num) {
@@ -15,7 +17,7 @@ std::string ago(const int num, const std::string& unit) {
     return s;
 }
 
-std::string timestampAgo(long long timestamp) {
+std::string timestampAgo(const long long timestamp) {
     const auto timeT = timestamp / 1000;
     tm timeInfo;
     time_t t = timeT;
@@ -72,32 +74,32 @@ bool SendInfoBox::init() {
     triangle->setBlendFunc({GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA});
     addChild(triangle);
 
-    const auto main = rock::RoundedRect::create(
+    Build(rock::RoundedRect::create(
         bgColor,
         3.0f,
         {60.0f, 30.0f}
-    );
-    main->setPosition({0.0f, 10.5f});
-    main->setAnchorPoint({0.0f, 0.0f});
-    addChild(main);
+    ))
+            .pos({0.0f, 10.5f})
+            .anchorPoint({0.0f, 0.0f})
+            .parent(this);
 
-    infoLabel = CCLabelBMFont::create("Send #1", "bigFont.fnt");
-    infoLabel->setScale(0.4f);
-    infoLabel->setPosition({30.0f, 40.0f});
-    infoLabel->setAnchorPoint({0.5f, 1.0f});
-    addChild(infoLabel);
+    infoLabel = Build<CCLabelBMFont>::create("Send #1", "bigFont.fnt")
+            .scale(0.4f)
+            .pos({30.0f, 40.0f})
+            .anchorPoint({0.5f, 1.0f})
+            .parent(this);
 
-    timeLabel = CCLabelBMFont::create("11:56AM 01/02/2026", "chatFont.fnt");
-    timeLabel->setScale(0.4f);
-    timeLabel->setPosition({30.0f, 23.0f});
-    timeLabel->setAnchorPoint({0.5f, 0.5f});
-    addChild(timeLabel);
+    timeLabel = Build<CCLabelBMFont>::create("11:56AM 01/02/2026", "chatFont.fnt")
+            .scale(0.4f)
+            .pos({30.0f, 23.0f})
+            .anchorPoint({0.5f, 0.5f})
+            .parent(this);
 
-    timeLabel2 = CCLabelBMFont::create("2 days ago", "chatFont.fnt");
-    timeLabel2->setScale(0.4f);
-    timeLabel2->setPosition({30.0f, 16.0f});
-    timeLabel2->setAnchorPoint({0.5f, 0.5f});
-    addChild(timeLabel2);
+    timeLabel2 = Build<CCLabelBMFont>::create("2 days ago", "chatFont.fnt")
+            .scale(0.4f)
+            .pos({30.0f, 16.0f})
+            .anchorPoint({0.5f, 0.5f})
+            .parent(this);
 
     setVisible(false);
 

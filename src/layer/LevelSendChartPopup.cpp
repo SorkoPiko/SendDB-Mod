@@ -3,6 +3,9 @@
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>
+
+#include <UIBuilder.hpp>
+
 #include <node/SendChartNode.hpp>
 #include <utils/PointUtils.hpp>
 
@@ -19,39 +22,37 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
     const CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 
-    const auto bg = CCScale9Sprite::create("GJ_square05.png", {0.0f, 0.0f, 80.0f, 80.0f});
-    bg->setContentSize(popupSize);
-    bg->setPosition({winSize.width / 2, winSize.height / 2});
-    bg->setID("bg"_spr);
-    m_mainLayer->addChild(bg, -1);
+    Build<CCScale9Sprite>::create("GJ_square05.png")
+            .contentSize(popupSize)
+            .pos({winSize.width / 2, winSize.height / 2})
+            .id("bg"_spr)
+            .parent(m_mainLayer)
+            .zOrder(-1);
 
-    m_buttonMenu = CCMenu::create();
-    m_buttonMenu->setID("menu"_spr);
-    m_buttonMenu->setContentSize(menuSize);
-    m_buttonMenu->setPosition({winSize.width / 2 - menuSize.x / 2, winSize.height / 2 - menuSize.y / 2});
-    m_mainLayer->addChild(m_buttonMenu, 10);
+    m_buttonMenu = Build<CCMenu>::create()
+            .contentSize(menuSize)
+            .pos({winSize.width / 2 - menuSize.x / 2, winSize.height / 2 - menuSize.y / 2})
+            .id("menu"_spr)
+            .zOrder(10)
+            .parent(m_mainLayer);
 
-    const auto closeButtonSprite = CircleButtonSprite::createWithSpriteFrameName("geode.loader/close.png", 0.85f, CircleBaseColor::Gray);
-    const auto closeBtn = CCMenuItemSpriteExtra::create(
-        closeButtonSprite,
-        this,
-        menu_selector(LevelSendChartPopup::onClose)
-    );
-    closeBtn->setPosition({menuSize.x + 5.0f, menuSize.y + 5.0f});
-    closeBtn->setScale(0.75f);
-    closeBtn->setID("close-button"_spr);
-    m_buttonMenu->addChild(closeBtn);
+    Build(CircleButtonSprite::createWithSpriteFrameName("geode.loader/close.png", 0.85f, CircleBaseColor::Gray))
+            .intoMenuItem(this, menu_selector(LevelSendChartPopup::onClose))
+            .pos({menuSize.x + 5.0f, menuSize.y + 5.0f})
+            .scale(0.75f)
+            .id("close-button"_spr)
+            .parent(m_buttonMenu);
 
-    chartNode = SendChartNode::create(
+    chartNode = Build(SendChartNode::create(
         levelData,
         CCSize(260, 150),
         1.0f,
         chartStyleFromString(Mod::get()->getSettingValue<std::string>("graphStyle"))
-    );
-    chartNode->setAnchorPoint({0.0f, 0.0f});
-    chartNode->setPosition({20.0f, 20.0f});
-    chartNode->setID("send-chart"_spr);
-    m_buttonMenu->addChild(chartNode);
+    ))
+            .anchorPoint({0.0f, 0.0f})
+            .pos({20.0f, 20.0f})
+            .id("send-chart"_spr)
+            .parent(m_buttonMenu);
 
     return true;
 }
