@@ -1,5 +1,6 @@
 #include "SendChartNode.hpp"
 
+#include <utils/LayoutUtils.hpp>
 #include <utils/PointUtils.hpp>
 #include <utils/TimeUtils.hpp>
 
@@ -183,12 +184,13 @@ void SendChartNode::update(const float delta) {
         ccc4FFromccc4B(selectLineColor)
     );
 
-    float closestDistanceSq = std::numeric_limits<float>::max();
+    float closestDistanceSq = FLT_MAX;
     hoveredPoint = nullptr;
 
     for (const auto& point : points) {
         if (PointUtils::isPointInsideNode(point, mousePos)) {
-            if (const float distanceSq = PointUtils::squaredDistanceFromNode(point, mousePos); distanceSq < closestDistanceSq) {
+            const float distanceSq = PointUtils::squaredDistanceFromNode(point, mousePos);
+            if (; distanceSq < closestDistanceSq) {
                 closestDistanceSq = distanceSq;
                 hoveredPoint = point;
             }
@@ -200,7 +202,7 @@ void SendChartNode::update(const float delta) {
     }
 
     positionLabel->setVisible(true);
-    positionLabel->setString(TimeUtils::timestampToDate(getTimestampFromX(position.x)).c_str());
+    positionLabel->setString(fmt::format("{} - {}", static_cast<int>(position.y), TimeUtils::timestampToDateTime(getTimestampFromX(position.x)).c_str()).c_str());
 }
 
 void SendChartNode::onClick(const CCPoint& position) {
@@ -217,9 +219,6 @@ void SendChartNode::onClick(const CCPoint& position) {
 }
 
 void SendChartNode::drawLabelsAndGrid() const {
-    constexpr int maxDays = 8;
-    constexpr int daySeconds = 24 * 60 * 60;
-    constexpr int hourSeconds = 60 * 60;
     int labelEveryY = 10;
     int gridLineEveryY = 5;
     constexpr ccColor4B labelLineColor = {150, 150, 150, 255};
@@ -229,79 +228,16 @@ void SendChartNode::drawLabelsAndGrid() const {
     const int maxX = static_cast<int>(ceil(chartDimensions.width));
     const int maxY = static_cast<int>(ceil(chartDimensions.height));
 
-    const int timeRangeSeconds = maxX;
-    const int timeRangeDays = timeRangeSeconds / daySeconds;
+    const int startTimeSeconds = static_cast<int>(startTimestamp / 1000LL);
 
-    int labelIntervalDays = std::max(1, (timeRangeDays + maxDays - 1) / maxDays);
-
-    constexpr int niceIntervals[] = {1, 2, 3, 5, 7, 10, 14, 15, 20, 30, 60, 90, 120, 180, 365};
-    for (const int interval : niceIntervals) {
-        if (interval >= labelIntervalDays) {
-            labelIntervalDays = interval;
-            break;
-        }
-    }
-
-    const int labelIntervalSeconds = labelIntervalDays * daySeconds;
-    constexpr int targetTicksPerLabel = 5;
-
-    std::vector<int> divisors;
-    for (int i = 1; i <= labelIntervalDays; i++) {
-        if (labelIntervalDays % i == 0) {
-            divisors.push_back(i);
-        }
-    }
-
-    int bestDivisor = 1;
-    int bestDiff = std::abs(labelIntervalDays / 1 - targetTicksPerLabel);
-
-    for (const int divisor : divisors) {
-        const int ticksPerLabel = labelIntervalDays / divisor;
-        if (const int diff = std::abs(ticksPerLabel - targetTicksPerLabel); diff < bestDiff) {
-            bestDiff = diff;
-            bestDivisor = divisor;
-        }
-    }
+    const XAxisLayout xLayout = LayoutUtils::calculateXAxisLayout(startTimeSeconds, maxX);
 
     if (maxY < 20) {
         labelEveryY = 5;
         gridLineEveryY = 2;
     }
 
-    const int tickIntervalDays = bestDivisor;
-    const int tickIntervalSeconds = tickIntervalDays * daySeconds;
-
-    const int gridLineIntervalSeconds = labelIntervalSeconds / 2;
-
-    auto tempLabel = CCLabelBMFont::create("100", "chatFont.fnt");
-    tempLabel->setScale(0.4f);
-    const float labelWidth = tempLabel->getScaledContentSize().width;
-    CC_SAFE_DELETE(tempLabel);
-
-    const int startTimeSeconds = startTimestamp / 1000;
-
-    auto now = std::chrono::system_clock::now();
-    auto localTime = std::chrono::zoned_time{std::chrono::current_zone(), now};
-    auto offset = localTime.get_info().offset;
-    int timezoneOffsetSeconds = std::chrono::duration_cast<std::chrono::seconds>(offset).count();
-
-    const int localStartSeconds = startTimeSeconds + timezoneOffsetSeconds;
-
-    const int daysSinceEpoch = localStartSeconds / daySeconds;
-    const int alignedLocalMidnight = daysSinceEpoch * daySeconds;
-
-    const int ticksSinceMidnight = (localStartSeconds - alignedLocalMidnight) / tickIntervalSeconds;
-    const int alignedLocalSeconds = alignedLocalMidnight + ticksSinceMidnight * tickIntervalSeconds;
-
-    const int alignedStartSeconds = alignedLocalSeconds - timezoneOffsetSeconds;
-    const int firstTickOffset = alignedStartSeconds - startTimeSeconds;
-
-    const int labelsSinceMidnight = (localStartSeconds - alignedLocalMidnight) / labelIntervalSeconds;
-    const int alignedLabelLocalSeconds = alignedLocalMidnight + (labelsSinceMidnight * labelIntervalSeconds);
-    const int alignedLabelStartSeconds = alignedLabelLocalSeconds - timezoneOffsetSeconds;
-    const int firstLabelOffset = alignedLabelStartSeconds - startTimeSeconds;
-
-    for (int seconds = firstTickOffset; seconds <= maxX; seconds += tickIntervalSeconds) {
+    for (int seconds = xLayout.firstTickOffset; seconds <= maxX; seconds += xLayout.tickIntervalSeconds) {
         if (seconds < 0) continue;
 
         const float scaledX = static_cast<float>(seconds) / chartDimensions.width * chartSize.width;
@@ -315,27 +251,11 @@ void SendChartNode::drawLabelsAndGrid() const {
 
         const int absoluteTimeSeconds = startTimeSeconds + seconds;
 
-        if ((seconds - firstLabelOffset) % labelIntervalSeconds == 0 && seconds >= firstLabelOffset) {
+        if ((seconds - xLayout.firstLabelOffset) % xLayout.labelIntervalSeconds == 0 && seconds >= xLayout.firstLabelOffset) {
             tickSprite->setScaleX(0.2f);
             tickSprite->setScaleX(0.2f);
 
-            std::string labelText;
-            if (labelIntervalSeconds >= daySeconds) {
-                time_t timestamp = absoluteTimeSeconds;
-                tm timeInfo;
-
-#ifdef _WIN32
-                localtime_s(&timeInfo, &timestamp);
-#else
-                localtime_r(&timestamp, &timeInfo);
-#endif
-
-                char buffer[16];
-                strftime(buffer, sizeof(buffer), "%d/%m/%Y", &timeInfo);
-                labelText = buffer;
-            } else {
-                labelText = std::to_string(absoluteTimeSeconds % daySeconds / hourSeconds) + "h";
-            }
+            std::string labelText = TimeUtils::timestampToDate(static_cast<long long>(absoluteTimeSeconds) * 1000LL);
 
             const auto label = CCLabelBMFont::create(labelText.c_str(), "chatFont.fnt");
             label->setPositionX(scaledX);
@@ -366,7 +286,8 @@ void SendChartNode::drawLabelsAndGrid() const {
             const auto labelText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
             labelText->setPositionY(scaledY);
             labelText->setScale(0.4f);
-            labelText->setPositionX(-tickSprite->getScaledContentSize().width - labelWidth);
+            labelText->setPositionX(-tickSprite->getScaledContentSize().width - 6.0f);
+            labelText->setAnchorPoint({1.0f, 0.5f});
             labelText->setColor({labelColor.r, labelColor.g, labelColor.b});
             labelText->setOpacity(labelColor.a);
             labelsNode->addChild(labelText);
@@ -378,12 +299,7 @@ void SendChartNode::drawLabelsAndGrid() const {
         tickSprite->setPositionX(-tickSprite->getScaledContentSize().width);
     }
 
-    const int gridTicksSinceMidnight = (localStartSeconds - alignedLocalMidnight) / gridLineIntervalSeconds;
-    const int alignedGridLocalSeconds = alignedLocalMidnight + gridTicksSinceMidnight * gridLineIntervalSeconds;
-    const int alignedGridStartSeconds = alignedGridLocalSeconds - timezoneOffsetSeconds;
-    const int firstGridOffset = alignedGridStartSeconds - startTimeSeconds;
-
-    for (int seconds = firstGridOffset; seconds <= maxX; seconds += gridLineIntervalSeconds) {
+    for (int seconds = xLayout.firstGridOffset; seconds <= maxX; seconds += xLayout.gridLineIntervalSeconds) {
         if (seconds < 0) continue;
 
         const float scaledX = static_cast<float>(seconds) / chartDimensions.width * chartSize.width;
@@ -433,6 +349,7 @@ SendChartNode* SendChartNode::create(const std::optional<Level>& level, const CC
 
 void SendChartNode::draw() {
     CCNode::draw();
+    graphLineNode->clear();
 
     constexpr ccColor3B sendColor = {0, 255, 0};
     constexpr ccColor3B rateColor = {212, 175, 55};

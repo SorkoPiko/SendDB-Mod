@@ -1,0 +1,35 @@
+#include "SendUtils.hpp"
+
+#include <algorithm>
+
+double SendUtils::calculateTrendingScore(const int timestamp, const std::vector<int>& sends) {
+    double score = 0.0;
+    for (const int send : sends) {
+        score += calculateIndividualTrendingScore(timestamp, send);
+    }
+    return score;
+}
+
+PeakTrendingScore SendUtils::calculatePeakTrendingScore(const std::vector<int>& sends) {
+    double peakScore = 0.0;
+    int peakTimestamp = 0;
+
+    std::vector<int> sendsCopy = sends;
+    std::ranges::sort(sendsCopy, std::less<int>());
+
+    for (const int timestamp : sendsCopy) {
+        const double score = calculateTrendingScore(timestamp, sendsCopy);
+        if (score > peakScore) {
+            peakScore = score;
+            peakTimestamp = timestamp;
+        }
+    }
+
+    return {peakScore, peakTimestamp};
+}
+
+double SendUtils::calculateIndividualTrendingScore(const int timestamp, const int sendTimestamp) {
+    const double ageInDays = (timestamp - sendTimestamp) / 86400.0;
+    if (ageInDays < 0.0 || ageInDays > 30.0) return 0.0;
+    return 25000.0 / pow(ageInDays + 2, 1);
+}

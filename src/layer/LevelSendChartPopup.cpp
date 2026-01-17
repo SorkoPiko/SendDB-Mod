@@ -44,12 +44,12 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
     chartNode = SendChartNode::create(
         levelData,
-        CCSize(300, 150),
+        CCSize(260, 150),
         1.0f,
         chartStyleFromString(Mod::get()->getSettingValue<std::string>("graphStyle"))
     );
-    chartNode->setAnchorPoint({0.5f, 0.5f});
-    chartNode->setPosition({menuSize.x / 2.0f, menuSize.y / 2.0f});
+    chartNode->setAnchorPoint({0.0f, 0.0f});
+    chartNode->setPosition({20.0f, 20.0f});
     chartNode->setID("send-chart"_spr);
     m_buttonMenu->addChild(chartNode);
 

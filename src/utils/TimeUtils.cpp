@@ -1,6 +1,8 @@
 #include "TimeUtils.hpp"
 
-std::string TimeUtils::timestampToDate(const long long timestamp) {
+#include <time.h>
+
+tm getLocalTime(const long long timestamp) {
     const auto timeT = timestamp / 1000;
     tm timeInfo;
 #ifdef _WIN32
@@ -8,8 +10,21 @@ std::string TimeUtils::timestampToDate(const long long timestamp) {
 #else
     localtime_r(&timeT, &timeInfo);
 #endif
+    return timeInfo;
+}
+
+std::string TimeUtils::timestampToDateTime(const long long timestamp) {
+    const auto timeInfo = getLocalTime(timestamp);
 
     char timeBuffer[64];
     strftime(timeBuffer, sizeof(timeBuffer), "%I:%M%p %d/%m/%Y", &timeInfo);
+    return timeBuffer;
+}
+
+std::string TimeUtils::timestampToDate(const long long timestamp) {
+    const auto timeInfo = getLocalTime(timestamp);
+
+    char timeBuffer[64];
+    strftime(timeBuffer, sizeof(timeBuffer), "%d/%m/%Y", &timeInfo);
     return timeBuffer;
 }

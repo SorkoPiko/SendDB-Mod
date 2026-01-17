@@ -3,7 +3,7 @@
 
 //#define SERVER_URL "https://api.senddb.dev/api/v1"
 #define SERVER_URL "http://127.0.0.1:8080/api/v1"
-//TODO: change back to production server url before release
+// TODO: change back to production server url before release
 
 #include <Geode/Prelude.hpp>
 #include <Geode/loader/Event.hpp>
@@ -36,7 +36,7 @@ public:
     }
 
     void getLevel(int levelID, const std::function<void(std::optional<Level>)>& callback, EventListener<web::WebTask>& listener);
-    void getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<Level>)>& callback, EventListener<web::WebTask>& listener);
+    std::vector<EventListener<web::WebTask>> getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback, std::shared_ptr<void> lifetimeTracker);
 };
 
 #endif

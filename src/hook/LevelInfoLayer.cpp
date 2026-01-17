@@ -26,15 +26,14 @@ class $modify(SendDBLevelInfoLayer, LevelInfoLayer) {
     }
 
     void placeButton() {
-        const auto menu = CCMenu::create();
-        menu->setPosition({50.0f, 50.0f});
-        menu->setContentSize({25.0f, 25.0f});
-        menu->setScale(0.5f);
-        menu->setID("chart-menu"_spr);
-        addChild(menu);
+        const auto menu = getChildByID("other-menu");
+        const auto buttonPos = menu->getChildByID("favorite-button")->getPosition();
 
-        const auto button = CCMenuItemSpriteExtra::create(CCSprite::create("logo-circle.png"_spr), this, menu_selector(SendDBLevelInfoLayer::onChart));
-        button->setPosition({0.0f, 0.0f});
+        const auto sprite = CCSprite::create("logo-circle.png"_spr);
+        sprite->setScale(0.125f);
+
+        const auto button = CCMenuItemSpriteExtra::create(sprite, this, menu_selector(SendDBLevelInfoLayer::onChart));
+        button->setPosition(buttonPos.x + 38.0f, buttonPos.y);
         button->setID("chart-button"_spr);
         menu->addChild(button);
     }

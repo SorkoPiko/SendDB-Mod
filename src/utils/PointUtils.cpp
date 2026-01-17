@@ -12,11 +12,14 @@ bool PointUtils::isPointInsideNode(CCNode* node, const CCPoint& touch) {
 }
 
 float PointUtils::squaredDistanceFromNode(CCNode* node, const CCPoint& touch) {
-    if (!node) return false;
+    if (!node) return FLT_MAX;
 
-    const CCPoint local = node->convertToNodeSpace(touch);
-    const auto rect = CCRect(0, 0, node->getContentWidth(), node->getContentHeight());
-    const CCPoint center = ccp(rect.getMidX(), rect.getMidY());
+    const CCPoint nodeCenter = ccp(
+        node->getContentWidth() / 2.0f,
+        node->getContentHeight() / 2.0f
+    );
 
-    return ccpDistanceSQ(local, center);
+    const CCPoint worldCenter = node->convertToWorldSpace(nodeCenter);
+
+    return ccpDistanceSQ(touch, worldCenter);
 }

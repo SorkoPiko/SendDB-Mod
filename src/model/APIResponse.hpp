@@ -34,11 +34,27 @@ struct Level {
     bool accurate;
     bool platformer;
     int32_t length;
+    int32_t rank;
+    int32_t rate_rank;
+    int32_t gamemode_rank;
+    int32_t joined_rank;
+    double trending_score;
+    std::optional<Rate> rate;
+};
+
+struct BatchLevel {
+    int32_t levelID;
+    int32_t send_count;
+    bool accurate;
+    bool platformer;
+    int32_t length;
+    int32_t rank;
+    double trending_score;
     std::optional<Rate> rate;
 };
 
 struct BatchResponse {
-    std::vector<Level> levels;
+    std::vector<BatchLevel> levels;
 };
 
 template <>
@@ -74,6 +90,11 @@ struct matjson::Serialize<Level> {
         GEODE_UNWRAP_INTO(const bool accurate, value["accurate"].asBool());
         GEODE_UNWRAP_INTO(const bool platformer, value["platformer"].asBool());
         GEODE_UNWRAP_INTO(const int32_t length, value["length"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t rank, value["rank"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t rate_rank, value["rate_rank"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t gamemode_rank, value["gamemode_rank"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t joined_rank, value["joined_rank"].asInt());
+        GEODE_UNWRAP_INTO(const double trending_score, value["trending_score"].asDouble());
 
         std::optional<Rate> rate;
         if (value.contains("rate") && !value["rate"].isNull()) {
@@ -81,7 +102,28 @@ struct matjson::Serialize<Level> {
             rate = r;
         }
 
-        return Ok(Level { levelID, sends, accurate, platformer, length, rate });
+        return Ok(Level { levelID, sends, accurate, platformer, length, rank, rate_rank, gamemode_rank, joined_rank, trending_score, rate });
+    }
+};
+
+template <>
+struct matjson::Serialize<BatchLevel> {
+    static Result<BatchLevel> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t levelID, value["level_id"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t send_count, value["send_count"].asInt());
+        GEODE_UNWRAP_INTO(const bool accurate, value["accurate"].asBool());
+        GEODE_UNWRAP_INTO(const bool platformer, value["platformer"].asBool());
+        GEODE_UNWRAP_INTO(const int32_t length, value["length"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t rank, value["rank"].asInt());
+        GEODE_UNWRAP_INTO(const double trending_score, value["trending_score"].asDouble());
+
+        std::optional<Rate> rate;
+        if (value.contains("rate") && !value["rate"].isNull()) {
+            GEODE_UNWRAP_INTO(const Rate r, value["rate"].as<Rate>());
+            rate = r;
+        }
+
+        return Ok(BatchLevel { levelID, send_count, accurate, platformer, length, rank, trending_score, rate });
     }
 };
 
@@ -89,9 +131,9 @@ template <>
 struct matjson::Serialize<BatchResponse> {
     static Result<BatchResponse> fromJson(const Value& value) {
         GEODE_UNWRAP_INTO(const std::vector<Value> levels_json, value["levels"].asArray());
-        std::vector<Level> levels;
+        std::vector<BatchLevel> levels;
         for (const Value& level_val : levels_json) {
-            GEODE_UNWRAP_INTO(const Level level, level_val.as<Level>());
+            GEODE_UNWRAP_INTO(const BatchLevel level, level_val.as<BatchLevel>());
             levels.push_back(level);
         }
         return Ok(BatchResponse { levels });

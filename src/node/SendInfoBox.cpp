@@ -159,7 +159,7 @@ void SendInfoBox::prepareSend() {
     const auto [timestamp] = sendData.value();
 
     infoLabel->setString(("Send #" + std::to_string(sendIndex)).c_str());
-    timeLabel->setString(TimeUtils::timestampToDate(timestamp).c_str());
+    timeLabel->setString(TimeUtils::timestampToDateTime(timestamp).c_str());
 
     updateSend();
 }
@@ -168,7 +168,7 @@ void SendInfoBox::prepareRate() {
     if (!rateData.has_value()) return;
 
     infoLabel->setString("Rated");
-    timeLabel->setString(TimeUtils::timestampToDate(rateData->timestamp).c_str());
+    timeLabel->setString(TimeUtils::timestampToDateTime(rateData->timestamp).c_str());
 
     updateRate();
 }
