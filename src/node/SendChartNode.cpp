@@ -202,7 +202,7 @@ void SendChartNode::update(const float delta) {
     }
 
     positionLabel->setVisible(true);
-    positionLabel->setString(fmt::format("{} - {}", static_cast<int>(position.y), TimeUtils::timestampToDateTime(getTimestampFromX(position.x)).c_str()).c_str());
+    positionLabel->setString(fmt::format("{} - {}", static_cast<int>(position.y / chartSize.height * chartDimensions.height), TimeUtils::timestampToDateTime(getTimestampFromX(position.x)).c_str()).c_str());
 }
 
 void SendChartNode::onClick(const CCPoint& position) {
