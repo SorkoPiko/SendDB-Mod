@@ -47,9 +47,20 @@ XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const in
     const int gridLineIntervalSeconds = labelIntervalSeconds / 2;
 
     const auto now = std::chrono::system_clock::now();
+    int timezoneOffsetSeconds;
+
+#ifdef _WIN32
     const auto localTime = std::chrono::zoned_time{std::chrono::current_zone(), now};
     const auto offset = localTime.get_info().offset;
-    const int timezoneOffsetSeconds = std::chrono::duration_cast<std::chrono::seconds>(offset).count();
+    timezoneOffsetSeconds = std::chrono::duration_cast<std::chrono::seconds>(offset).count();
+#else
+    time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+    tm local_tm;
+    localtime_r(&now_time_t, &local_tm);
+    timezoneOffsetSeconds = static_cast<int>(local_tm.tm_gmtoff);
+#endif
+
+    geode::log::info("tz: {}", timezoneOffsetSeconds);
 
     const int localStartSeconds = startTimestamp + timezoneOffsetSeconds;
 

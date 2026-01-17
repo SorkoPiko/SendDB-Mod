@@ -18,10 +18,11 @@ std::string ago(const int num, const std::string& unit) {
 std::string timestampAgo(long long timestamp) {
     const auto timeT = timestamp / 1000;
     tm timeInfo;
+    time_t t = timeT;
 #ifdef _WIN32
-    localtime_s(&timeInfo, &timeT);
+    localtime_s(&timeInfo, &t);
 #else
-    localtime_r(&timeT, &timeInfo);
+    localtime_r(&t, &timeInfo);
 #endif
 
     const auto now = std::chrono::system_clock::now();
