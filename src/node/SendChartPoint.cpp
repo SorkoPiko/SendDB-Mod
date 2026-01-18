@@ -63,3 +63,11 @@ const std::optional<Rate>& SendChartPoint::getRateData() const {
 int SendChartPoint::getSendIndex() const {
     return sendIndex;
 }
+
+void SendChartPoint::setPoint(const LineChartPoint& point) {
+    this->point = point;
+}
+
+std::optional<LineChartPoint> SendChartPoint::getPoint() const {
+    return point;
+}

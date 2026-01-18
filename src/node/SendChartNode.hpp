@@ -14,29 +14,21 @@ enum ChartStyle {
     LineChartStyle_Step
 };
 
-struct LineChartPoint {
-    float x;
-    float y;
-    bool rated;
-
-    LineChartPoint(const float x, const float y, const bool rated) : x(x), y(y), rated(rated) {}
-
-    [[nodiscard]] CCPoint toCCPoint() const {
-        return ccp(x, y);
-    }
-};
-
 class SendChartNode : public CCNode {
     std::vector<LineChartPoint> processedPoints;
     std::vector<SendChartPoint*> points;
     float lineWidth = 2.0f;
     CCSize chartSize;
     CCSize chartDimensions;
+    CCRect viewport;
     ChartStyle chartStyle = LineChartStyle_Line;
     long long startTimestamp = 0;
     std::optional<Level> levelData;
 
+    bool hovering = false;
     SendChartPoint* hoveredPoint = nullptr;
+
+    std::optional<CCPoint> touchPoint;
 
     CCNode* labelsNode = nullptr;
     CCDrawNode* gridNode = nullptr;
@@ -50,10 +42,14 @@ class SendChartNode : public CCNode {
 
     void update(float delta) override;
 
+    void handleZoom(const CCPoint& start, const CCPoint& end);
     void drawLabelsAndGrid() const;
-    LineChartPoint scalePoint(const LineChartPoint& point) const;
 
-    float getTimestampFromX(float x) const;
+    [[nodiscard]] LineChartPoint scalePoint(const LineChartPoint& point) const;
+    [[nodiscard]] CCPoint scalePoint(const CCPoint& point) const;
+    [[nodiscard]] CCPoint screenToChartPoint(const CCPoint& screenPoint) const;
+
+    [[nodiscard]] float getTimestampFromX(float x) const;
 
 public:
     static SendChartNode* create(
@@ -63,9 +59,12 @@ public:
         ChartStyle style = LineChartStyle_Line
     );
 
+    CCPoint applyViewportScaling(const CCPoint& point) const;
+
     void draw() override;
 
     void onClick(const CCPoint& position);
+    void onRelease(const CCPoint& position);
 };
 
 static ChartStyle chartStyleFromString(const std::string& str) {

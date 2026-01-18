@@ -33,11 +33,11 @@ class $modify(SendDBLevelInfoLayer, LevelInfoLayer) {
 
         Build<CCSprite>::create("logo-circle.png"_spr)
                 .scale(0.125f)
-                .intoMenuItem(this, menu_selector(SendDBLevelInfoLayer::onLevelInfo))
+                .intoMenuItem(this, menu_selector(SendDBLevelInfoLayer::onChart))
+                .parent(menu)
                 .matchPos(menu->getChildByID("favorite-button"))
                 .move({38.0f, 0.0f})
-                .id("chart-button"_spr)
-                .parent(menu);
+                .id("chart-button"_spr);
     }
 
     void onChart(CCObject* sender) {

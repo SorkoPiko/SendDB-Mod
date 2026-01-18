@@ -73,6 +73,12 @@ bool LevelSendChartPopup::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     return true;
 }
 
+void LevelSendChartPopup::ccTouchEnded(CCTouch* touch, CCEvent* event) {
+    FLAlertLayer::ccTouchEnded(touch, event);
+
+    chartNode->onRelease(touch->getLocation());
+}
+
 LevelSendChartPopup* LevelSendChartPopup::create(const GJGameLevel* level, const int levelID, const std::optional<Level>& levelData) {
     if (const auto newLayer = new LevelSendChartPopup(); newLayer->init(level, levelID, levelData)) {
         newLayer->autorelease();

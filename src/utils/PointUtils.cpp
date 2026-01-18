@@ -12,7 +12,7 @@ bool PointUtils::isPointInsideNode(CCNode* node, const CCPoint& touch) {
 }
 
 float PointUtils::squaredDistanceFromNode(CCNode* node, const CCPoint& touch) {
-    if (!node) return FLT_MAX;
+    if (!node) return std::numeric_limits<float>::max();
 
     const CCPoint nodeCenter = ccp(
         node->getContentWidth() / 2.0f,

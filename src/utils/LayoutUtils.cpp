@@ -6,7 +6,7 @@
 #include <Geode/loader/Log.hpp>
 
 XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const int timeRange) {
-    constexpr int maxDays = 8;
+    constexpr int maxDays = 7;
     constexpr int daySeconds = 24 * 60 * 60;
     constexpr int targetTicksPerLabel = 5;
 
@@ -19,6 +19,15 @@ XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const in
         if (interval >= labelIntervalDays) {
             labelIntervalDays = interval;
             break;
+        }
+    }
+
+    while (timeRange / (labelIntervalDays * daySeconds) >= maxDays) {
+        auto it = std::ranges::find(niceIntervals, labelIntervalDays);
+        if (it != std::end(niceIntervals) - 1) {
+            labelIntervalDays = *++it;
+        } else {
+            labelIntervalDays += 30;
         }
     }
 
@@ -47,20 +56,17 @@ XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const in
     const int gridLineIntervalSeconds = labelIntervalSeconds / 2;
 
     const auto now = std::chrono::system_clock::now();
-    int timezoneOffsetSeconds;
 
 #ifdef _WIN32
     const auto localTime = std::chrono::zoned_time{std::chrono::current_zone(), now};
     const auto offset = localTime.get_info().offset;
-    timezoneOffsetSeconds = std::chrono::duration_cast<std::chrono::seconds>(offset).count();
+    const int timezoneOffsetSeconds = std::chrono::duration_cast<std::chrono::seconds>(offset).count();
 #else
     time_t now_time_t = std::chrono::system_clock::to_time_t(now);
     tm local_tm;
     localtime_r(&now_time_t, &local_tm);
-    timezoneOffsetSeconds = static_cast<int>(local_tm.tm_gmtoff);
+    const int timezoneOffsetSeconds = static_cast<int>(local_tm.tm_gmtoff);
 #endif
-
-    geode::log::info("tz: {}", timezoneOffsetSeconds);
 
     const int localStartSeconds = startTimestamp + timezoneOffsetSeconds;
 
