@@ -172,7 +172,7 @@ void SendInfoBox::prepareSend() {
 void SendInfoBox::prepareRate() {
     if (!rateData.has_value()) return;
 
-    infoLabel->setString("Rated");
+    infoLabel->setString(fmt::format("Rated{}", rateData->accurate ? "" : "(?)").c_str());
     timeLabel->setString(TimeUtils::timestampToDateTime(rateData->timestamp).c_str());
 
     updateRate();

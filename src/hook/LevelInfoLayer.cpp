@@ -7,24 +7,39 @@
 
 #include <layer/LevelSendChartPopup.hpp>
 #include <manager/SendDBIntegration.hpp>
+#include <utils/MultiCallback.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SendDBLevelInfoLayer, LevelInfoLayer) {
     struct Fields {
-        EventListener<web::WebTask> listener;
+        EventListener<web::WebTask> levelListener;
         std::optional<Level> levelInfo;
+        EventListener<web::WebTask> creatorListener;
+        std::optional<Creator> creator;
+        std::shared_ptr<MultiCallback> callback;
     };
 
     bool init(GJGameLevel* level, const bool p1) {
         if (!LevelInfoLayer::init(level, p1)) return false;
 
+        m_fields->callback = std::make_shared<MultiCallback>([this] {
+            placeButton();
+        }, 2);
+
         SendDBIntegration::get()->getLevel(level->m_levelID.value(), [this](const std::optional<Level>& levelData) {
             if (levelData.has_value()) {
                 m_fields->levelInfo = levelData;
-                placeButton();
+                (*m_fields->callback)(1);
             }
-        }, m_fields->listener);
+        }, m_fields->levelListener);
+
+        SendDBIntegration::get()->getCreator(level->m_userID.value(), [this](const std::optional<Creator>& creatorData) {
+            if (creatorData.has_value()) {
+                m_fields->creator = creatorData;
+                (*m_fields->callback)(2);
+            }
+        }, m_fields->creatorListener);
 
         return true;
     }
@@ -42,7 +57,7 @@ class $modify(SendDBLevelInfoLayer, LevelInfoLayer) {
     }
 
     void onChart(CCObject* sender) {
-        const auto chart = LevelSendChartPopup::create(m_level, m_level->m_levelID, m_fields->levelInfo);
+        const auto chart = LevelSendChartPopup::create(m_level, m_level->m_levelID, m_fields->levelInfo, m_fields->creator);
         chart->show();
     }
 };

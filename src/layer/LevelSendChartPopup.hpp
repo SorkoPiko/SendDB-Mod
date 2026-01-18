@@ -11,10 +11,11 @@ class LevelSendChartPopup final : public FLAlertLayer {
     int levelID = 0;
     std::string levelName, creator;
     std::optional<Level> levelData;
+    std::optional<Creator> creatorData;
 
     SendChartNode* chartNode = nullptr;
 
-    bool init(const GJGameLevel* level, int _levelID, const std::optional<Level>& _levelData);
+    bool init(const GJGameLevel* level, int _levelID, const std::optional<Level>& _levelData, const std::optional<Creator>& _creatorData);
 
     bool ccTouchBegan(CCTouch* touch, CCEvent* event) override;
     void ccTouchEnded(CCTouch* touch, CCEvent* event) override;
@@ -22,7 +23,7 @@ class LevelSendChartPopup final : public FLAlertLayer {
     void onClose(CCObject* sender);
 
 public:
-    static LevelSendChartPopup* create(const GJGameLevel* level, int levelID, const std::optional<Level>& levelData);
+    static LevelSendChartPopup* create(const GJGameLevel* level, int levelID, const std::optional<Level>& levelData, const std::optional<Creator>& creatorData);
     void show() override;
 };
 

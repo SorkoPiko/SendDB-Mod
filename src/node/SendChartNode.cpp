@@ -164,6 +164,7 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
         levelData = levelValue;
     }
 
+    drawGraph();
     drawLabelsAndGrid();
 
     return true;
@@ -239,27 +240,6 @@ void SendChartNode::update(const float delta) {
     positionLabel->setString(fmt::format("{} - {}", static_cast<int>(position.y / chartSize.height * viewport.size.height + viewport.origin.y), TimeUtils::timestampToDateTime(getTimestampFromX(position.x)).c_str()).c_str());
 }
 
-void SendChartNode::onClick(const CCPoint& position) {
-    if (hoveredPoint && PointUtils::isPointInsideNode(hoveredPoint, position)) {
-        sendInfoBox->setPosition(hoveredPoint->getPosition());
-        if (const auto sendData = hoveredPoint->getSendData(); sendData.has_value()) {
-            sendInfoBox->setSendData(sendData, hoveredPoint->getSendIndex());
-        } else if (const auto rateData = hoveredPoint->getRateData(); rateData.has_value()) {
-            sendInfoBox->setRateData(rateData);
-        }
-    } else {
-        sendInfoBox->clearData();
-        touchPoint = convertToNodeSpace(position);
-    }
-}
-
-void SendChartNode::onRelease(const CCPoint& position) {
-    if (PointUtils::isPointInsideNode(this, position) && touchPoint.has_value()) {
-        handleZoom(touchPoint.value(), convertToNodeSpace(position));
-    }
-    touchPoint = std::nullopt;
-}
-
 void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
     const float minX = std::min(start.x, end.x);
     const float maxX = std::max(start.x, end.x);
@@ -284,7 +264,50 @@ void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
         point->setPosition(scaledPoint);
     }
 
+    drawGraph();
     drawLabelsAndGrid();
+}
+
+void SendChartNode::drawGraph() {
+    graphLineNode->clear();
+
+    constexpr ccColor3B sendColor = {0, 255, 0};
+    constexpr ccColor3B rateColor = {212, 175, 55};
+
+    const ccColor4F sendColorF = ccc4FFromccc3B(sendColor);
+    const ccColor4F rateColorF = ccc4FFromccc3B(rateColor);
+
+    const auto scale = ccp(
+        chartDimensions.width / viewport.size.width,
+        chartDimensions.height / viewport.size.height
+    );
+    const auto offset = -scalePoint(viewport.origin);
+
+    if (processedPoints.size() < 2) return;
+
+    switch (chartStyle) {
+        case LineChartStyle_Line:
+            for (size_t i = 1; i < processedPoints.size(); i++) {
+                ccColor4F color = sendColorF;
+                if (processedPoints[i - 1].rated) color = rateColorF;
+
+                graphLineNode->drawSegment((processedPoints[i - 1].toCCPoint() + offset) * scale, (processedPoints[i].toCCPoint() + offset) * scale, lineWidth, color);
+            }
+            break;
+        case LineChartStyle_Step:
+            for (size_t i = 1; i < processedPoints.size(); i++) {
+                ccColor4F color = sendColorF;
+                if (processedPoints[i - 1].rated) color = rateColorF;
+
+                CCPoint prevPoint = processedPoints[i - 1].toCCPoint();
+                CCPoint currPoint = processedPoints[i].toCCPoint();
+                CCPoint stepPoint = ccp(currPoint.x, prevPoint.y);
+
+                graphLineNode->drawSegment((prevPoint + offset) * scale, (stepPoint + offset) * scale, lineWidth, color);
+                graphLineNode->drawSegment((stepPoint + offset) * scale, (currPoint + offset) * scale, lineWidth, color);
+            }
+            break;
+    }
 }
 
 void SendChartNode::drawLabelsAndGrid() const {
@@ -433,6 +456,12 @@ CCPoint SendChartNode::screenToChartPoint(const CCPoint& screenPoint) const {
     };
 }
 
+CCPoint SendChartNode::applyViewportScaling(const CCPoint& point) const {
+    return CCPoint{
+        (point.x - viewport.origin.x) / viewport.size.width * chartSize.width,
+        (point.y - viewport.origin.y) / viewport.size.height * chartSize.height
+    };
+}
 
 float SendChartNode::getTimestampFromX(const float x) const {
     const float seconds = x / chartSize.width * viewport.size.width + viewport.origin.x;
@@ -449,52 +478,25 @@ SendChartNode* SendChartNode::create(const std::optional<Level>& level, const CC
     return nullptr;
 }
 
-CCPoint SendChartNode::applyViewportScaling(const CCPoint& point) const {
-    return CCPoint{
-        (point.x - viewport.origin.x) / viewport.size.width * chartSize.width,
-        (point.y - viewport.origin.y) / viewport.size.height * chartSize.height
-    };
+void SendChartNode::onClick(const CCPoint& position) {
+    if (hoveredPoint && hoveredPoint != selectedPoint && PointUtils::isPointInsideNode(hoveredPoint, position)) {
+        sendInfoBox->setPosition(hoveredPoint->getPosition());
+        selectedPoint = hoveredPoint;
+        if (const auto sendData = hoveredPoint->getSendData(); sendData.has_value()) {
+            sendInfoBox->setSendData(sendData, hoveredPoint->getSendIndex());
+        } else if (const auto rateData = hoveredPoint->getRateData(); rateData.has_value()) {
+            sendInfoBox->setRateData(rateData);
+        }
+    } else {
+        sendInfoBox->clearData();
+        selectedPoint = nullptr;
+        touchPoint = convertToNodeSpace(position);
+    }
 }
 
-void SendChartNode::draw() {
-    CCNode::draw();
-    graphLineNode->clear();
-
-    constexpr ccColor3B sendColor = {0, 255, 0};
-    constexpr ccColor3B rateColor = {212, 175, 55};
-
-    const ccColor4F sendColorF = ccc4FFromccc3B(sendColor);
-    const ccColor4F rateColorF = ccc4FFromccc3B(rateColor);
-
-    const auto scale = ccp(
-        chartDimensions.width / viewport.size.width,
-        chartDimensions.height / viewport.size.height
-    );
-    const auto offset = -scalePoint(viewport.origin);
-
-    if (processedPoints.size() < 2) return;
-
-    switch (chartStyle) {
-        case LineChartStyle_Line:
-            for (size_t i = 1; i < processedPoints.size(); i++) {
-                ccColor4F color = sendColorF;
-                if (processedPoints[i - 1].rated) color = rateColorF;
-
-                graphLineNode->drawSegment((processedPoints[i - 1].toCCPoint() + offset) * scale, (processedPoints[i].toCCPoint() + offset) * scale, lineWidth, color);
-            }
-            break;
-        case LineChartStyle_Step:
-            for (size_t i = 1; i < processedPoints.size(); i++) {
-                ccColor4F color = sendColorF;
-                if (processedPoints[i - 1].rated) color = rateColorF;
-
-                CCPoint prevPoint = processedPoints[i - 1].toCCPoint();
-                CCPoint currPoint = processedPoints[i].toCCPoint();
-                CCPoint stepPoint = ccp(currPoint.x, prevPoint.y);
-
-                graphLineNode->drawSegment(prevPoint * scale + offset, stepPoint * scale + offset, lineWidth, color);
-                graphLineNode->drawSegment(stepPoint * scale + offset, currPoint * scale + offset, lineWidth, color);
-            }
-            break;
+void SendChartNode::onRelease(const CCPoint& position) {
+    if (PointUtils::isPointInsideNode(this, position) && touchPoint.has_value()) {
+        handleZoom(touchPoint.value(), convertToNodeSpace(position));
     }
+    touchPoint = std::nullopt;
 }

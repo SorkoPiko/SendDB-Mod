@@ -36,7 +36,8 @@ public:
     }
 
     void getLevel(int levelID, const std::function<void(std::optional<Level>)>& callback, EventListener<web::WebTask>& listener);
-    std::vector<EventListener<web::WebTask>> getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback, std::shared_ptr<void> lifetimeTracker);
+    std::vector<EventListener<web::WebTask>> getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback);
+    void getCreator(int creatorID, const std::function<void(std::optional<Creator>)>& callback, EventListener<web::WebTask>& listener);
 };
 
 #endif

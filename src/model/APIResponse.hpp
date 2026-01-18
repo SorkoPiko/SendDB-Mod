@@ -20,6 +20,11 @@ struct Send {
     }
 };
 
+struct CreatorLevel {
+    int32_t levelID;
+    int32_t send_count;
+};
+
 struct Rate {
     int32_t difficulty;
     int32_t points;
@@ -53,6 +58,18 @@ struct BatchLevel {
     std::optional<Rate> rate;
 };
 
+struct Creator {
+    int32_t playerID;
+    int32_t accountID;
+    std::vector<CreatorLevel> levels;
+    int32_t send_count;
+    int32_t recent_sends;
+    double send_count_stddev;
+    double trending_score;
+    int64_t latest_send;
+    int32_t rank;
+};
+
 struct BatchResponse {
     std::vector<BatchLevel> levels;
 };
@@ -62,6 +79,15 @@ struct matjson::Serialize<Send> {
     static Result<Send> fromJson(const Value& value) {
         GEODE_UNWRAP_INTO(const int64_t timestamp, value["timestamp"].asInt());
         return Ok(Send { timestamp });
+    }
+};
+
+template <>
+struct matjson::Serialize<CreatorLevel> {
+    static Result<CreatorLevel> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t levelID, value["level_id"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t send_count, value["send_count"].asInt());
+        return Ok(CreatorLevel { levelID, send_count });
     }
 };
 
@@ -124,6 +150,27 @@ struct matjson::Serialize<BatchLevel> {
         }
 
         return Ok(BatchLevel { levelID, send_count, accurate, platformer, length, rank, trending_score, rate });
+    }
+};
+
+template <>
+struct matjson::Serialize<Creator> {
+    static Result<Creator> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t playerID, value["player_id"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t accountID, value["account_id"].asInt());
+        GEODE_UNWRAP_INTO(std::vector<Value> levels_json, value["levels"].asArray());
+        std::vector<CreatorLevel> levels;
+        for (const Value& level_val : levels_json) {
+            GEODE_UNWRAP_INTO(const CreatorLevel level, level_val.as<CreatorLevel>());
+            levels.push_back(level);
+        }
+        GEODE_UNWRAP_INTO(const int32_t send_count, value["send_count"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t recent_sends, value["recent_sends"].asInt());
+        GEODE_UNWRAP_INTO(const double send_count_stddev, value["send_count_stddev"].asDouble());
+        GEODE_UNWRAP_INTO(const double trending_score, value["trending_score"].asDouble());
+        GEODE_UNWRAP_INTO(const int64_t latest_send, value["latest_send"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t rank, value["rank"].asInt());
+        return Ok(Creator { playerID, accountID, levels, send_count, recent_sends, send_count_stddev, trending_score, latest_send, rank });
     }
 };
 

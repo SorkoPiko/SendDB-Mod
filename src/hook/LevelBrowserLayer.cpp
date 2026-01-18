@@ -13,7 +13,6 @@ using namespace geode::prelude;
 class $modify(SendDBLevelBrowserLayer, LevelBrowserLayer) {
     struct Fields {
         EventListener<web::WebTask> listener;
-        std::shared_ptr<void> lifetimeTracker = std::make_shared<int>(0);
         std::unordered_map<int, BatchLevel> levels;
 
         std::vector<EventListener<web::WebTask>> listeners;
@@ -36,7 +35,7 @@ class $modify(SendDBLevelBrowserLayer, LevelBrowserLayer) {
                 m_fields->levels[batchLevel.levelID] = batchLevel;
             }
             refreshSendLabels();
-        }, m_fields->lifetimeTracker);
+        });
     }
 
     void refreshSendLabels() {

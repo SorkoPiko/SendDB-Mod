@@ -76,7 +76,7 @@ void SendDBIntegration::getLevel(const int levelID, const std::function<void(std
             callback(std::nullopt);
         } else {
             if (const Result<Level> result = data.as<Level>(); result.isOk()) {
-                const Level level = result.unwrap();
+                const Level& level = result.unwrap();
                 cache.cacheLevel(level.levelID, level);
                 callback(level);
             } else {
@@ -87,7 +87,7 @@ void SendDBIntegration::getLevel(const int levelID, const std::function<void(std
     }, listener);
 }
 
-std::vector<EventListener<web::WebTask>> SendDBIntegration::getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback, std::shared_ptr<void> lifetimeTracker) {
+std::vector<EventListener<web::WebTask>> SendDBIntegration::getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback) {
     std::vector<BatchLevel> cachedLevels;
     std::vector<int> uncachedIDs;
 
@@ -152,4 +152,32 @@ std::vector<EventListener<web::WebTask>> SendDBIntegration::getLevels(const std:
     }
 
     return chunkListeners;
+}
+
+void SendDBIntegration::getCreator(const int creatorID, const std::function<void(std::optional<Creator>)>& callback, EventListener<web::WebTask>& listener) {
+    if (const auto cachedCreator = cache.getCreator(creatorID)) {
+        callback(cachedCreator.value());
+        return;
+    }
+
+    sendGetRequest(SERVER_URL "/creator/" + std::to_string(creatorID), [this, callback, creatorID](const matjson::Value& data) {
+        if (data.contains("error")) {
+            const std::string error = data["error"].asString().unwrapOrDefault();
+            if (error == "Creator not found") {
+                cache.cacheLevel(creatorID, std::nullopt);
+            } else {
+                log::error("Failed to get creator {}: {}", creatorID, error);
+            }
+            callback(std::nullopt);
+        } else {
+            if (const Result<Creator> result = data.as<Creator>(); result.isOk()) {
+                const Creator& creator = result.unwrap();
+                cache.cacheCreator(creator.playerID, creator);
+                callback(creator);
+            } else {
+                log::error("Failed to parse creator {}: {}", creatorID, result.unwrapErr());
+                callback(std::nullopt);
+            }
+        }
+    }, listener);
 }

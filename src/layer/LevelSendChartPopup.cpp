@@ -13,11 +13,12 @@
 constexpr CCPoint popupSize = {400.0f, 250.0f};
 constexpr CCPoint menuSize = {390.0f, 240.0f};
 
-bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, const std::optional<Level>& _levelData) {
+bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, const std::optional<Level>& _levelData, const std::optional<Creator>& _creatorData) {
     if (!FLAlertLayer::init(75)) return false;
 
     levelID = _levelID;
-    if (_levelData.has_value()) levelData = _levelData.value();
+    levelData = _levelData;
+    creatorData = _creatorData;
     levelName = level->m_levelName;
     creator = level->m_creatorName.empty() ? "Unknown" : level->m_creatorName;
 
@@ -80,8 +81,8 @@ void LevelSendChartPopup::ccTouchEnded(CCTouch* touch, CCEvent* event) {
     chartNode->onRelease(touch->getLocation());
 }
 
-LevelSendChartPopup* LevelSendChartPopup::create(const GJGameLevel* level, const int levelID, const std::optional<Level>& levelData) {
-    if (const auto newLayer = new LevelSendChartPopup(); newLayer->init(level, levelID, levelData)) {
+LevelSendChartPopup* LevelSendChartPopup::create(const GJGameLevel* level, const int levelID, const std::optional<Level>& levelData, const std::optional<Creator>& creatorData) {
+    if (const auto newLayer = new LevelSendChartPopup(); newLayer->init(level, levelID, levelData, creatorData)) {
         newLayer->autorelease();
         return newLayer;
     } else {

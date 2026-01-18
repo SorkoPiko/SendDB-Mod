@@ -26,6 +26,7 @@ class SendChartNode : public CCNode {
 
     bool hovering = false;
     SendChartPoint* hoveredPoint = nullptr;
+    SendChartPoint* selectedPoint = nullptr;
 
     std::optional<CCPoint> touchPoint;
 
@@ -42,11 +43,13 @@ class SendChartNode : public CCNode {
     void update(float delta) override;
 
     void handleZoom(const CCPoint& start, const CCPoint& end);
+    void drawGraph();
     void drawLabelsAndGrid() const;
 
     [[nodiscard]] LineChartPoint scalePoint(const LineChartPoint& point) const;
     [[nodiscard]] CCPoint scalePoint(const CCPoint& point) const;
     [[nodiscard]] CCPoint screenToChartPoint(const CCPoint& screenPoint) const;
+    [[nodiscard]] CCPoint applyViewportScaling(const CCPoint& point) const;
 
     [[nodiscard]] float getTimestampFromX(float x) const;
 
@@ -57,10 +60,6 @@ public:
         float lineWidth = 2.0f,
         ChartStyle style = LineChartStyle_Line
     );
-
-    CCPoint applyViewportScaling(const CCPoint& point) const;
-
-    void draw() override;
 
     void onClick(const CCPoint& position);
     void onRelease(const CCPoint& position);
