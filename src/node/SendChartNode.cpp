@@ -287,7 +287,7 @@ void SendChartNode::drawGraph() {
     if (processedPoints.size() < 2) return;
 
     switch (chartStyle) {
-        case LineChartStyle_Line:
+        case Line:
             for (size_t i = 1; i < processedPoints.size(); i++) {
                 ccColor4F color = sendColorF;
                 if (processedPoints[i - 1].rated) color = rateColorF;
@@ -295,7 +295,7 @@ void SendChartNode::drawGraph() {
                 graphLineNode->drawSegment((processedPoints[i - 1].toCCPoint() + offset) * scale, (processedPoints[i].toCCPoint() + offset) * scale, lineWidth, color);
             }
             break;
-        case LineChartStyle_Step:
+        case Step:
             for (size_t i = 1; i < processedPoints.size(); i++) {
                 ccColor4F color = sendColorF;
                 if (processedPoints[i - 1].rated) color = rateColorF;

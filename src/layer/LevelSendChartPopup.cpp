@@ -6,6 +6,7 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 
 #include <UIBuilder.hpp>
+#include <node/RankingNode.hpp>
 
 #include <node/SendChartNode.hpp>
 #include <utils/PointUtils.hpp>
@@ -55,6 +56,74 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             .pos({20.0f, 20.0f})
             .id("send-chart"_spr)
             .parent(m_buttonMenu);
+
+    std::vector creatorLevels = creatorData.has_value() ? creatorData->levels : std::vector<CreatorLevel>{};
+    std::ranges::sort(creatorLevels, [](const CreatorLevel& a, const CreatorLevel& b) {
+        return a.send_count > b.send_count;
+    });
+    std::vector<int> levelIDs;
+    std::ranges::transform(creatorLevels, std::back_inserter(levelIDs), [](const CreatorLevel& c) {
+        return c.levelID;
+    });
+
+    if (levelData.has_value()) {
+        auto menu = Build<CCMenu>::create()
+                .anchorPoint({0.0f, 1.0f})
+                // .contentSize({260.0f, 300.0f})
+                .pos({282.0f, 170.0f})
+                .layout(ColumnLayout::create()
+                    ->setAxisAlignment(AxisAlignment::End)
+                    ->setCrossAxisLineAlignment(AxisAlignment::Start)
+                    ->setAxisReverse(true)
+                    ->setAutoGrowAxis(true)
+                    ->setAutoScale(false)
+                    ->setGap(23.0f)
+                )
+                .parent(m_buttonMenu);
+
+        Build<CCLabelBMFont>::create("Rankings", "bigFont.fnt")
+                .anchorPoint({0.5f, 0.5f})
+                .posX(menu->getScaledContentWidth() / 2.0f)
+                .scale(0.7f)
+                .parent(menu);
+
+        const Level levelInfo = levelData.value();
+        SeedValueRSV stars = level->m_stars;
+
+        Build<RankingNode>::create(levelInfo.rank, std::nullopt)
+                .scale(0.6f)
+                .anchorPoint({0.0f, 0.5f})
+                .parent(menu);
+
+        if (const auto it = std::ranges::find(levelIDs, levelID); it != levelIDs.end()) {
+            const size_t index = it - levelIDs.begin();
+            const int rank = static_cast<int>(index) + 1;
+            Build<RankingNode>::create(rank, static_cast<int>(levelIDs.size()), RankingFilter::User)
+                    .scale(0.6f)
+                    .anchorPoint({0.0f, 0.5f})
+                    .parent(menu);
+        }
+
+        const RankingFilter rateFilter = stars.value() > 0 ? RankingFilter::Rated : RankingFilter::Unrated;
+        const RankingFilter gamemodeFilter = level->m_levelLength > 4 ? RankingFilter::Platformer : RankingFilter::Classic;
+
+        Build<RankingNode>::create(levelInfo.rate_rank, std::nullopt, rateFilter)
+                .scale(0.6f)
+                .anchorPoint({0.0f, 0.5f})
+                .parent(menu);
+
+        Build<RankingNode>::create(levelInfo.gamemode_rank, std::nullopt, gamemodeFilter)
+                .scale(0.6f)
+                .anchorPoint({0.0f, 0.5f})
+                .parent(menu);
+
+        Build<RankingNode >::create(levelInfo.joined_rank, std::nullopt, rateFilter, gamemodeFilter)
+                .scale(0.6f)
+                .anchorPoint({0.0f, 0.5f})
+                .parent(menu);
+
+        menu->updateLayout();
+    }
 
     return true;
 }
