@@ -254,6 +254,7 @@ void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
     const CCRect newDimensions = {fixedStart, fixedEnd - fixedStart};
     const CCRect scaledDimensions = {scaledStart, scaledEnd - scaledStart};
     if (newDimensions.size.width < 5.0f || newDimensions.size.height < 5.0f) {
+        if (hoveredPoint) return;
         viewport = {{0, 0}, chartDimensions};
     } else {
         viewport = scaledDimensions;
