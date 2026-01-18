@@ -1,3 +1,4 @@
+#include <Geode/Geode.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>

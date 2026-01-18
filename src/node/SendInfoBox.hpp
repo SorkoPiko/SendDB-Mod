@@ -1,7 +1,6 @@
 #ifndef SENDDB_SENDINFOBOX_HPP
 #define SENDDB_SENDINFOBOX_HPP
 
-#include <Geode/Geode.hpp>
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/label_nodes/CCLabelBMFont.h>
 #include <model/APIResponse.hpp>

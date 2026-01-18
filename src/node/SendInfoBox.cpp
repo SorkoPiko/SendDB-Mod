@@ -1,5 +1,7 @@
 #include "SendInfoBox.hpp"
 
+#include <Geode/Geode.hpp>
+
 #include <UIBuilder.hpp>
 #include <rock/RoundedRect.hpp>
 

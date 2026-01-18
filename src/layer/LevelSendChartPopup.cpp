@@ -1,5 +1,6 @@
 #include "LevelSendChartPopup.hpp"
 
+#include <Geode/Geode.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/BasedButtonSprite.hpp>

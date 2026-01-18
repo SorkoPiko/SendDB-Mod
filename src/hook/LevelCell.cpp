@@ -1,5 +1,7 @@
 #include "LevelCell.hpp"
 
+#include <Geode/Geode.hpp>
+
 #include <UIBuilder.hpp>
 
 void SendDBLevelCell::setLevelInfo(const std::optional<BatchLevel>& info) {

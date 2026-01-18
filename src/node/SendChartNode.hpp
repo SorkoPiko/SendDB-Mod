@@ -1,7 +1,6 @@
 #ifndef SENDDB_SENDCHARTNODE_HPP
 #define SENDDB_SENDCHARTNODE_HPP
 
-#include <Geode/Geode.hpp>
 #include <model/APIResponse.hpp>
 
 #include "SendChartPoint.hpp"

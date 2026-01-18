@@ -1,5 +1,7 @@
 #include "SendChartNode.hpp"
 
+#include <Geode/Geode.hpp>
+
 #include <UIBuilder.hpp>
 
 #include <utils/LayoutUtils.hpp>
