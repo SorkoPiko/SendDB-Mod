@@ -73,7 +73,8 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
     sendInfoBox = Build<SendInfoBox>::create()
             .anchorPoint({0.5f, 0.0f})
             .pos({size.width / 2, size.height})
-            .parent(this);
+            .parent(this)
+            .zOrder(1);
 
     if (level.has_value()) {
         auto levelValue = level.value();

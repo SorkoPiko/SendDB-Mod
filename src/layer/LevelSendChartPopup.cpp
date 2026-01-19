@@ -55,7 +55,8 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             .anchorPoint({0.0f, 0.0f})
             .pos({20.0f, 20.0f})
             .id("send-chart"_spr)
-            .parent(m_buttonMenu);
+            .parent(m_buttonMenu)
+            .zOrder(1);
 
     std::vector creatorLevels = creatorData.has_value() ? creatorData->levels : std::vector<CreatorLevel>{};
     std::ranges::sort(creatorLevels, [](const CreatorLevel& a, const CreatorLevel& b) {
@@ -69,57 +70,72 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
     if (levelData.has_value()) {
         auto menu = Build<CCMenu>::create()
                 .anchorPoint({0.0f, 1.0f})
-                // .contentSize({260.0f, 300.0f})
-                .pos({282.0f, 170.0f})
+                .pos({284.0f, 152.0f})
                 .layout(ColumnLayout::create()
                     ->setAxisAlignment(AxisAlignment::End)
                     ->setCrossAxisLineAlignment(AxisAlignment::Start)
                     ->setAxisReverse(true)
                     ->setAutoGrowAxis(true)
                     ->setAutoScale(false)
-                    ->setGap(23.0f)
+                    ->setGap(4.0f)
                 )
                 .parent(m_buttonMenu);
 
         Build<CCLabelBMFont>::create("Rankings", "bigFont.fnt")
-                .anchorPoint({0.5f, 0.5f})
-                .posX(menu->getScaledContentWidth() / 2.0f)
-                .scale(0.7f)
-                .parent(menu);
+                .anchorPoint({0.0f, 0.5f})
+                .pos({284.0f, 165.0f})
+                .scale(0.6f)
+                .parent(m_buttonMenu);
 
         const Level levelInfo = levelData.value();
-        SeedValueRSV stars = level->m_stars;
 
-        Build<RankingNode>::create(levelInfo.rank, std::nullopt)
+        Build<RankingNode>::create(levelInfo.rank, "All", std::nullopt, RankingFilter::SendDB)
                 .scale(0.6f)
-                .anchorPoint({0.0f, 0.5f})
+                .anchorPoint({0.5f, 0.5f})
                 .parent(menu);
 
         if (const auto it = std::ranges::find(levelIDs, levelID); it != levelIDs.end()) {
             const size_t index = it - levelIDs.begin();
             const int rank = static_cast<int>(index) + 1;
-            Build<RankingNode>::create(rank, static_cast<int>(levelIDs.size()), RankingFilter::User)
+            Build<RankingNode>::create(rank, "Creator", static_cast<int>(levelIDs.size()), RankingFilter::User)
                     .scale(0.6f)
-                    .anchorPoint({0.0f, 0.5f})
+                    .anchorPoint({0.5f, 0.5f})
                     .parent(menu);
         }
 
-        const RankingFilter rateFilter = stars.value() > 0 ? RankingFilter::Rated : RankingFilter::Unrated;
-        const RankingFilter gamemodeFilter = level->m_levelLength > 4 ? RankingFilter::Platformer : RankingFilter::Classic;
+        std::string rateText;
+        RankingFilter rateFilter;
+        if (levelInfo.rate.has_value()) {
+            rateText = "Rated";
+            rateFilter = RankingFilter::Rated;
+        } else {
+            rateText = "Unrated";
+            rateFilter = RankingFilter::Unrated;
+        }
 
-        Build<RankingNode>::create(levelInfo.rate_rank, std::nullopt, rateFilter)
+        std::string gamemodeText;
+        RankingFilter gamemodeFilter;
+        if (levelInfo.platformer) {
+            gamemodeText = "Platformers";
+            gamemodeFilter = RankingFilter::Platformer;
+        } else {
+            gamemodeText = "Classics";
+            gamemodeFilter = RankingFilter::Classic;
+        }
+
+        Build<RankingNode>::create(levelInfo.rate_rank, rateText, std::nullopt, rateFilter)
                 .scale(0.6f)
-                .anchorPoint({0.0f, 0.5f})
+                .anchorPoint({0.5f, 0.5f})
                 .parent(menu);
 
-        Build<RankingNode>::create(levelInfo.gamemode_rank, std::nullopt, gamemodeFilter)
+        Build<RankingNode>::create(levelInfo.gamemode_rank, gamemodeText, std::nullopt, gamemodeFilter)
                 .scale(0.6f)
-                .anchorPoint({0.0f, 0.5f})
+                .anchorPoint({0.5f, 0.5f})
                 .parent(menu);
 
-        Build<RankingNode >::create(levelInfo.joined_rank, std::nullopt, rateFilter, gamemodeFilter)
+        Build<RankingNode >::create(levelInfo.joined_rank, fmt::format("{} {}", rateText, gamemodeText), std::nullopt, rateFilter, gamemodeFilter)
                 .scale(0.6f)
-                .anchorPoint({0.0f, 0.5f})
+                .anchorPoint({0.5f, 0.5f})
                 .parent(menu);
 
         menu->updateLayout();

@@ -5,69 +5,70 @@
 #include <UIBuilder.hpp>
 #include <rock/RoundedRect.hpp>
 
-struct RankingFilterInfo {
-    std::string frame;
-    float scale;
-};
-
-RankingFilterInfo getRankingFilterInfo(const RankingFilter& filter) {
+Build<CCSprite> getRankingFilterInfo(const RankingFilter& filter) {
     switch (filter) {
+        case RankingFilter::SendDB:
+            return Build<CCSprite>::create("logo-circle.png"_spr).scale(1.0f/9.6f);
         case RankingFilter::Rated:
-            return {"GJ_hammerIcon_001.png", 1.0f/0.94f};
+            return Build<CCSprite>::createSpriteName("GJ_hammerIcon_001.png").scale(1.0f/0.94f);
         case RankingFilter::Unrated:
-            return {"diffIcon_00_btn_001.png", 1.0f/1.2f};
+            return Build<CCSprite>::createSpriteName("diffIcon_00_btn_001.png").scale(1.0f/1.2f);
         case RankingFilter::Classic:
-            return {"GJ_starsIcon_001.png", 1.0f/0.94f};
+            return Build<CCSprite>::createSpriteName("GJ_starsIcon_001.png").scale(1.0f/0.94f);
         case RankingFilter::Platformer:
-            return {"GJ_moonsIcon_001.png", 1.0f/0.76f};
+            return Build<CCSprite>::createSpriteName("GJ_moonsIcon_001.png").scale(1.0f/0.76f);
         case RankingFilter::User:
-            return {"GJ_profileButton_001.png", 1.0f/2.14f};
+            return Build<CCSprite>::createSpriteName("GJ_profileButton_001.png").scale(1.0f/2.14f);
     }
-    return {"", 1.0f};
+    return Build<CCSprite>::create();
 }
 
-bool RankingNode::init(const int ranking, const std::optional<int>& total, const std::optional<RankingFilter>& filter1, const std::optional<RankingFilter>& filter2) {
+bool RankingNode::init(const int ranking, const std::string& descriptionText, const std::optional<int>& total, const std::optional<RankingFilter>& filter1, const std::optional<RankingFilter>& filter2) {
     if (!CCNode::init()) return false;
 
     constexpr ccColor3B totalColor = {150, 150, 150};
     constexpr ccColor4B bgColor = {25, 25, 25, 220};
 
+    setContentSize({140.0f, 40.0f});
+
     Build(rock::RoundedRect::create(
         bgColor,
         3.0f,
-        {110.0f, 30.0f}
+        {108.0f, 30.0f}
     ))
-            .posX(60.0f)
+            .posX(32.0f)
             .anchorPoint({0.0f, 0.0f})
             .zOrder(-1)
             .parent(this);
 
-    if (filter1.has_value()) {
-        const auto info = getRankingFilterInfo(filter1.value());
-        Build<CCSprite>::createSpriteName(info.frame.c_str())
-                .scale(info.scale)
-                .pos({45.0f, 15.0f})
-                .anchorPoint({0.5f, 0.5f})
-                .parent(this);
-    }
-
-    if (filter2.has_value()) {
-        const auto info = getRankingFilterInfo(filter2.value());
-        Build<CCSprite>::createSpriteName(info.frame.c_str())
-                .scale(info.scale)
+    if (filter1.has_value() && !filter2.has_value()) {
+        filterSprite1 = getRankingFilterInfo(filter1.value())
                 .pos({15.0f, 15.0f})
                 .anchorPoint({0.5f, 0.5f})
                 .parent(this);
+    } else if (filter1.has_value() && filter2.has_value()) {
+        filterSprite1 = getRankingFilterInfo(filter1.value())
+                .pos({15.0f, 15.0f})
+                .anchorPoint({0.5f, 0.5f})
+                .parent(this);
+
+        filterSprite2 = getRankingFilterInfo(filter2.value())
+                .scaleBy(0.7f)
+                .pos({22.0f, 8.0f})
+                .anchorPoint({0.5f, 0.5f})
+                .parent(this);
     }
 
-    label = Build<CCLabelBMFont>::create("#0", "bigFont.fnt")
-            .posX(65.0f)
+    label = Build<CCLabelBMFont>::create("#0", "gjFont16.fnt")
+            .scale(0.8f)
+            .posX(35.0f)
             .anchorPoint({0.0f, 0.0f})
             .parent(this);
 
     label->setString(fmt::format("#{}", ranking).c_str());
     if (total.has_value()) {
-        Build<CCLabelBMFont>::create(("/" + std::to_string(total.value())).c_str(), "bigFont.fnt")
+        Build<CCLabelBMFont>::create(("/" + std::to_string(total.value())).c_str(), "gjFont16.fnt")
+                .scale(0.8f)
                 .anchorPoint({0.0f, 0.0f})
                 .color(totalColor)
                 .matchPos(label)
@@ -75,12 +76,19 @@ bool RankingNode::init(const int ranking, const std::optional<int>& total, const
                 .parent(this);
     }
 
+    description = Build<CCLabelBMFont>::create(descriptionText.c_str(), "chatFont.fnt")
+            .anchorPoint({0.0f, 0.0f})
+            .pos({0.0f, 30.0f})
+            .color({200, 200, 200})
+            .scale(0.6f)
+            .parent(this);
+
     return true;
 }
 
-RankingNode* RankingNode::create(const int ranking, const std::optional<int>& total, const std::optional<RankingFilter>& filter1, const std::optional<RankingFilter>& filter2) {
+RankingNode* RankingNode::create(const int ranking, const std::string& description, const std::optional<int>& total, const std::optional<RankingFilter>& filter1, const std::optional<RankingFilter>& filter2) {
     auto node = new RankingNode();
-    if (node->init(ranking, total, filter1, filter2)) {
+    if (node->init(ranking, description, total, filter1, filter2)) {
         node->autorelease();
         return node;
     }
