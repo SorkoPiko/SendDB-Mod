@@ -1,8 +1,6 @@
 #include "SendChartNode.hpp"
 
-#include <Geode/Geode.hpp>
-
-#include <UIBuilder.hpp>
+#include <numeric>
 
 #include <utils/LayoutUtils.hpp>
 #include <utils/PointUtils.hpp>
@@ -284,7 +282,7 @@ void SendChartNode::drawGraph() {
     if (processedPoints.size() < 2) return;
 
     switch (chartStyle) {
-        case Line:
+        case ChartStyle::Line:
             for (size_t i = 1; i < processedPoints.size(); i++) {
                 ccColor4F color = sendColorF;
                 if (processedPoints[i - 1].rated) color = rateColorF;
@@ -292,7 +290,7 @@ void SendChartNode::drawGraph() {
                 graphLineNode->drawSegment((processedPoints[i - 1].toCCPoint() + offset) * scale, (processedPoints[i].toCCPoint() + offset) * scale, lineWidth, color);
             }
             break;
-        case Step:
+        case ChartStyle::Step:
             for (size_t i = 1; i < processedPoints.size(); i++) {
                 ccColor4F color = sendColorF;
                 if (processedPoints[i - 1].rated) color = rateColorF;
@@ -314,7 +312,6 @@ void SendChartNode::drawLabelsAndGrid() const {
 
     int labelEveryY = 10;
     int gridLineEveryY = 5;
-    constexpr ccColor4B gridColor = {100, 100, 100, 80};
 
     const float startX = viewport.origin.x;
     const float endX = viewport.origin.x + viewport.size.width;
@@ -327,103 +324,185 @@ void SendChartNode::drawLabelsAndGrid() const {
     const int startTimeSeconds = static_cast<int>(startTimestamp / 1000LL + startX);
     const int timeRangeSeconds = static_cast<int>(ceil(viewport.size.width));
 
-    const XAxisLayout xLayout = LayoutUtils::calculateXAxisLayout(startTimeSeconds, maxX);
+    const ChartAxisLayout xLayout = LayoutUtils::calculateTimeAxisLayout(startTimeSeconds, maxX);
 
     if (maxY < 20) {
         labelEveryY = 5;
         gridLineEveryY = 2;
     }
 
-    for (int seconds = xLayout.firstTickOffset; seconds <= timeRangeSeconds; seconds += xLayout.tickIntervalSeconds) {
-        if (seconds < 0) continue;
+    const ChartAxisLayout yLayout = {
+        1.0f,
+        {1, 0},
+        {labelEveryY, 0},
+        {gridLineEveryY, 0}
+    };
 
-        const float chartX = startX + seconds;
-        if (chartX < 0 || chartX > chartDimensions.width) continue;
-        const float scaledX = (chartX - viewport.origin.x) / viewport.size.width * chartSize.width;
-        if (scaledX < 0 || scaledX > chartSize.width) continue;
+    drawAxis(
+        {
+            true,
+            AxisType::Numeric,
+            startY,
+            chartSize.height,
+            viewport.origin.y,
+            viewport.size.height,
+            chartSize.height,
+            chartDimensions.height,
+        },
+        yLayout,
+        maxY,
+        0.0f
+    );
 
-        auto tickSprite = Build<CCSprite>::createSpriteName("gridLine01_001.png")
-                .posX(scaledX)
-                .rotation(90)
-                .color(secondaryColor)
-                .parent(labelsNode);
+    drawAxis(
+        {
+            false,
+            AxisType::Time,
+            startX,
+            chartSize.width,
+            viewport.origin.x,
+            viewport.size.width,
+            chartSize.width,
+            chartDimensions.width,
+        },
+        xLayout,
+        maxX,
+        startTimeSeconds
+    );
+}
 
-        const int absoluteTimeSeconds = startTimeSeconds + seconds;
+int cumulativeGCD(const std::vector<int>& numbers) {
+    if (numbers.empty()) return 0;
 
-        if ((seconds - xLayout.firstLabelOffset) % xLayout.labelIntervalSeconds == 0 && seconds >= xLayout.firstLabelOffset) {
-            tickSprite.scaleX(0.2f);
+    int result = numbers[0];
+    for (size_t i = 1; i < numbers.size(); ++i) {
+        result = std::gcd(result, numbers[i]);
+        if (result == 1) break;
+    }
+    return result;
+}
 
-            std::string labelText = TimeUtils::timestampToDate(static_cast<long long>(absoluteTimeSeconds) * 1000LL);
+void SendChartNode::drawAxis(
+    const AxisRenderConfig& config,
+    const ChartAxisLayout& layout,
+    const int maxValue,
+    const int startValue
+) const {
+    const int minOffset = LayoutUtils::minStartOffset(layout);
+    const int endOffset = maxValue / layout.unit;
+    const int intervalGCD = cumulativeGCD({layout.tick.interval, layout.label.interval, layout.gridLine.interval});
 
-            Build<CCLabelBMFont>::create(labelText.c_str(), "chatFont.fnt")
-                    .posX(scaledX)
-                    .scale(0.4f)
-                    .posY(-tickSprite->getScaledContentSize().width - 6.0f)
-                    .anchorPoint({0.5f, 1.0f})
-                    .color(secondaryTextColor)
-                    .parent(labelsNode);
-        } else {
-            tickSprite.scaleX(0.1f);
-            tickSprite.scaleY(0.8f);
+    for (int i = minOffset; i <= endOffset; i += intervalGCD) {
+        const float value = i * layout.unit;
+        if (value < 0) continue;
+
+        const float chartPos = config.start + value;
+        if (chartPos < 0 || chartPos > config.chartDimension) continue;
+        const float scaledPos = (chartPos - config.viewportOrigin) / config.viewportSize * config.chartSize;
+        if (scaledPos < 0 || scaledPos > config.chartSize) continue;
+
+        if ((i - layout.label.startOffset) % layout.label.interval == 0 && i >= layout.label.startOffset) {
+            drawAxisTick(config, scaledPos, value + startValue, true);
+        } else if ((i - layout.tick.startOffset) % layout.tick.interval == 0 && i >= layout.tick.startOffset) {
+            drawAxisTick(config, scaledPos, value + startValue, false);
         }
+
+        if ((i - layout.gridLine.startOffset) % layout.gridLine.interval == 0 && i >= layout.gridLine.startOffset) {
+            drawGridLine(config, scaledPos);
+        }
+    }
+}
+
+void SendChartNode::drawAxisTick(
+    const AxisRenderConfig& config,
+    const float scaledPos,
+    const float absoluteValue,
+    const bool isLabel
+) const {
+    auto tickSprite = Build<CCSprite>::createSpriteName("gridLine01_001.png")
+            .color(secondaryColor)
+            .parent(labelsNode);
+
+    if (config.isVertical) {
+        tickSprite.posY(scaledPos);
+    } else {
+        tickSprite.posX(scaledPos).rotation(90);
+    }
+
+    if (isLabel) {
+        tickSprite.scaleX(0.2f);
+        createAxisLabel(config, scaledPos, absoluteValue, tickSprite);
+    } else {
+        tickSprite.scaleX(0.1f).scaleY(0.8f);
+    }
+
+    if (config.isVertical) {
+        tickSprite.posX(-tickSprite->getScaledContentSize().width);
+    } else {
         tickSprite.posY(-tickSprite->getScaledContentSize().width);
     }
+}
 
-    for (int i = static_cast<int>(floor(startY)); i <= maxY; i++) {
-        if (i < 0) continue;
-        const float scaledY = (i - viewport.origin.y) / viewport.size.height * chartSize.height;
-        if (scaledY < 0 || scaledY > chartSize.height) continue;
-
-        auto tickSprite = Build<CCSprite>::createSpriteName("gridLine01_001.png")
-                .posY(scaledY)
-                .color(secondaryColor)
-                .parent(labelsNode);
-
-        if (i % labelEveryY == 0) {
-            tickSprite.scaleX(0.2f);
-
-            Build<CCLabelBMFont>::create(std::to_string(i).c_str(), "chatFont.fnt")
-                    .posY(scaledY)
-                    .scale(0.4f)
-                    .posX(-tickSprite->getScaledContentSize().width - 6.0f)
-                    .anchorPoint({1.0f, 0.5f})
-                    .color(secondaryTextColor)
-                    .parent(labelsNode);
-        } else {
-            tickSprite.scaleX(0.1f);
-            tickSprite.scaleY(0.8f);
-        }
-
-        tickSprite.posX(-tickSprite->getScaledContentSize().width);
-    }
-
-    for (int seconds = xLayout.firstGridOffset; seconds <= maxX; seconds += xLayout.gridLineIntervalSeconds) {
-        if (seconds < 0) continue;
-
-        const float chartX = startX + seconds;
-        if (chartX < 0 || chartX > chartDimensions.width) continue;
-        const float scaledX = (chartX - viewport.origin.x) / viewport.size.width * chartSize.width;
-        if (scaledX < 0 || scaledX > chartSize.width) continue;
-
+void SendChartNode::drawGridLine(
+    const AxisRenderConfig& config,
+    const float scaledPos
+) const {
+    if (config.isVertical) {
         gridNode->drawSegment(
-            ccp(scaledX, 0),
-            ccp(scaledX, chartSize.height),
+            ccp(0, scaledPos),
+            ccp(chartSize.width, scaledPos),
             0.2f,
-            ccc4FFromccc4B(gridColor)
+            ccc4FFromccc4B(gridLineColor)
+        );
+    } else {
+        gridNode->drawSegment(
+            ccp(scaledPos, 0),
+            ccp(scaledPos, chartSize.height),
+            0.2f,
+            ccc4FFromccc4B(gridLineColor)
         );
     }
+}
 
-    for (int i = static_cast<int>(floor(startY)); i <= maxY; i++) {
-        if (i < 0 || i % gridLineEveryY != 0) continue;
-        const float scaledY = (i - viewport.origin.y) / viewport.size.height * chartSize.height;
-        if (scaledY < 0 || scaledY > chartSize.height) continue;
-        gridNode->drawSegment(
-            ccp(0, scaledY),
-            ccp(chartSize.width, scaledY),
-            0.2f,
-            ccc4FFromccc4B(gridColor)
-        );
+void SendChartNode::createAxisLabel(
+    const AxisRenderConfig& config,
+    const float scaledPos,
+    const int absoluteValue,
+    Build<CCSprite>& tickSprite
+) const {
+    CCPoint anchorPoint;
+    float labelPosX, labelPosY;
+
+    if (config.isVertical) {
+        anchorPoint = ccp(1.0f, 0.5f);
+        labelPosX = -tickSprite->getScaledContentSize().width - 6.0f;
+        labelPosY = scaledPos;
+    } else {
+        anchorPoint = ccp(0.5f, 1.0f);
+        labelPosX = scaledPos;
+        labelPosY = -tickSprite->getScaledContentSize().width - 6.0f;
     }
+
+    Build<CCLabelBMFont>::create(getLabelText(config, absoluteValue).c_str(), "chatFont.fnt")
+        .posX(labelPosX)
+        .posY(labelPosY)
+        .scale(0.4f)
+        .anchorPoint(anchorPoint)
+        .color(secondaryTextColor)
+        .parent(labelsNode);
+}
+
+std::string SendChartNode::getLabelText(
+    const AxisRenderConfig& config,
+    const float absoluteValue
+) {
+    switch (config.type) {
+        case AxisType::Numeric:
+            return std::to_string(static_cast<int>(absoluteValue));
+        case AxisType::Time:
+            return TimeUtils::timestampToDate(static_cast<long long>(absoluteValue) * 1000LL);
+    }
+    return "";
 }
 
 LineChartPoint SendChartNode::scalePoint(const LineChartPoint& point) const {

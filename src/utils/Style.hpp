@@ -13,6 +13,7 @@ constexpr ccColor3B secondaryColor = {150, 150, 150};
 constexpr ccColor3B secondaryTextColor = {200, 200, 200};
 
 constexpr ccColor4B gridBackgroundColor = {0, 0, 0, 120};
+constexpr ccColor4B gridLineColor = {100, 100, 100, 80};
 
 constexpr ccColor4B infoBoxColor = {25, 25, 25, 180};
 

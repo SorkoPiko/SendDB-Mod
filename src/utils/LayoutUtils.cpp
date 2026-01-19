@@ -5,12 +5,15 @@
 #include <vector>
 #include <Geode/loader/Log.hpp>
 
-XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const int timeRange) {
+ChartAxisLayout LayoutUtils::calculateTimeAxisLayout(const int startTimestamp, const int timeRange) {
     constexpr int maxDays = 7;
-    constexpr int daySeconds = 24 * 60 * 60;
     constexpr int targetTicksPerLabel = 5;
 
-    const int timeRangeDays = timeRange / daySeconds;
+    constexpr int halfDaysPerDay = 2;
+    constexpr int secondsPerHalfDay = 12 * 60 * 60;
+
+    const int timeRangeHalfDays = timeRange / secondsPerHalfDay;
+    const int timeRangeDays = timeRangeHalfDays / halfDaysPerDay;
 
     int labelIntervalDays = std::max(1, (timeRangeDays + maxDays - 1) / maxDays);
 
@@ -22,7 +25,7 @@ XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const in
         }
     }
 
-    while (timeRange / (labelIntervalDays * daySeconds) >= maxDays) {
+    while (timeRangeDays / labelIntervalDays >= maxDays) {
         auto it = std::ranges::find(niceIntervals, labelIntervalDays);
         if (it != std::end(niceIntervals) - 1) {
             labelIntervalDays = *++it;
@@ -31,7 +34,7 @@ XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const in
         }
     }
 
-    const int labelIntervalSeconds = labelIntervalDays * daySeconds;
+    const int labelIntervalHalfDays = labelIntervalDays * halfDaysPerDay;
 
     std::vector<int> divisors;
     for (int i = 1; i <= labelIntervalDays; i++) {
@@ -51,9 +54,8 @@ XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const in
         }
     }
 
-    const int tickIntervalDays = bestDivisor;
-    const int tickIntervalSeconds = tickIntervalDays * daySeconds;
-    const int gridLineIntervalSeconds = labelIntervalSeconds / 2;
+    const int tickIntervalHalfDays = bestDivisor * halfDaysPerDay;
+    const int gridLineIntervalHalfDays = labelIntervalHalfDays / 2;
 
     const auto now = std::chrono::system_clock::now();
 
@@ -68,32 +70,46 @@ XAxisLayout LayoutUtils::calculateXAxisLayout(const int startTimestamp, const in
     const int timezoneOffsetSeconds = static_cast<int>(local_tm.tm_gmtoff);
 #endif
 
-    const int localStartSeconds = startTimestamp + timezoneOffsetSeconds;
+    const int timezoneOffsetHalfDays = timezoneOffsetSeconds / secondsPerHalfDay;
+    const int startHalfDays = startTimestamp / secondsPerHalfDay;
+    const int localStartHalfDays = startHalfDays + timezoneOffsetHalfDays;
 
-    const int daysSinceEpoch = localStartSeconds / daySeconds;
-    const int alignedLocalMidnight = daysSinceEpoch * daySeconds;
+    const int daysSinceEpoch = localStartHalfDays / halfDaysPerDay;
+    const int alignedLocalMidnight = daysSinceEpoch * halfDaysPerDay;
 
-    const int ticksSinceMidnight = (localStartSeconds - alignedLocalMidnight) / tickIntervalSeconds;
-    const int alignedLocalSeconds = alignedLocalMidnight + ticksSinceMidnight * tickIntervalSeconds;
-    const int alignedStartSeconds = alignedLocalSeconds - timezoneOffsetSeconds;
-    const int firstTickOffset = alignedStartSeconds - startTimestamp;
+    const int ticksSinceMidnight = (localStartHalfDays - alignedLocalMidnight) / tickIntervalHalfDays;
+    const int alignedLocalTick = alignedLocalMidnight + ticksSinceMidnight * tickIntervalHalfDays;
+    const int firstTickOffset = alignedLocalTick - timezoneOffsetHalfDays - startHalfDays;
 
-    const int labelsSinceMidnight = (localStartSeconds - alignedLocalMidnight) / labelIntervalSeconds;
-    const int alignedLabelLocalSeconds = alignedLocalMidnight + (labelsSinceMidnight * labelIntervalSeconds);
-    const int alignedLabelStartSeconds = alignedLabelLocalSeconds - timezoneOffsetSeconds;
-    const int firstLabelOffset = alignedLabelStartSeconds - startTimestamp;
+    const int labelsSinceMidnight = (localStartHalfDays - alignedLocalMidnight) / labelIntervalHalfDays;
+    const int alignedLocalLabel = alignedLocalMidnight + labelsSinceMidnight * labelIntervalHalfDays;
+    const int firstLabelOffset = alignedLocalLabel - timezoneOffsetHalfDays - startHalfDays;
 
-    const int gridTicksSinceMidnight = (localStartSeconds - alignedLocalMidnight) / gridLineIntervalSeconds;
-    const int alignedGridLocalSeconds = alignedLocalMidnight + gridTicksSinceMidnight * gridLineIntervalSeconds;
-    const int alignedGridStartSeconds = alignedGridLocalSeconds - timezoneOffsetSeconds;
-    const int firstGridOffset = alignedGridStartSeconds - startTimestamp;
+    const int gridTicksSinceMidnight = (localStartHalfDays - alignedLocalMidnight) / gridLineIntervalHalfDays;
+    const int alignedLocalGrid = alignedLocalMidnight + gridTicksSinceMidnight * gridLineIntervalHalfDays;
+    const int firstGridOffset = alignedLocalGrid - timezoneOffsetHalfDays - startHalfDays;
 
     return {
-        tickIntervalSeconds,
-        labelIntervalSeconds,
-        gridLineIntervalSeconds,
-        firstTickOffset,
-        firstLabelOffset,
-        firstGridOffset
+        secondsPerHalfDay,
+        {
+            tickIntervalHalfDays,
+            firstTickOffset
+        },
+        {
+            labelIntervalHalfDays,
+            firstLabelOffset
+        },
+        {
+            gridLineIntervalHalfDays,
+            firstGridOffset
+        }
     };
+}
+
+int LayoutUtils::minStartOffset(ChartAxisLayout layout) {
+    return std::min({
+        layout.tick.startOffset,
+        layout.label.startOffset,
+        layout.gridLine.startOffset
+    });
 }
