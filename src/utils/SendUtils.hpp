@@ -10,10 +10,10 @@ struct PeakTrendingScore {
 
 class SendUtils {
 public:
-    static double calculateTrendingScore(int timestamp, const std::vector<int>& sends);
+    static double calculateTrendingScore(long long timestamp, const std::vector<int>& sends);
     static PeakTrendingScore calculatePeakTrendingScore(const std::vector<int>& sends);
 
-    static double calculateIndividualTrendingScore(int timestamp, int sendTimestamp);
+    static double calculateIndividualTrendingScore(long long timestamp, int sendTimestamp);
 };
 
 #endif

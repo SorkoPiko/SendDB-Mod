@@ -15,7 +15,8 @@ enum class RankingFilter {
     Unrated,
     Classic,
     Platformer,
-    User
+    User,
+    Trending
 };
 
 class RankingNode : public CCNode {

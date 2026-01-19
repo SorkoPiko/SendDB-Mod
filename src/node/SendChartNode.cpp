@@ -6,9 +6,8 @@
 
 #include <utils/LayoutUtils.hpp>
 #include <utils/PointUtils.hpp>
+#include <utils/Style.hpp>
 #include <utils/TimeUtils.hpp>
-
-constexpr ccColor4B selectLineColor = {255, 255, 255, 255};
 
 bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, const float _lineWidth, const ChartStyle style) {
     if (!CCNode::init()) return false;
@@ -34,7 +33,7 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
     mask->drawPolygon(
         maskShape,
         4,
-        ccc4FFromccc4B({0, 0, 0, 120}),
+        ccc4FFromccc4B(gridBackgroundColor),
         0.2f,
         ccc4f(1, 1, 1, 0.3f)
     );
@@ -90,7 +89,7 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
             bool placedRatePoint = true;
 
             const long long originalTimeRangeMs = lastTimestamp - startTimestamp;
-            const long long padding = std::clamp(24 * 60 * 60 * 1000.0f, originalTimeRangeMs * 0.1f, 7 * 24 * 60 * 60 * 1000.f);
+            const long long padding = std::clamp(6 * 60 * 60 * 1000.0f, originalTimeRangeMs * 0.1f, 7 * 24 * 60 * 60 * 1000.f);
             startTimestamp -= padding;
 
             if (levelValue.rate.has_value()) {
@@ -187,13 +186,13 @@ void SendChartNode::update(const float delta) {
         ccp(position.x, 0),
         ccp(position.x, chartSize.height),
         0.2f,
-        ccc4FFromccc4B(selectLineColor)
+        ccc4FFromccc4B(selectionLineColor)
     );
     selectNode->drawSegment(
         ccp(0, position.y),
         ccp(chartSize.width, position.y),
         0.2f,
-        ccc4FFromccc4B(selectLineColor)
+        ccc4FFromccc4B(selectionLineColor)
     );
 
     if (touchPoint.has_value()) {
@@ -203,20 +202,20 @@ void SendChartNode::update(const float delta) {
             ccp(touchPos.x, 0),
             ccp(touchPos.x, chartSize.height),
             0.2f,
-            ccc4FFromccc4B(selectLineColor)
+            ccc4FFromccc4B(selectionLineColor)
         );
         selectNode->drawSegment(
             ccp(0, touchPos.y),
             ccp(chartSize.width, touchPos.y),
             0.2f,
-            ccc4FFromccc4B(selectLineColor)
+            ccc4FFromccc4B(selectionLineColor)
         );
 
         selectNode->drawRect(
             {touchPos, position - touchPos},
-            ccc4FFromccc4B({255, 255, 255, 50}),
+            ccc4FFromccc4B(selectionHighlightColor),
             0.0f,
-            ccc4FFromccc4B({255, 255, 255, 0})
+            {0, 0, 0, 0}
         );
     }
 
@@ -273,9 +272,6 @@ void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
 void SendChartNode::drawGraph() {
     graphLineNode->clear();
 
-    constexpr ccColor3B sendColor = {0, 255, 0};
-    constexpr ccColor3B rateColor = {212, 175, 55};
-
     const ccColor4F sendColorF = ccc4FFromccc3B(sendColor);
     const ccColor4F rateColorF = ccc4FFromccc3B(rateColor);
 
@@ -318,8 +314,6 @@ void SendChartNode::drawLabelsAndGrid() const {
 
     int labelEveryY = 10;
     int gridLineEveryY = 5;
-    constexpr ccColor4B labelLineColor = {150, 150, 150, 255};
-    constexpr ccColor4B labelColor = {200, 200, 200, 255};
     constexpr ccColor4B gridColor = {100, 100, 100, 80};
 
     const float startX = viewport.origin.x;
@@ -351,8 +345,7 @@ void SendChartNode::drawLabelsAndGrid() const {
         auto tickSprite = Build<CCSprite>::createSpriteName("gridLine01_001.png")
                 .posX(scaledX)
                 .rotation(90)
-                .color({labelLineColor.r, labelLineColor.g, labelLineColor.b})
-                .opacity(labelLineColor.a)
+                .color(secondaryColor)
                 .parent(labelsNode);
 
         const int absoluteTimeSeconds = startTimeSeconds + seconds;
@@ -367,8 +360,7 @@ void SendChartNode::drawLabelsAndGrid() const {
                     .scale(0.4f)
                     .posY(-tickSprite->getScaledContentSize().width - 6.0f)
                     .anchorPoint({0.5f, 1.0f})
-                    .color({labelColor.r, labelColor.g, labelColor.b})
-                    .opacity(labelColor.a)
+                    .color(secondaryTextColor)
                     .parent(labelsNode);
         } else {
             tickSprite.scaleX(0.1f);
@@ -384,8 +376,7 @@ void SendChartNode::drawLabelsAndGrid() const {
 
         auto tickSprite = Build<CCSprite>::createSpriteName("gridLine01_001.png")
                 .posY(scaledY)
-                .color({labelLineColor.r, labelLineColor.g, labelLineColor.b})
-                .opacity(labelLineColor.a)
+                .color(secondaryColor)
                 .parent(labelsNode);
 
         if (i % labelEveryY == 0) {
@@ -396,8 +387,7 @@ void SendChartNode::drawLabelsAndGrid() const {
                     .scale(0.4f)
                     .posX(-tickSprite->getScaledContentSize().width - 6.0f)
                     .anchorPoint({1.0f, 0.5f})
-                    .color({labelColor.r, labelColor.g, labelColor.b})
-                    .opacity(labelColor.a)
+                    .color(secondaryTextColor)
                     .parent(labelsNode);
         } else {
             tickSprite.scaleX(0.1f);

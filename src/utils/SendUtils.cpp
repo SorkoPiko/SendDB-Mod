@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-double SendUtils::calculateTrendingScore(const int timestamp, const std::vector<int>& sends) {
+double SendUtils::calculateTrendingScore(const long long timestamp, const std::vector<int>& sends) {
     double score = 0.0;
     for (const int send : sends) {
         score += calculateIndividualTrendingScore(timestamp, send);
@@ -18,7 +18,7 @@ PeakTrendingScore SendUtils::calculatePeakTrendingScore(const std::vector<int>& 
     std::ranges::sort(sendsCopy, std::less<int>());
 
     for (const int timestamp : sendsCopy) {
-        const double score = calculateTrendingScore(timestamp, sendsCopy);
+        const double score = calculateTrendingScore(timestamp * 1000LL, sendsCopy);
         if (score > peakScore) {
             peakScore = score;
             peakTimestamp = timestamp;
@@ -28,8 +28,8 @@ PeakTrendingScore SendUtils::calculatePeakTrendingScore(const std::vector<int>& 
     return {peakScore, peakTimestamp};
 }
 
-double SendUtils::calculateIndividualTrendingScore(const int timestamp, const int sendTimestamp) {
-    const double ageInDays = (timestamp - sendTimestamp) / 86400.0;
+double SendUtils::calculateIndividualTrendingScore(const long long timestamp, const int sendTimestamp) {
+    const double ageInDays = (timestamp - sendTimestamp * 1000LL) / 86400000.0;
     if (ageInDays < 0.0 || ageInDays > 30.0) return 0.0;
     return 25000.0 / pow(ageInDays + 2, 1);
 }

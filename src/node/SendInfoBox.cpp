@@ -4,57 +4,13 @@
 
 #include <UIBuilder.hpp>
 #include <rock/RoundedRect.hpp>
+#include <utils/Style.hpp>
 
 #include <utils/TimeUtils.hpp>
-
-std::string plural(const int num) {
-    static std::string s;
-    s = num == 1 ? "" : "s";
-    return s;
-}
-
-std::string ago(const int num, const std::string& unit) {
-    static std::string s;
-    s = std::to_string(num) + " " + unit + (num == 1 ? "" : "s") + " ago";
-    return s;
-}
-
-std::string timestampAgo(const long long timestamp) {
-    const auto timeT = timestamp / 1000;
-    tm timeInfo;
-    time_t t = timeT;
-#ifdef _WIN32
-    localtime_s(&timeInfo, &t);
-#else
-    localtime_r(&t, &timeInfo);
-#endif
-
-    const auto now = std::chrono::system_clock::now();
-    const auto sendTime = std::chrono::system_clock::from_time_t(timeT);
-    const auto diff = std::chrono::duration_cast<std::chrono::seconds>(now - sendTime).count();
-
-    std::string relativeTime;
-    if (diff < 60) {
-        relativeTime = ago(diff, "second");
-    } else if (diff < 60 * 60) {
-        relativeTime = ago(diff / 60, "minute");
-    } else if (diff < 24 * 60 * 60) {
-        relativeTime = ago(diff / (60 * 60), "hour");
-    } else if (diff < 30 * 24 * 60 * 60) {
-        relativeTime = ago(diff / (24 * 60 * 60), "day");
-    } else if (diff < 365 * 24 * 60 * 60) {
-        relativeTime = ago(diff / (30 * 24 * 60 * 60), "month");
-    } else {
-        relativeTime = ago(diff / (365 * 24 * 60 * 60), "year");
-    }
-    return relativeTime;
-}
 
 bool SendInfoBox::init() {
     if (!CCNode::init()) return false;
     scheduleUpdate();
-
-    constexpr ccColor4B bgColor = {25, 25, 25, 220};
 
     setContentSize({60.0f, 40.0f});
 
@@ -68,7 +24,7 @@ bool SendInfoBox::init() {
     triangle->drawPolygon(
         triangleShape,
         3,
-        ccc4FFromccc4B(bgColor),
+        ccc4FFromccc4B(infoBoxColor),
         0.0f,
         {0.0f, 0.0f, 0.0f, 0.0f}
     );
@@ -77,7 +33,7 @@ bool SendInfoBox::init() {
     addChild(triangle);
 
     Build(rock::RoundedRect::create(
-        bgColor,
+        infoBoxColor,
         3.0f,
         {60.0f, 30.0f}
     ))
@@ -150,12 +106,12 @@ void SendInfoBox::update(float delta) {
 
 void SendInfoBox::updateSend() const {
     const auto [timestamp] = sendData.value();
-    timeLabel2->setString(timestampAgo(timestamp).c_str());
+    timeLabel2->setString(TimeUtils::timestampAgo(timestamp).c_str());
 }
 
 void SendInfoBox::updateRate() const {
     const auto rate = rateData.value();
-    timeLabel2->setString(timestampAgo(rate.timestamp).c_str());
+    timeLabel2->setString(TimeUtils::timestampAgo(rate.timestamp).c_str());
 }
 
 void SendInfoBox::prepareSend() {

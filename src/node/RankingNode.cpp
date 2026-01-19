@@ -4,6 +4,7 @@
 
 #include <UIBuilder.hpp>
 #include <rock/RoundedRect.hpp>
+#include <utils/Style.hpp>
 
 Build<CCSprite> getRankingFilterInfo(const RankingFilter& filter) {
     switch (filter) {
@@ -19,6 +20,8 @@ Build<CCSprite> getRankingFilterInfo(const RankingFilter& filter) {
             return Build<CCSprite>::createSpriteName("GJ_moonsIcon_001.png").scale(1.0f/0.76f);
         case RankingFilter::User:
             return Build<CCSprite>::createSpriteName("GJ_profileButton_001.png").scale(1.0f/2.14f);
+        case RankingFilter::Trending:
+            return Build<CCSprite>::createSpriteName("GJ_sTrendingIcon_001.png").scale(1.0f/0.66f);
     }
     return Build<CCSprite>::create();
 }
@@ -26,13 +29,10 @@ Build<CCSprite> getRankingFilterInfo(const RankingFilter& filter) {
 bool RankingNode::init(const int ranking, const std::string& descriptionText, const std::optional<int>& total, const std::optional<RankingFilter>& filter1, const std::optional<RankingFilter>& filter2) {
     if (!CCNode::init()) return false;
 
-    constexpr ccColor3B totalColor = {150, 150, 150};
-    constexpr ccColor4B bgColor = {25, 25, 25, 220};
-
     setContentSize({140.0f, 40.0f});
 
     Build(rock::RoundedRect::create(
-        bgColor,
+        infoBoxColor,
         3.0f,
         {108.0f, 30.0f}
     ))
@@ -70,7 +70,7 @@ bool RankingNode::init(const int ranking, const std::string& descriptionText, co
         Build<CCLabelBMFont>::create(("/" + std::to_string(total.value())).c_str(), "gjFont16.fnt")
                 .scale(0.8f)
                 .anchorPoint({0.0f, 0.0f})
-                .color(totalColor)
+                .color(secondaryColor)
                 .matchPos(label)
                 .move({label->getScaledContentWidth(), 0.0f})
                 .parent(this);
@@ -79,7 +79,7 @@ bool RankingNode::init(const int ranking, const std::string& descriptionText, co
     description = Build<CCLabelBMFont>::create(descriptionText.c_str(), "chatFont.fnt")
             .anchorPoint({0.0f, 0.0f})
             .pos({0.0f, 30.0f})
-            .color({200, 200, 200})
+            .color(secondaryTextColor)
             .scale(0.6f)
             .parent(this);
 

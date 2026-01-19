@@ -26,8 +26,10 @@ void SendChartPoint::onHover(const bool isHovering) {
     hovering = isHovering;
     if (isHovering) {
         sprite->setScale(2.0f);
+        setZOrder(1);
     } else {
         sprite->setScale(1.0f);
+        setZOrder(0);
     }
 }
 
