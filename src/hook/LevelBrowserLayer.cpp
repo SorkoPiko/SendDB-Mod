@@ -6,16 +6,16 @@
 #include <Geode/modify/LevelBrowserLayer.hpp>
 #include <manager/SendDBIntegration.hpp>
 
+#include <Geode/utils/web.hpp>
+
 #include "LevelCell.hpp"
 
 using namespace geode::prelude;
 
 class $modify(SendDBLevelBrowserLayer, LevelBrowserLayer) {
     struct Fields {
-        EventListener<web::WebTask> listener;
-        std::unordered_map<int, BatchLevel> levels;
-
         std::vector<EventListener<web::WebTask>> listeners;
+        std::unordered_map<int, BatchLevel> levels;
     };
 
     void setupLevelBrowser(CCArray* levels) {

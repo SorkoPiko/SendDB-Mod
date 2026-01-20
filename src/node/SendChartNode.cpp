@@ -173,25 +173,6 @@ void SendChartNode::update(const float delta) {
     const auto position = convertToNodeSpace(mousePos);
 
     selectNode->clear();
-    if (!PointUtils::isPointInsideNode(this, mousePos)) {
-        positionLabel->setVisible(false);
-        hovering = false;
-        return;
-    }
-    hovering = true;
-
-    selectNode->drawSegment(
-        ccp(position.x, 0),
-        ccp(position.x, chartSize.height),
-        0.2f,
-        ccc4FFromccc4B(selectionLineColor)
-    );
-    selectNode->drawSegment(
-        ccp(0, position.y),
-        ccp(chartSize.width, position.y),
-        0.2f,
-        ccc4FFromccc4B(selectionLineColor)
-    );
 
     if (touchPoint.has_value()) {
         const auto touchPos = touchPoint.value();
@@ -214,6 +195,41 @@ void SendChartNode::update(const float delta) {
             ccc4FFromccc4B(selectionHighlightColor),
             0.0f,
             {0, 0, 0, 0}
+        );
+
+        selectNode->drawSegment(
+            ccp(position.x, 0),
+            ccp(position.x, chartSize.height),
+            0.2f,
+            ccc4FFromccc4B(selectionLineColor)
+        );
+        selectNode->drawSegment(
+            ccp(0, position.y),
+            ccp(chartSize.width, position.y),
+            0.2f,
+            ccc4FFromccc4B(selectionLineColor)
+        );
+    }
+
+    if (!PointUtils::isPointInsideNode(this, mousePos)) {
+        positionLabel->setVisible(false);
+        hovering = false;
+        return;
+    }
+    hovering = true;
+
+    if (!touchPoint.has_value()) {
+        selectNode->drawSegment(
+            ccp(position.x, 0),
+            ccp(position.x, chartSize.height),
+            0.2f,
+            ccc4FFromccc4B(selectionLineColor)
+        );
+        selectNode->drawSegment(
+            ccp(0, position.y),
+            ccp(chartSize.width, position.y),
+            0.2f,
+            ccc4FFromccc4B(selectionLineColor)
         );
     }
 
@@ -239,13 +255,15 @@ void SendChartNode::update(const float delta) {
 }
 
 void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
-    const float minX = std::min(start.x, end.x);
-    const float maxX = std::max(start.x, end.x);
-    const float minY = std::min(start.y, end.y);
-    const float maxY = std::max(start.y, end.y);
+    const float minX = std::min(start.x, std::clamp(end.x, 0.0f, chartSize.width));
+    const float maxX = std::max(start.x, std::clamp(end.x, 0.0f, chartSize.width));
+    const float minY = std::min(start.y, std::clamp(end.y, 0.0f, chartSize.height));
+    const float maxY = std::max(start.y, std::clamp(end.y, 0.0f, chartSize.height));
 
     const auto fixedStart = ccp(minX, minY);
     const auto fixedEnd = ccp(maxX, maxY);
+
+    log::info("start {}, end {}, chartSize {}", fixedStart, fixedEnd, chartSize);
 
     const auto scaledStart = screenToChartPoint(fixedStart);
     const auto scaledEnd = screenToChartPoint(fixedEnd);
@@ -566,8 +584,11 @@ void SendChartNode::onClick(const CCPoint& position) {
 }
 
 void SendChartNode::onRelease(const CCPoint& position) {
-    if (PointUtils::isPointInsideNode(this, position) && touchPoint.has_value()) {
+    if (touchPoint.has_value()) {
         handleZoom(touchPoint.value(), convertToNodeSpace(position));
+        touchPoint = std::nullopt;
     }
-    touchPoint = std::nullopt;
+    if (!PointUtils::isPointInsideNode(this, position)) {
+        touchPoint = std::nullopt;
+    }
 }

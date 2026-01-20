@@ -12,7 +12,7 @@ bool SendInfoBox::init() {
     if (!CCNode::init()) return false;
     scheduleUpdate();
 
-    setContentSize({60.0f, 40.0f});
+    setContentSize({70.0f, 40.0f});
 
     CCPoint triangleShape[3] = {
         {-10.0f, 10.0f},
@@ -28,14 +28,14 @@ bool SendInfoBox::init() {
         0.0f,
         {0.0f, 0.0f, 0.0f, 0.0f}
     );
-    triangle->setPosition({30.0f, 0.0f});
+    triangle->setPosition({getContentWidth() / 2.0f, 0.0f});
     triangle->setBlendFunc({GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA});
     addChild(triangle);
 
     Build(rock::RoundedRect::create(
         infoBoxColor,
         3.0f,
-        {60.0f, 30.0f}
+        {getContentWidth(), 30.0f}
     ))
             .pos({0.0f, 10.5f})
             .anchorPoint({0.0f, 0.0f})
@@ -43,19 +43,19 @@ bool SendInfoBox::init() {
 
     infoLabel = Build<CCLabelBMFont>::create("Send #1", "bigFont.fnt")
             .scale(0.4f)
-            .pos({30.0f, 40.0f})
+            .pos({getContentWidth() / 2.0f, 40.0f})
             .anchorPoint({0.5f, 1.0f})
             .parent(this);
 
     timeLabel = Build<CCLabelBMFont>::create("11:56AM 01/02/2026", "chatFont.fnt")
             .scale(0.4f)
-            .pos({30.0f, 23.0f})
+            .pos({getContentWidth() / 2.0f, 23.0f})
             .anchorPoint({0.5f, 0.5f})
             .parent(this);
 
     timeLabel2 = Build<CCLabelBMFont>::create("2 days ago", "chatFont.fnt")
             .scale(0.4f)
-            .pos({30.0f, 16.0f})
+            .pos({getContentWidth() / 2.0f, 16.0f})
             .anchorPoint({0.5f, 0.5f})
             .parent(this);
 

@@ -16,9 +16,9 @@ struct CacheEntry {
 
 class APICache {
     int cacheDuration;
-    std::map<int, CacheEntry<Level>> levelCache;
-    std::map<int, CacheEntry<BatchLevel>> batchLevelCache;
-    std::map<int, CacheEntry<Creator>> creatorCache;
+    std::unordered_map<int, CacheEntry<Level>> levelCache;
+    std::unordered_map<int, CacheEntry<BatchLevel>> batchLevelCache;
+    std::unordered_map<int, CacheEntry<Creator>> creatorCache;
 
 public:
     explicit APICache(const int duration) : cacheDuration(duration) {}

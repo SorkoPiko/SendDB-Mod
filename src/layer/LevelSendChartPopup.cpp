@@ -10,6 +10,8 @@
 
 #include <node/SendChartNode.hpp>
 #include <rock/RoundedRect.hpp>
+#include <utils/FormatUtils.hpp>
+#include <utils/Messages.hpp>
 #include <utils/PointUtils.hpp>
 #include <utils/Style.hpp>
 #include <utils/TimeUtils.hpp>
@@ -63,22 +65,29 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
     Build(CircleButtonSprite::createWithSpriteFrameName("geode.loader/close.png", 0.85f, CircleBaseColor::Gray))
             .intoMenuItem(this, menu_selector(LevelSendChartPopup::onClose))
-            .pos({menuSize.x + 5.0f, menuSize.y + 5.0f})
+            .pos({-5.0f, menuSize.y + 5.0f})
             .scale(0.75f)
             .id("close-button")
             .parent(m_buttonMenu);
 
-    Build<CCLabelBMFont>::create(level->m_levelName.c_str(), "bigFont.fnt")
-            .anchorPoint({0.0f, 1.0f})
-            .pos({3.0f, menuSize.y + 2.0f})
-            .scale(0.7f)
+    Build<CCSprite>::createSpriteName("GJ_infoIcon_001.png")
+            .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::Info);})
+            .pos({menuSize.x + 5.0f, menuSize.y + 5.0f})
+            .id("info-button")
+            .parent(m_buttonMenu);
+
+    Build<CCLabelBMFont>::create(level->m_levelName.c_str(), "goldFont.fnt")
+            .anchorPoint({0.5f, 1.0f})
+            .pos({menuSize.x / 2.0f, menuSize.y + 2.0f})
+            .scale(0.85f)
             .id("title-label")
             .parent(m_buttonMenu);
 
-    Build<CCLabelBMFont>::create(fmt::format("by {}", level->m_creatorName.empty() ? "Unknown" : level->m_creatorName).c_str(), "chatFont.fnt")
+    Build<CCLabelBMFont>::create(fmt::format("by {}", level->m_creatorName.empty() ? "Unknown" : level->m_creatorName).c_str(), "goldFont.fnt")
             .anchorPoint({0.0f, 1.0f})
-            .pos({3.0f, menuSize.y - 20.0f})
+            .pos({3.0f, menuSize.y - 18.0f})
             .scale(0.5f)
+            .visible(false)
             .id("creator-label")
             .parent(m_buttonMenu);
 
@@ -108,27 +117,32 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
         auto menu = Build<CCMenu>::create()
                 .anchorPoint({0.0f, 1.0f})
-                .pos({284.0f, 160.0f})
+                .pos({290.0f, 176.0f})
                 .layout(ColumnLayout::create()
                     ->setAxisAlignment(AxisAlignment::End)
                     ->setCrossAxisLineAlignment(AxisAlignment::Start)
                     ->setAxisReverse(true)
                     ->setAutoGrowAxis(true)
                     ->setAutoScale(false)
-                    ->setGap(2.0f)
+                    ->setGap(3.0f)
                 )
                 .id("ranking-menu")
                 .parent(m_buttonMenu);
 
         Build<CCLabelBMFont>::create("Rankings", "bigFont.fnt")
                 .anchorPoint({0.0f, 0.5f})
-                .pos({284.0f, 170.0f})
+                .pos({290.0f, 170.0f})
                 .scale(0.6f)
+                .visible(false)
+                .id("ranking-label")
                 .parent(m_buttonMenu);
 
         Build<RankingNode>::create(levelInfo.rank, "All", std::nullopt, RankingFilter::SendDB)
                 .scale(0.6f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::RankingAll);})
+                .animationEnabled(false)
                 .anchorPoint({0.5f, 0.5f})
+                .id("all-ranking-node")
                 .parent(menu);
 
         if (const auto it = std::ranges::find(levelIDs, levelID); it != levelIDs.end()) {
@@ -136,7 +150,10 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             const int rank = static_cast<int>(index) + 1;
             Build<RankingNode>::create(rank, "Creator", static_cast<int>(levelIDs.size()), RankingFilter::User)
                     .scale(0.6f)
+                    .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::RankingCreator);})
+                    .animationEnabled(false)
                     .anchorPoint({0.5f, 0.5f})
+                    .id("creator-ranking-node")
                     .parent(menu);
         }
 
@@ -151,7 +168,10 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
             Build<RankingNode>::create(levelInfo.trending_rank, "Trending", std::nullopt, RankingFilter::Trending)
                     .scale(0.6f)
+                    .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::RankingTrending);})
+                    .animationEnabled(false)
                     .anchorPoint({0.5f, 0.5f})
+                    .id("trending-ranking-node")
                     .parent(menu);
         }
 
@@ -167,38 +187,56 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
         Build<RankingNode>::create(levelInfo.rate_rank, rateText, std::nullopt, rateFilter)
                 .scale(0.6f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::RankingRate);})
+                .animationEnabled(false)
                 .anchorPoint({0.5f, 0.5f})
+                .id("rate-ranking-node")
                 .parent(menu);
 
         Build<RankingNode>::create(levelInfo.gamemode_rank, gamemodeText, std::nullopt, gamemodeFilter)
                 .scale(0.6f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::RankingGamemode);})
+                .animationEnabled(false)
                 .anchorPoint({0.5f, 0.5f})
+                .id("gamemode-ranking-node")
                 .parent(menu);
 
         Build<RankingNode>::create(levelInfo.joined_rank, fmt::format("{} {}", rateText, gamemodeText), std::nullopt, rateFilter, gamemodeFilter)
                 .scale(0.6f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::RankingJoined);})
+                .animationEnabled(false)
                 .anchorPoint({0.5f, 0.5f})
+                .id("joined-ranking-node")
                 .parent(menu);
 
         menu->updateLayout();
 
 
-        auto sendInfoNode = Build<CCNode>::create()
-                .anchorPoint({0.0f, 1.0f})
-                .pos({10.0f, menuSize.y - 35.0f})
+        auto sendInfoNode = Build<CCMenu>::create()
+                .ignoreAnchorPointForPos(false)
+                .scale(0.95f)
+                .anchorPoint({0.0f, 0.0f})
+                .pos({13.0f, menuSize.y - 53.0f})
                 .contentSize({180.0f, 25.0f})
+                .id("send-info-node")
                 .parent(m_buttonMenu);
 
         Build<CCSprite>::createSpriteName("GJ_starsIcon_001.png")
                 .scale(0.9f/0.94f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::SendCategory);})
+                .animationEnabled(false)
                 .anchorPoint({0.5f, 0.5f})
                 .pos({10.0f, 10.0f})
+                .id("send-icon")
                 .parent(sendInfoNode);
 
         auto sendCountLabel = Build<CCLabelBMFont>::create(fmt::format("Send Count: {}", levelInfo.sends.size()).c_str(), "bigFont.fnt")
                 .limitLabelWidth(110.0f, 0.45f, 0.25f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::SendCount);})
+                .animationEnabled(false)
                 .anchorPoint({0.0f, 0.5f})
                 .pos({25.0f, sendInfoNode->getContentHeight() - 10.0f})
+                .id("send-count-label")
                 .parent(sendInfoNode);
 
         const float creatorSendAverage = creatorInfo.send_count / static_cast<float>(creatorInfo.levels.size());
@@ -208,14 +246,16 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             auto differenceSprite = changeIcon(sendDifference)
                     .scaleBy(0.6f)
                     .anchorPoint({0.0f, 0.5f})
+                    .id("difference-sprite")
                     .parent(sendInfoNode)
                     .matchPos(sendCountLabel)
                     .move({sendCountLabel->getScaledContentWidth() + 3.0f, 0.0f})
                     .color(changeColor(sendDifference, differenceGreen, {255, 255, 255}, differenceRed));
 
-            auto differenceLabel = Build<CCLabelBMFont>::create(fmt::format("{:+.2f}", sendDifference).c_str(), "chatFont.fnt")
+            auto differenceLabel = Build<CCLabelBMFont>::create(FormatUtils::formatFloat(sendDifference, 2, "").c_str(), "chatFont.fnt")
                     .scale(0.6f)
                     .anchorPoint({0.0f, 0.5f})
+                    .id("difference-label")
                     .parent(sendInfoNode)
                     .matchPos(differenceSprite)
                     .move({differenceSprite->getScaledContentWidth() - 0.5f, 0.0f})
@@ -225,36 +265,48 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
                 infoBoxColor,
                 3.0f,
                 {
-                    differenceLabel->getScaledContentWidth() + differenceLabel->getPositionX() - differenceSprite->getPositionX() + 2.0f,
-                    differenceSprite->getScaledContentHeight() + 2.0f
+                    differenceLabel->getScaledContentWidth() + differenceLabel->getPositionX() - differenceSprite->getPositionX() + 4.0f,
+                    differenceSprite->getScaledContentHeight() + 3.0f
                 }
             ))
+                    .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::SendDifference);})
+                    .animationEnabled(false)
                     .anchorPoint({0.0f, 0.5f})
+                    .id("difference-bg")
                     .parent(sendInfoNode)
                     .matchPos(differenceSprite)
-                    .move({-1.0f, 0.0f})
+                    .move({-2.0f, 0.0f})
                     .zOrder(-1);
         }
 
-        Build<CCLabelBMFont>::create(fmt::format("Creator Average: {:.2f}", creatorSendAverage).c_str(), "bigFont.fnt")
+        Build<CCLabelBMFont>::create(fmt::format("Creator Average: {}", FormatUtils::formatFloat(creatorSendAverage, 2)).c_str(), "bigFont.fnt")
                 .scale(0.3f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::SendCreatorAverage);})
+                .animationEnabled(false)
                 .anchorPoint({0.0f, 0.5f})
+                .id("creator-average-label")
                 .parent(sendInfoNode)
                 .matchPos(sendCountLabel)
-                .move({0.0f, -10.0f})
+                .move({0.0f, -12.0f})
                 .color(secondaryTextColor);
 
 
-        auto trendingInfoNode = Build<CCNode>::create()
-                .anchorPoint({1.0f, 1.0f})
-                .pos({menuSize.x - 10.0f, menuSize.y - 30.0f})
+        auto trendingInfoNode = Build<CCMenu>::create()
+                .ignoreAnchorPointForPos(false)
+                .scale(0.95f)
+                .anchorPoint({1.0f, 0.0f})
+                .pos({menuSize.x - 13.0f, menuSize.y - 53.0f})
                 .contentSize({190.0f, 30.0f})
+                .id("trending-info-node")
                 .parent(m_buttonMenu);
 
         Build<CCSprite>::createSpriteName("GJ_sTrendingIcon_001.png")
                 .scale(0.9f/0.66f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::TrendingCategory);})
+                .animationEnabled(false)
                 .anchorPoint({0.5f, 0.5f})
                 .pos({10.0f, 10.0f})
+                .id("trending-icon")
                 .parent(trendingInfoNode);
 
         if (levelInfo.rate.has_value()) {
@@ -262,14 +314,21 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
                     .scale(0.4f/0.52f)
                     .anchorPoint({0.5f, 0.5f})
                     .pos({17.0f, 3.0f})
+                    .id("trending-unavailable-icon")
                     .parent(trendingInfoNode);
         }
 
-        trendingScoreLabel = Build<CCLabelBMFont>::create(fmt::format("Trending Score: {:.2f}", levelInfo.trending_score).c_str(), "bigFont.fnt")
+        auto trendingScoreLabelButton = Build<CCLabelBMFont>::create(fmt::format("Trending Score: {:.2f}", levelInfo.trending_score).c_str(), "bigFont.fnt")
                 .limitLabelWidth(165.0f, 0.4f, 0.2f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::TrendingScore);})
+                .animationEnabled(false)
                 .anchorPoint({0.0f, 0.5f})
                 .pos({25.0f, trendingInfoNode->getContentHeight() - 10.0f})
+                .id("trending-score-label")
                 .parent(trendingInfoNode);
+        trendingScoreLabel = typeinfo_cast<CCLabelBMFont*>(trendingScoreLabelButton->getNormalImage());
+        trendingScoreLabel->setPositionX(0.0f);
+        trendingScoreLabel->setAnchorPoint({0.0f, 0.5f});
 
         sendTimestamps = geode::utils::ranges::map<std::vector<int>>(levelInfo.sends, [](const Send& s) {
             return s.timestamp / 1000;
@@ -277,24 +336,35 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
         peakTrendingScore = SendUtils::calculatePeakTrendingScore(sendTimestamps);
 
-        peakTrendingScoreLabel = Build<CCLabelBMFont>::create(fmt::format(
+        auto peakTrendingScoreLabelButton = Build<CCLabelBMFont>::create(fmt::format(
             "Peak Score: {:.2f} ({})",
             peakTrendingScore.score,
             TimeUtils::timestampToDate(peakTrendingScore.timestamp * 1000LL)
         ).c_str(), "bigFont.fnt")
                 .limitLabelWidth(165.0f, 0.3f, 0.15f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::TrendingPeakScore);})
+                .animationEnabled(false)
                 .anchorPoint({0.0f, 0.5f})
+                .id("peak-trending-score-label")
                 .parent(trendingInfoNode)
-                .matchPos(trendingScoreLabel)
-                .move({0.0f, -9.0f})
-                .color(secondaryTextColor);
+                .matchPos(trendingScoreLabelButton)
+                .move({0.0f, -10.0f})
+                .color(secondaryTextColor)
+                .animationEnabled(false);
+        peakTrendingScoreLabel = typeinfo_cast<CCLabelBMFont*>(peakTrendingScoreLabelButton->getNormalImage());
+        peakTrendingScoreLabel->setPositionX(0.0f);
+        peakTrendingScoreLabel->setAnchorPoint({0.0f, 0.5f});
 
-        auto creatorScoreLabel = Build<CCLabelBMFont>::create(fmt::format("Creator Score: {:.2f}", creatorInfo.trending_score).c_str(), "bigFont.fnt")
+        std::string creatorScoreString = creatorInfo.trending_score > 0.0 ? fmt::format("{:2f}", creatorInfo.trending_score) : "N/A";
+        auto creatorScoreLabel = Build<CCLabelBMFont>::create(fmt::format("Creator Score: {}", creatorScoreString).c_str(), "bigFont.fnt")
                 .limitLabelWidth(125.0f, 0.3f, 0.15f)
+                .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::TrendingCreatorScore);})
+                .animationEnabled(false)
                 .anchorPoint({0.0f, 0.5f})
+                .id("creator-score-label")
                 .parent(trendingInfoNode)
-                .matchPos(peakTrendingScoreLabel)
-                .move({0.0f, -8.0f})
+                .matchPos(peakTrendingScoreLabelButton)
+                .move({0.0f, -10.0f})
                 .color(secondaryTextColor);
 
         const float expectedAverage = creatorInfo.trending_score / creatorInfo.trending_level_count;
@@ -304,14 +374,16 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             auto percentageSprite = changeIcon(scoreDifference)
                     .scaleBy(0.5f)
                     .anchorPoint({0.0f, 0.5f})
+                    .id("score-contribution-sprite")
                     .parent(trendingInfoNode)
                     .matchPos(creatorScoreLabel)
-                    .move({creatorScoreLabel->getScaledContentWidth() + 3.0f, 0.0f})
+                    .move({creatorScoreLabel->getScaledContentWidth() + 4.0f, 0.0f})
                     .color(changeColor(scoreDifference, differenceRed, {255, 255, 255}, differenceGreen));
 
-            auto percentageLabel = Build<CCLabelBMFont>::create(fmt::format("{:.1f}%", levelInfo.trending_score / creatorInfo.trending_score * 100.0f).c_str(), "chatFont.fnt")
+            auto percentageLabel = Build<CCLabelBMFont>::create(fmt::format("{}%", FormatUtils::formatFloat(levelInfo.trending_score / creatorInfo.trending_score * 100.0f, 1)).c_str(), "chatFont.fnt")
                     .scale(0.5f)
                     .anchorPoint({0.0f, 0.5f})
+                    .id("score-contribution-label")
                     .parent(trendingInfoNode)
                     .matchPos(percentageSprite)
                     .move({percentageSprite->getScaledContentWidth(), 0.0f})
@@ -321,14 +393,17 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
                 infoBoxColor,
                 3.0f,
                 {
-                    percentageLabel->getScaledContentWidth() + percentageLabel->getPositionX() - percentageSprite->getPositionX() + 2.0f,
-                    percentageSprite->getScaledContentHeight() + 1.0f
+                    percentageLabel->getScaledContentWidth() + percentageLabel->getPositionX() - percentageSprite->getPositionX() + 4.0f,
+                    percentageSprite->getScaledContentHeight() + 3.0f
                 }
             ))
+                    .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::TrendingContribution);})
+                    .animationEnabled(false)
                     .anchorPoint({0.0f, 0.5f})
+                    .id("score-contribution-bg")
                     .parent(trendingInfoNode)
                     .matchPos(percentageSprite)
-                    .move({-1.0f, 0.0f})
+                    .move({-2.0f, 0.0f})
                     .zOrder(-1);
         }
     }
@@ -344,8 +419,8 @@ void LevelSendChartPopup::update(const float delta) {
     trendingScoreLabel->setString(fmt::format("Trending Score: {}", trendingStr).c_str());
 
     peakTrendingScoreLabel->setString(fmt::format(
-        "Peak Score: {:.2f} ({})",
-        peakTrendingScore.score,
+        "Peak Score: {} ({})",
+        FormatUtils::formatFloat(peakTrendingScore.score, 2),
         TimeUtils::timestampToDate(peakTrendingScore.timestamp * 1000LL)
     ).c_str());
 }
@@ -390,4 +465,12 @@ void LevelSendChartPopup::show() {
 void LevelSendChartPopup::onClose(CCObject* sender) {
     setKeypadEnabled(false);
     removeFromParentAndCleanup(true);
+}
+
+void LevelSendChartPopup::infoPopup(const LevelSendPopupInfo& info) {
+    FLAlertLayer::create(
+        Messages::getSendPopupInfoTitle(info).c_str(),
+        Messages::getSendPopupInfoContent(info).c_str(),
+        "OK"
+    )->show();
 }

@@ -4,6 +4,7 @@
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <model/APIResponse.hpp>
 #include <node/SendChartNode.hpp>
+#include <utils/Messages.hpp>
 #include <utils/SendUtils.hpp>
 
 using namespace geode::prelude;
@@ -30,6 +31,8 @@ class LevelSendChartPopup final : public FLAlertLayer {
     void ccTouchEnded(CCTouch* touch, CCEvent* event) override;
 
     void onClose(CCObject* sender);
+
+    static void infoPopup(const LevelSendPopupInfo& info);
 
 public:
     static LevelSendChartPopup* create(const GJGameLevel* level, int levelID, const std::optional<Level>& levelData, const std::optional<Creator>& creatorData);

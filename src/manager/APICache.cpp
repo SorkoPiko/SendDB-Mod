@@ -30,7 +30,7 @@ void APICache::cacheCreator(const int creatorID, const std::optional<Creator>& c
 
 template <typename T>
 std::optional<std::optional<T>> getCachedEntry(
-    const std::map<int, CacheEntry<T>>& cache,
+    const std::unordered_map<int, CacheEntry<T>>& cache,
     const int id,
     const int cacheDuration
 ) {
