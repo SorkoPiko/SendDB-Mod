@@ -1,6 +1,7 @@
 #include "SendUtils.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 double SendUtils::calculateTrendingScore(const long long timestamp, const std::vector<int>& sends) {
     double score = 0.0;
@@ -31,5 +32,5 @@ PeakTrendingScore SendUtils::calculatePeakTrendingScore(const std::vector<int>& 
 double SendUtils::calculateIndividualTrendingScore(const long long timestamp, const int sendTimestamp) {
     const double ageInDays = (timestamp - sendTimestamp * 1000LL) / 86400000.0;
     if (ageInDays < 0.0 || ageInDays > 30.0) return 0.0;
-    return 25000.0 / pow(ageInDays + 2, 1);
+    return 25000.0 / std::pow(ageInDays + 2, 1);
 }
