@@ -388,8 +388,7 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
         peakTrendingScoreLabel->setPositionX(0.0f);
         peakTrendingScoreLabel->setAnchorPoint({0.0f, 0.5f});
 
-        std::string creatorScoreString = creatorInfo.trending_score > 0.0 ? fmt::format("{:2f}", creatorInfo.trending_score) : "N/A";
-        auto creatorScoreLabel = Build<CCLabelBMFont>::create(fmt::format("Creator Score: {}", creatorScoreString).c_str(), "bigFont.fnt")
+        auto creatorScoreLabel = Build<CCLabelBMFont>::create(fmt::format("Creator Score: {:.2f}", creatorInfo.trending_score).c_str(), "bigFont.fnt")
                 .limitLabelWidth(125.0f, 0.3f, 0.15f)
                 .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::TrendingCreatorScore);})
                 .animationEnabled(false)
@@ -447,8 +446,9 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 void LevelSendChartPopup::update(const float delta) {
     FLAlertLayer::update(delta);
 
+    const bool rated = levelData.value_or({}).rate.has_value();
     double trendingScore = SendUtils::calculateTrendingScore(TimeUtils::getCurrentTimestamp(), sendTimestamps);
-    std::string trendingStr = trendingScore > 0.0 ? fmt::format("{:.2f}", trendingScore) : "N/A";
+    std::string trendingStr = trendingScore > 0.0 && rated ? fmt::format("{:.2f}", trendingScore) : "N/A";
     trendingScoreLabel->setString(fmt::format("Trending Score: {}", trendingStr).c_str());
 
     peakTrendingScoreLabel->setString(fmt::format(

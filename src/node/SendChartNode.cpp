@@ -327,6 +327,8 @@ void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
         point->setPosition(scaledPoint);
     }
 
+    sendInfoBox->clearData();
+
     drawGraph();
     drawLabelsAndGrid();
 }
