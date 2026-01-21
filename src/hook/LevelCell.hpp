@@ -7,12 +7,13 @@
 
 struct $modify(SendDBLevelCell, LevelCell) {
     struct Fields {
+        CCNode* sendContainer = nullptr;
         CCLabelBMFont* sendLabel = nullptr;
         std::optional<BatchLevel> levelInfo;
     };
 
     void setLevelInfo(const std::optional<BatchLevel>& info);
-    void createSendLabel();
+    void createSendContainer();
 };
 
 #endif

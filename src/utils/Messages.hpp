@@ -10,6 +10,7 @@ enum class LevelSendPopupInfo {
     SendCreatorAverage,
 
     TrendingCategory,
+    TrendingNotEligible,
     TrendingScore,
     TrendingPeakScore,
     TrendingCreatorScore,
@@ -36,6 +37,7 @@ public:
             case LevelSendPopupInfo::SendCreatorAverage: return "Average Sends";
 
             case LevelSendPopupInfo::TrendingCategory: return "Trending";
+            case LevelSendPopupInfo::TrendingNotEligible: return "Not Eligible";
             case LevelSendPopupInfo::TrendingScore: return "Trending Score";
             case LevelSendPopupInfo::TrendingPeakScore: return "Peak Trending Score";
             case LevelSendPopupInfo::TrendingCreatorScore: return "Creator Trending Score";
@@ -61,18 +63,19 @@ public:
             case LevelSendPopupInfo::SendDifference: return "The <cr>difference</c> between this level's send count and the creator's levels' average send count.";
             case LevelSendPopupInfo::SendCreatorAverage: return "The creator's levels' <cy>average send count</c>.";
 
-            case LevelSendPopupInfo::TrendingCategory: return "View information about the level's <cp>trending score</c>.";
+            case LevelSendPopupInfo::TrendingCategory: return "View information about the level's <cp>trending score</c>. The trending score is calculated based on how many sends the level has received recently, with more recent sends contributing more to the score.";
+            case LevelSendPopupInfo::TrendingNotEligible: return "This level is <cr>not eligible</c> for trending score ranking because it has been rated. You can still see its trending score, but it does not have a ranking amongst unrated levels.";
             case LevelSendPopupInfo::TrendingScore: return "The level's <cp>live trending score</c>.";
             case LevelSendPopupInfo::TrendingPeakScore: return "The level's <cy>peak trending score</c> (and when it was achieved).";
             case LevelSendPopupInfo::TrendingCreatorScore: return "The sum of the <cg>creator's levels' trending scores.</c>";
-            case LevelSendPopupInfo::TrendingContribution: return "The <cr>percentage contribution</c> of this level's trending score to the creator's total trending score.";
+            case LevelSendPopupInfo::TrendingContribution: return "The <cg>percentage contribution</c> of this level's trending score to the creator's total trending score.";
 
-            case LevelSendPopupInfo::RankingAll: return "The level's send count ranking among <cy>all levels</c>.";
-            case LevelSendPopupInfo::RankingCreator: return "The level's send count ranking among the <cg>creator's levels</c>.";
-            case LevelSendPopupInfo::RankingTrending: return "The level's trending score ranking among <cp>unrated levels</c>.";
-            case LevelSendPopupInfo::RankingRate: return "The level's send count ranking among <cy>levels with the same rate</c> (rated/unrated).";
-            case LevelSendPopupInfo::RankingGamemode: return "The level's send count ranking among <cy>levels with the same gamemode</c> (classic/platformer).";
-            case LevelSendPopupInfo::RankingJoined: return "The level's send count ranking among <cr>levels with the same rate</c> (rated/unrated) <cr>and gamemode</c> (classic/platformer).";
+            case LevelSendPopupInfo::RankingAll: return "The level's send count ranking amongst <cy>all levels</c>.";
+            case LevelSendPopupInfo::RankingCreator: return "The level's send count ranking amongst the <cg>creator's levels</c>.";
+            case LevelSendPopupInfo::RankingTrending: return "The level's trending score ranking amongst <cp>unrated levels</c>.";
+            case LevelSendPopupInfo::RankingRate: return "The level's send count ranking amongst <cy>levels with the same rate</c> (rated/unrated).";
+            case LevelSendPopupInfo::RankingGamemode: return "The level's send count ranking amongst <cy>levels with the same gamemode</c> (classic/platformer).";
+            case LevelSendPopupInfo::RankingJoined: return "The level's send count ranking amongst <cr>levels with the same rate</c> (rated/unrated) <cr>and gamemode</c> (classic/platformer).";
 
             default: return "unknown";
         }

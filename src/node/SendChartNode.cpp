@@ -1,19 +1,24 @@
 #include "SendChartNode.hpp"
 
 #include <numeric>
+#include <ranges>
 
 #include <utils/LayoutUtils.hpp>
 #include <utils/PointUtils.hpp>
+#include <utils/SendUtils.hpp>
 #include <utils/Style.hpp>
 #include <utils/TimeUtils.hpp>
 
-bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, const float _lineWidth, const ChartStyle style) {
+#include "AntialiasedDrawNode.hpp"
+
+bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, const float _lineWidth, const ChartType type, const ChartStyle style) {
     if (!CCNode::init()) return false;
     scheduleUpdate();
 
     setContentSize(size);
     chartSize = size;
     lineWidth = _lineWidth;
+    chartType = type;
     chartStyle = style;
 
     CCClippingNode* clippingNode = Build<CCClippingNode>::create()
@@ -46,8 +51,9 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
     gridNode->setZOrder(-1);
     clippingNode->addChild(gridNode);
 
-    graphLineNode = CCDrawNode::create();
+    graphLineNode = AntialiasedDrawNode::create();
     graphLineNode->m_bUseArea = false;
+    graphLineNode->setBlendFunc({GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA});
     clippingNode->addChild(graphLineNode);
 
     hoverMenu = CCMenu::create();
@@ -75,6 +81,8 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
 
     if (level.has_value()) {
         auto levelValue = level.value();
+        levelData = levelValue;
+
         if (!levelValue.sends.empty()) {
             std::ranges::sort(levelValue.sends, [](const Send& a, const Send& b) {
                 return a.timestamp < b.timestamp;
@@ -118,48 +126,88 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
             int yValue = ceil(levelValue.sends.size() / 5.0) * 5;
             if (levelValue.sends.size() % 5 == 0) yValue += 1;
 
-            chartDimensions = ccp(timeRangeSeconds > 0 ? timeRangeSeconds : 1.0f, yValue);
-            viewport = {ccp(0, 0), chartDimensions};
+            sendChartDimensions = ccp(timeRangeSeconds > 0 ? timeRangeSeconds : 1.0f, yValue);
+            viewport = {ccp(0, 0), sendChartDimensions};
 
-            processedPoints.push_back(scalePoint(LineChartPoint(0.0f, 0.0f, false)));
+            sendChartPoints.push_back(LineChartPoint(0.0f, 0.0f, false));
 
             int i = 0;
             for (const auto& send : levelValue.sends) {
                 i++;
                 const auto point = LineChartPoint((send.timestamp - startTimestamp) / 1000.f, i, send.timestamp > rateTimestamp);
-                const auto scaledPoint = scalePoint(point);
-                processedPoints.push_back(scaledPoint);
+                sendChartPoints.push_back(point);
 
-                SendChartPoint* chartPoint = Build<SendChartPoint>::create(ccColor3B{180, 180, 180}, send, i)
+                const auto scaledPoint = scalePoint(point);
+                SendChartPoint* chartPoint = Build<SendChartPoint>::create(pointColor, send, i)
                         .pos(scaledPoint.toCCPoint())
                         .scale(0.1f)
                         .parent(hoverMenu);
                 chartPoint->setPoint(point);
-                points.push_back(chartPoint);
+                sendPoints.push_back(chartPoint);
             }
 
             if (!placedRatePoint) {
                 const auto point = LineChartPoint((rateTimestamp - startTimestamp) / 1000.f, i, true);
-                const auto scaledPoint = scalePoint(point);
-                processedPoints.push_back(scaledPoint);
-                placedRatePoint = true;
+                sendChartPoints.push_back(point);
 
+                const auto scaledPoint = scalePoint(point);
                 SendChartPoint* chartPoint = Build<SendChartPoint>::create(levelValue.rate.value())
                         .pos(scaledPoint.toCCPoint())
                         .scale(0.4f)
                         .parent(hoverMenu);
                 chartPoint->setPoint(point);
-                points.push_back(chartPoint);
+                sendPoints.push_back(chartPoint);
             }
 
             if (!timestampsMatch) {
                 const auto point = LineChartPoint((lastTimestamp - startTimestamp) / 1000.f, i, lastTimestamp > rateTimestamp);
-                const auto scaledPoint = scalePoint(point);
-                processedPoints.push_back(scaledPoint);
+                sendChartPoints.push_back(point);
             }
-        }
 
-        levelData = levelValue;
+            int points = Mod::get()->getSettingValue<int>("trendingSamplePoints");
+            std::vector<float> sampledX;
+            if (sendChartDimensions.width > 0.0f) {
+                const float step = sendChartDimensions.width / static_cast<float>(points);
+                for (int i = 0; i <= points; ++i) {
+                    sampledX.push_back(i * step);
+                }
+            }
+
+            const auto sendTimestamps = ranges::map<std::vector<int>>(levelValue.sends, [](const Send& s) {
+                return s.timestamp / 1000;
+            });
+
+            float maxTrendingScore = 0.0f;
+            placedRatePoint = false;
+            for (const auto& x : sampledX) {
+                const long long timestamp = startTimestamp + static_cast<long long>(x * 1000.0f);
+                if (!placedRatePoint && levelValue.rate.has_value() && timestamp >= rateTimestamp) {
+                    const double trendingScore = SendUtils::calculateTrendingScore(rateTimestamp, sendTimestamps);
+                    if (trendingScore > maxTrendingScore) maxTrendingScore = trendingScore;
+
+                    const auto point = LineChartPoint(x, static_cast<float>(trendingScore), true);
+                    trendingChartPoints.push_back(point);
+
+                    const auto scaledPoint = scalePoint(point);
+                    SendChartPoint* chartPoint = Build<SendChartPoint>::create(levelValue.rate)
+                            .pos(scaledPoint.toCCPoint())
+                            .scale(0.4f)
+                            .parent(hoverMenu);
+                    chartPoint->setPoint(point);
+                    trendingPoints.push_back(chartPoint);
+
+                    placedRatePoint = true;
+                    continue;
+
+                }
+                const double trendingScore = SendUtils::calculateTrendingScore(timestamp, sendTimestamps);
+                if (trendingScore > maxTrendingScore) maxTrendingScore = trendingScore;
+
+                trendingChartPoints.push_back(LineChartPoint(x, static_cast<float>(trendingScore), timestamp > rateTimestamp));
+            }
+
+            trendingChartDimensions = ccp(timeRangeSeconds > 0 ? timeRangeSeconds : 1.0f, ceil((maxTrendingScore + 15000.0f) / 25000.0f) * 25000.0f);
+        }
     }
 
     drawGraph();
@@ -236,7 +284,7 @@ void SendChartNode::update(const float delta) {
     float closestDistanceSq = std::numeric_limits<float>::max();
     hoveredPoint = nullptr;
 
-    for (const auto& point : points) {
+    for (const auto& point : *getPoints()) {
         if (PointUtils::isPointInsideNode(point, mousePos)) {
             const float distanceSq = PointUtils::squaredDistanceFromNode(point, mousePos);
             if (; distanceSq < closestDistanceSq) {
@@ -246,7 +294,7 @@ void SendChartNode::update(const float delta) {
         }
     }
 
-    for (const auto& point : points) {
+    for (const auto& point : std::views::join(std::array{sendPoints, trendingPoints})) {
         point->onHover(point == hoveredPoint);
     }
 
@@ -263,20 +311,18 @@ void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
     const auto fixedStart = ccp(minX, minY);
     const auto fixedEnd = ccp(maxX, maxY);
 
-    log::info("start {}, end {}, chartSize {}", fixedStart, fixedEnd, chartSize);
-
     const auto scaledStart = screenToChartPoint(fixedStart);
     const auto scaledEnd = screenToChartPoint(fixedEnd);
     const CCRect newDimensions = {fixedStart, fixedEnd - fixedStart};
     const CCRect scaledDimensions = {scaledStart, scaledEnd - scaledStart};
     if (newDimensions.size.width < 5.0f || newDimensions.size.height < 5.0f) {
         if (hoveredPoint) return;
-        viewport = {{0, 0}, chartDimensions};
+        viewport = {{0, 0}, getChartDimensions()};
     } else {
         viewport = scaledDimensions;
     }
 
-    for (const auto& point : points) {
+    for (const auto& point : *getPoints()) {
         const auto scaledPoint = applyViewportScaling(point->getPoint().value().toCCPoint());
         point->setPosition(scaledPoint);
     }
@@ -285,36 +331,61 @@ void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
     drawLabelsAndGrid();
 }
 
-void SendChartNode::drawGraph() {
+void SendChartNode::drawGraph() const {
+    switch (chartType) {
+        case ChartType::Sends: {
+            for (auto& point : sendPoints) {
+                point->setVisible(true);
+            }
+            for (auto& point : trendingPoints) {
+                point->setVisible(false);
+            }
+            drawSendGraph();
+            break;
+        }
+        case ChartType::Trending: {
+            for (auto& point : sendPoints) {
+                point->setVisible(false);
+            }
+            for (auto& point : trendingPoints) {
+                point->setVisible(true);
+            }
+            drawTrendingGraph();
+            break;
+        }
+    }
+}
+
+void SendChartNode::drawSendGraph() const {
     graphLineNode->clear();
 
     const ccColor4F sendColorF = ccc4FFromccc3B(sendColor);
     const ccColor4F rateColorF = ccc4FFromccc3B(rateColor);
 
     const auto scale = ccp(
-        chartDimensions.width / viewport.size.width,
-        chartDimensions.height / viewport.size.height
+        chartSize.width / viewport.size.width,
+        chartSize.height / viewport.size.height
     );
-    const auto offset = -scalePoint(viewport.origin);
+    const auto offset = -viewport.origin;
 
-    if (processedPoints.size() < 2) return;
+    if (sendChartPoints.size() < 2) return;
 
     switch (chartStyle) {
         case ChartStyle::Line:
-            for (size_t i = 1; i < processedPoints.size(); i++) {
+            for (size_t i = 1; i < sendChartPoints.size(); i++) {
                 ccColor4F color = sendColorF;
-                if (processedPoints[i - 1].rated) color = rateColorF;
+                if (sendChartPoints[i - 1].rated) color = rateColorF;
 
-                graphLineNode->drawSegment((processedPoints[i - 1].toCCPoint() + offset) * scale, (processedPoints[i].toCCPoint() + offset) * scale, lineWidth, color);
+                graphLineNode->drawSegment((sendChartPoints[i - 1].toCCPoint() + offset) * scale, (sendChartPoints[i].toCCPoint() + offset) * scale, lineWidth, color);
             }
             break;
         case ChartStyle::Step:
-            for (size_t i = 1; i < processedPoints.size(); i++) {
+            for (size_t i = 1; i < sendChartPoints.size(); i++) {
                 ccColor4F color = sendColorF;
-                if (processedPoints[i - 1].rated) color = rateColorF;
+                if (sendChartPoints[i - 1].rated) color = rateColorF;
 
-                CCPoint prevPoint = processedPoints[i - 1].toCCPoint();
-                CCPoint currPoint = processedPoints[i].toCCPoint();
+                CCPoint prevPoint = sendChartPoints[i - 1].toCCPoint();
+                CCPoint currPoint = sendChartPoints[i].toCCPoint();
                 CCPoint stepPoint = ccp(currPoint.x, prevPoint.y);
 
                 graphLineNode->drawSegment((prevPoint + offset) * scale, (stepPoint + offset) * scale, lineWidth, color);
@@ -324,12 +395,29 @@ void SendChartNode::drawGraph() {
     }
 }
 
+void SendChartNode::drawTrendingGraph() const {
+    graphLineNode->clear();
+
+    const ccColor4F trendingColorF = ccc4FFromccc3B(trendingColor);
+    const ccColor4F rateColorF = ccc4FFromccc3B(secondaryColor);
+
+    const auto scale = ccp(
+        chartSize.width / viewport.size.width,
+        chartSize.height / viewport.size.height
+    );
+    const auto offset = -viewport.origin;
+
+    for (size_t i = 1; i < trendingChartPoints.size(); i++) {
+        ccColor4F color = trendingColorF;
+        if (trendingChartPoints[i - 1].rated) color = rateColorF;
+
+        graphLineNode->drawSegment((trendingChartPoints[i - 1].toCCPoint() + offset) * scale, (trendingChartPoints[i].toCCPoint() + offset) * scale, lineWidth, color);
+    }
+}
+
 void SendChartNode::drawLabelsAndGrid() const {
     labelsNode->removeAllChildrenWithCleanup(true);
     gridNode->clear();
-
-    int labelEveryY = 10;
-    int gridLineEveryY = 5;
 
     const float startX = viewport.origin.x;
     const float endX = viewport.origin.x + viewport.size.width;
@@ -340,21 +428,9 @@ void SendChartNode::drawLabelsAndGrid() const {
     const int maxY = static_cast<int>(ceil(endY));
 
     const int startTimeSeconds = static_cast<int>(startTimestamp / 1000LL + startX);
-    const int timeRangeSeconds = static_cast<int>(ceil(viewport.size.width));
 
     const ChartAxisLayout xLayout = LayoutUtils::calculateTimeAxisLayout(startTimeSeconds, maxX);
-
-    if (maxY < 20) {
-        labelEveryY = 5;
-        gridLineEveryY = 2;
-    }
-
-    const ChartAxisLayout yLayout = {
-        1.0f,
-        {1, 0},
-        {labelEveryY, 0},
-        {gridLineEveryY, 0}
-    };
+    const ChartAxisLayout yLayout = LayoutUtils::calculateNumericAxisLayout(startY, maxY);
 
     drawAxis(
         {
@@ -365,11 +441,11 @@ void SendChartNode::drawLabelsAndGrid() const {
             viewport.origin.y,
             viewport.size.height,
             chartSize.height,
-            chartDimensions.height,
+            getChartDimensions().height,
         },
         yLayout,
         maxY,
-        0.0f
+        startY
     );
 
     drawAxis(
@@ -381,7 +457,7 @@ void SendChartNode::drawLabelsAndGrid() const {
             viewport.origin.x,
             viewport.size.width,
             chartSize.width,
-            chartDimensions.width,
+            getChartDimensions().width,
         },
         xLayout,
         maxX,
@@ -407,12 +483,15 @@ void SendChartNode::drawAxis(
     const int startValue
 ) const {
     const int minOffset = LayoutUtils::minStartOffset(layout);
-    const int endOffset = maxValue / layout.unit;
+    int endOffset = maxValue / layout.unit;
     const int intervalGCD = cumulativeGCD({layout.tick.interval, layout.label.interval, layout.gridLine.interval});
 
     for (int i = minOffset; i <= endOffset; i += intervalGCD) {
-        const float value = i * layout.unit;
-        if (value < 0) continue;
+        const float value = layout.startOffset + i * layout.unit - startValue;
+        if (value < 0) {
+            endOffset += intervalGCD;
+            continue;
+        }
 
         const float chartPos = config.start + value;
         if (chartPos < 0 || chartPos > config.chartDimension) continue;
@@ -485,7 +564,7 @@ void SendChartNode::drawGridLine(
 void SendChartNode::createAxisLabel(
     const AxisRenderConfig& config,
     const float scaledPos,
-    const int absoluteValue,
+    const float absoluteValue,
     Build<CCSprite>& tickSprite
 ) const {
     CCPoint anchorPoint;
@@ -525,16 +604,16 @@ std::string SendChartNode::getLabelText(
 
 LineChartPoint SendChartNode::scalePoint(const LineChartPoint& point) const {
     return {
-        point.x / chartDimensions.width * chartSize.width,
-        point.y / chartDimensions.height * chartSize.height,
+        point.x / getChartDimensions().width * chartSize.width,
+        point.y / getChartDimensions().height * chartSize.height,
         point.rated
     };
 }
 
 CCPoint SendChartNode::scalePoint(const CCPoint& point) const {
     return {
-        point.x / chartDimensions.width * chartSize.width,
-        point.y / chartDimensions.height * chartSize.height
+        point.x / getChartDimensions().width * chartSize.width,
+        point.y / getChartDimensions().height * chartSize.height
     };
 }
 
@@ -552,14 +631,14 @@ CCPoint SendChartNode::applyViewportScaling(const CCPoint& point) const {
     };
 }
 
-float SendChartNode::getTimestampFromX(const float x) const {
+long long SendChartNode::getTimestampFromX(const float x) const {
     const float seconds = x / chartSize.width * viewport.size.width + viewport.origin.x;
     return startTimestamp + seconds * 1000.0f;
 }
 
-SendChartNode* SendChartNode::create(const std::optional<Level>& level, const CCSize& size, const float lineWidth, const ChartStyle style) {
+SendChartNode* SendChartNode::create(const std::optional<Level>& level, const CCSize& size, const float lineWidth, const ChartType type, const ChartStyle style) {
     auto node = new SendChartNode();
-    if (node->init(level, size, lineWidth, style)) {
+    if (node->init(level, size, lineWidth, type, style)) {
         node->autorelease();
         return node;
     }
@@ -591,4 +670,35 @@ void SendChartNode::onRelease(const CCPoint& position) {
     if (!PointUtils::isPointInsideNode(this, position)) {
         touchPoint = std::nullopt;
     }
+}
+
+ChartType SendChartNode::getType() const {
+    return chartType;
+}
+
+void SendChartNode::setType(const ChartType type) {
+    chartType = type;
+    viewport = {{0, 0}, getChartDimensions()};
+    hoveredPoint = nullptr;
+    handleZoom({0.0f, 0.0f}, {0.0f, 0.0f});
+}
+
+CCSize SendChartNode::getChartDimensions() const {
+    switch (chartType) {
+        case ChartType::Sends:
+            return sendChartDimensions;
+        case ChartType::Trending:
+            return trendingChartDimensions;
+    }
+    return {0, 0};
+}
+
+std::vector<SendChartPoint*>* SendChartNode::getPoints() {
+    switch (chartType) {
+        case ChartType::Sends:
+            return &sendPoints;
+        case ChartType::Trending:
+            return &trendingPoints;
+    }
+    return nullptr;
 }

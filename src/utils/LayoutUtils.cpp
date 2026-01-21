@@ -5,7 +5,7 @@
 #include <vector>
 #include <Geode/loader/Log.hpp>
 
-ChartAxisLayout LayoutUtils::calculateTimeAxisLayout(const int startTimestamp, const int timeRange) {
+ChartAxisLayout LayoutUtils::calculateTimeAxisLayout(const int minTimestamp, const int timeRange) {
     constexpr int maxDays = 7;
     constexpr int targetTicksPerLabel = 5;
 
@@ -70,39 +70,138 @@ ChartAxisLayout LayoutUtils::calculateTimeAxisLayout(const int startTimestamp, c
     const int timezoneOffsetSeconds = static_cast<int>(local_tm.tm_gmtoff);
 #endif
 
-    const int timezoneOffsetHalfDays = timezoneOffsetSeconds / secondsPerHalfDay;
-    const int startHalfDays = startTimestamp / secondsPerHalfDay;
-    const int localStartHalfDays = startHalfDays + timezoneOffsetHalfDays;
+    const int startHalfDays = minTimestamp / secondsPerHalfDay;
 
-    const int daysSinceEpoch = localStartHalfDays / halfDaysPerDay;
+    const int daysSinceEpoch = startHalfDays / halfDaysPerDay;
     const int alignedLocalMidnight = daysSinceEpoch * halfDaysPerDay;
 
-    const int ticksSinceMidnight = (localStartHalfDays - alignedLocalMidnight) / tickIntervalHalfDays;
+    const int ticksSinceMidnight = (startHalfDays - alignedLocalMidnight) / tickIntervalHalfDays;
     const int alignedLocalTick = alignedLocalMidnight + ticksSinceMidnight * tickIntervalHalfDays;
-    const int firstTickOffset = alignedLocalTick - timezoneOffsetHalfDays - startHalfDays;
 
-    const int labelsSinceMidnight = (localStartHalfDays - alignedLocalMidnight) / labelIntervalHalfDays;
+    const int labelsSinceMidnight = (startHalfDays - alignedLocalMidnight) / labelIntervalHalfDays;
     const int alignedLocalLabel = alignedLocalMidnight + labelsSinceMidnight * labelIntervalHalfDays;
-    const int firstLabelOffset = alignedLocalLabel - timezoneOffsetHalfDays - startHalfDays;
 
-    const int gridTicksSinceMidnight = (localStartHalfDays - alignedLocalMidnight) / gridLineIntervalHalfDays;
+    const int gridTicksSinceMidnight = (startHalfDays - alignedLocalMidnight) / gridLineIntervalHalfDays;
     const int alignedLocalGrid = alignedLocalMidnight + gridTicksSinceMidnight * gridLineIntervalHalfDays;
-    const int firstGridOffset = alignedLocalGrid - timezoneOffsetHalfDays - startHalfDays;
+
+    const int firstTickTimestamp = alignedLocalTick * secondsPerHalfDay;
+    const int firstLabelTimestamp = alignedLocalLabel * secondsPerHalfDay;
+    const int firstGridTimestamp = alignedLocalGrid * secondsPerHalfDay;
+
+    const float globalStartOffset = static_cast<float>(firstTickTimestamp);
+
+    int tickStartOffset = 0;
+    int labelStartOffset = (firstLabelTimestamp - firstTickTimestamp) / secondsPerHalfDay;
+    int gridLineStartOffset = (firstGridTimestamp - firstTickTimestamp) / secondsPerHalfDay;
+
+    const int tzOffsetHalfDays = timezoneOffsetSeconds / secondsPerHalfDay;
+
+    // idk
+    while (tickStartOffset < tzOffsetHalfDays) {
+        tickStartOffset += tickIntervalHalfDays;
+    }
+
+    while (labelStartOffset < tzOffsetHalfDays) {
+        labelStartOffset += labelIntervalHalfDays;
+    }
+
+    while (gridLineStartOffset < tzOffsetHalfDays) {
+        gridLineStartOffset += gridLineIntervalHalfDays;
+    }
 
     return {
-        secondsPerHalfDay,
+        static_cast<float>(secondsPerHalfDay),
+        globalStartOffset - timezoneOffsetSeconds,
         {
             tickIntervalHalfDays,
-            firstTickOffset
+            tickStartOffset
         },
         {
             labelIntervalHalfDays,
-            firstLabelOffset
+            labelStartOffset
         },
         {
             gridLineIntervalHalfDays,
-            firstGridOffset
+            gridLineStartOffset
         }
+    };
+}
+
+ChartAxisLayout LayoutUtils::calculateNumericAxisLayout(const float minValue, const float maxValue) {
+    const float range = maxValue - minValue;
+
+    if (range <= 0) {
+        return {1.0f, 0.0f, {1, 0}, {10, 0}, {5, 0}};
+    }
+
+    constexpr int targetLabels = 7;
+
+    const float roughInterval = range / targetLabels;
+    const float magnitude = std::pow(10.0f, std::floor(std::log10(roughInterval)));
+    const float normalized = roughInterval / magnitude;
+
+    float niceNormalized;
+    if (normalized <= 1.0f) {
+        niceNormalized = 1.0f;
+    } else if (normalized <= 2.0f) {
+        niceNormalized = 2.0f;
+    } else if (normalized <= 2.5f) {
+        niceNormalized = 2.5f;
+    } else if (normalized <= 5.0f) {
+        niceNormalized = 5.0f;
+    } else {
+        niceNormalized = 10.0f;
+    }
+
+    const float labelInterval = niceNormalized * magnitude;
+
+    float unit;
+    int labelIntervalUnits;
+    int tickIntervalUnits;
+    int gridLineIntervalUnits;
+
+    if (niceNormalized == 1.0f) {
+        unit = magnitude / 5.0f;
+        labelIntervalUnits = 5;
+        tickIntervalUnits = 1;
+        gridLineIntervalUnits = 2;
+    } else if (niceNormalized == 2.0f) {
+        unit = magnitude / 2.0f;
+        labelIntervalUnits = 4;
+        tickIntervalUnits = 1;
+        gridLineIntervalUnits = 2;
+    } else if (niceNormalized == 2.5f) {
+        unit = magnitude / 2.0f;
+        labelIntervalUnits = 5;
+        tickIntervalUnits = 1;
+        gridLineIntervalUnits = 2;
+    } else if (niceNormalized == 5.0f) {
+        unit = magnitude;
+        labelIntervalUnits = 5;
+        tickIntervalUnits = 1;
+        gridLineIntervalUnits = 2;
+    } else {
+        unit = magnitude;
+        labelIntervalUnits = 10;
+        tickIntervalUnits = 2;
+        gridLineIntervalUnits = 5;
+    }
+
+    const float firstLabel = std::floor(minValue / labelInterval) * labelInterval;
+    const float firstTick = std::floor(minValue / (tickIntervalUnits * unit)) * (tickIntervalUnits * unit);
+    const float firstGridLine = std::floor(minValue / (gridLineIntervalUnits * unit)) * (gridLineIntervalUnits * unit);
+
+    const float globalStartOffset = firstTick;
+
+    const int labelStartOffset = static_cast<int>(std::round((firstLabel - globalStartOffset) / unit));
+    const int tickStartOffset = 0;
+    const int gridLineStartOffset = static_cast<int>(std::round((firstGridLine - globalStartOffset) / unit));
+
+    return {
+        unit, globalStartOffset,
+        {tickIntervalUnits, tickStartOffset},
+        {labelIntervalUnits, labelStartOffset},
+        {gridLineIntervalUnits, gridLineStartOffset}
     };
 }
 

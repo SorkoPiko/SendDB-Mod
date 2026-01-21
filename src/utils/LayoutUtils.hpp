@@ -8,6 +8,7 @@ struct ChartPoint {
 
 struct ChartAxisLayout {
     float unit;
+    float startOffset;
     ChartPoint tick;
     ChartPoint label;
     ChartPoint gridLine;
@@ -15,7 +16,8 @@ struct ChartAxisLayout {
 
 class LayoutUtils {
 public:
-    static ChartAxisLayout calculateTimeAxisLayout(int startTimestamp, int timeRange);
+    static ChartAxisLayout calculateTimeAxisLayout(int minTimestamp, int timeRange);
+    static ChartAxisLayout calculateNumericAxisLayout(float minValue, float maxValue);
 
     static int minStartOffset(ChartAxisLayout layout);
 };

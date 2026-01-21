@@ -9,6 +9,7 @@
 #include <node/RankingNode.hpp>
 
 #include <node/SendChartNode.hpp>
+#include <node/SwitchNode.hpp>
 #include <rock/RoundedRect.hpp>
 #include <utils/FormatUtils.hpp>
 #include <utils/Messages.hpp>
@@ -43,6 +44,10 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
     if (!FLAlertLayer::init(75)) return false;
     scheduleUpdate();
 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glLineWidth(1);
+
     levelID = _levelID;
     levelData = _levelData;
     creatorData = _creatorData;
@@ -64,9 +69,9 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             .parent(m_mainLayer);
 
     Build(CircleButtonSprite::createWithSpriteFrameName("geode.loader/close.png", 0.85f, CircleBaseColor::Gray))
+            .scale(0.75f)
             .intoMenuItem(this, menu_selector(LevelSendChartPopup::onClose))
             .pos({-5.0f, menuSize.y + 5.0f})
-            .scale(0.75f)
             .id("close-button")
             .parent(m_buttonMenu);
 
@@ -95,13 +100,39 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
         levelData,
         CCSize(260, 150),
         1.0f,
+        ChartType::Sends,
         chartStyleFromString(Mod::get()->getSettingValue<std::string>("graphStyle"))
     ))
             .anchorPoint({0.0f, 0.0f})
-            .pos({20.0f, 20.0f})
+            .pos({30.0f, 20.0f})
             .id("send-chart")
             .parent(m_buttonMenu)
             .zOrder(1);
+
+    auto chartSwitchSprite = SwitchNode::create();
+    chartSwitchSprite->addNode(Build<CCSprite>::createSpriteName("GJ_starsIcon_001.png").scale(1.0f/0.94f));
+    chartSwitchSprite->addNode(Build<CCSprite>::createSpriteName("GJ_sTrendingIcon_001.png").scale(1.0f/0.66f));
+    chartSwitchSprite->setActiveIndex(0);
+
+    Build(CircleButtonSprite::create(chartSwitchSprite, CircleBaseColor::Gray))
+            .scale(0.75f)
+            .intoMenuItem([this, chartSwitchSprite](auto*) {
+                switch (chartNode->getType()) {
+                    case ChartType::Sends:
+                        chartNode->setType(ChartType::Trending);
+                        chartSwitchSprite->setActiveIndex(1);
+                        break;
+                    case ChartType::Trending:
+                        chartNode->setType(ChartType::Sends);
+                        chartSwitchSprite->setActiveIndex(0);
+                        break;
+                }
+            })
+            .pos({-5.0f, -5.0f})
+            .id("chart-button")
+            .parent(m_buttonMenu);
+
+    chartSwitchSprite->setScale(1.0f); // ???
 
     std::vector creatorLevels = creatorData.has_value() ? creatorData->levels : std::vector<CreatorLevel>{};
     std::ranges::sort(creatorLevels, [](const CreatorLevel& a, const CreatorLevel& b) {
@@ -117,7 +148,7 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
 
         auto menu = Build<CCMenu>::create()
                 .anchorPoint({0.0f, 1.0f})
-                .pos({290.0f, 176.0f})
+                .pos({297.0f, 176.0f})
                 .layout(ColumnLayout::create()
                     ->setAxisAlignment(AxisAlignment::End)
                     ->setCrossAxisLineAlignment(AxisAlignment::Start)
@@ -242,7 +273,7 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
         const float creatorSendAverage = creatorInfo.send_count / static_cast<float>(creatorInfo.levels.size());
         const float sendDifference = levelInfo.sends.size() - creatorSendAverage;
 
-        if (sendDifference != 0.0f) {
+        if (creatorInfo.levels.size() > 1) {
             auto differenceSprite = changeIcon(sendDifference)
                     .scaleBy(0.6f)
                     .anchorPoint({0.0f, 0.5f})
@@ -252,7 +283,7 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
                     .move({sendCountLabel->getScaledContentWidth() + 3.0f, 0.0f})
                     .color(changeColor(sendDifference, differenceGreen, {255, 255, 255}, differenceRed));
 
-            auto differenceLabel = Build<CCLabelBMFont>::create(FormatUtils::formatFloat(sendDifference, 2, "").c_str(), "chatFont.fnt")
+            auto differenceLabel = Build<CCLabelBMFont>::create(FormatUtils::formatFloat(sendDifference, 2, "+").c_str(), "chatFont.fnt")
                     .scale(0.6f)
                     .anchorPoint({0.0f, 0.5f})
                     .id("difference-label")
@@ -312,6 +343,8 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
         if (levelInfo.rate.has_value()) {
             Build<CCSprite>::createSpriteName("edit_delBtnSmall_001.png")
                     .scale(0.4f/0.52f)
+                    .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::TrendingNotEligible);})
+                    .animationEnabled(false)
                     .anchorPoint({0.5f, 0.5f})
                     .pos({17.0f, 3.0f})
                     .id("trending-unavailable-icon")

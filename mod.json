@@ -45,6 +45,17 @@
 			"default": "Line",
 			"description": "The style of the graphs displayed",
 			"one-of": ["Line", "Step"]
+		},
+		"trendingSamplePoints": {
+			"name": "Trending Sample Points",
+			"type": "int",
+			"default": 1000,
+			"description": "The number of sample points to use for the trending graph",
+			"min": 50,
+			"max": 10000,
+			"control": {
+				"slider": true
+			}
 		}
 	},
 	"resources": {

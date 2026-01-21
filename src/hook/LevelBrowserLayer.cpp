@@ -1,6 +1,7 @@
 #include <Geode/binding/BoomListView.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/binding/GJListLayer.hpp>
+#include <Geode/binding/GJSearchObject.hpp>
 #include <Geode/binding/TableView.hpp>
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/LevelBrowserLayer.hpp>
@@ -21,6 +22,8 @@ class $modify(SendDBLevelBrowserLayer, LevelBrowserLayer) {
     void setupLevelBrowser(CCArray* levels) {
         LevelBrowserLayer::setupLevelBrowser(levels);
         if (!m_list->m_listView) return;
+
+        levels = updateResultArray(levels);
 
         std::vector<int> levelIDs;
         for (auto* levelObj : CCArrayExt<CCObject*>(levels)) {
