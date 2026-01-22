@@ -1,8 +1,8 @@
 #ifndef SENDDB_APIRESPONSE_HPP
 #define SENDDB_APIRESPONSE_HPP
 
-#include <Geode/utils/web.hpp>
 #include <Geode/Prelude.hpp>
+#include <matjson.hpp>
 
 #include <optional>
 #include <vector>
@@ -75,6 +75,17 @@ struct Creator {
 
 struct BatchResponse {
     std::vector<BatchLevel> levels;
+};
+
+struct LeaderboardLevel {
+    int32_t levelID;
+    int32_t send_count;
+    int32_t rank;
+};
+
+struct LeaderboardResponse {
+    int32_t total;
+    std::vector<LeaderboardLevel> levels;
 };
 
 template <>
@@ -190,6 +201,30 @@ struct matjson::Serialize<BatchResponse> {
             levels.push_back(level);
         }
         return Ok(BatchResponse { levels });
+    }
+};
+
+template <>
+struct matjson::Serialize<LeaderboardLevel> {
+    static Result<LeaderboardLevel> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t levelID, value["level_id"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t send_count, value["send_count"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t rank, value["rank"].asInt());
+        return Ok(LeaderboardLevel { levelID, send_count, rank });
+    }
+};
+
+template <>
+struct matjson::Serialize<LeaderboardResponse> {
+    static Result<LeaderboardResponse> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t total, value["total"].asInt());
+        GEODE_UNWRAP_INTO(const std::vector<Value> levels_json, value["levels"].asArray());
+        std::vector<LeaderboardLevel> levels;
+        for (const Value& level_val : levels_json) {
+            GEODE_UNWRAP_INTO(const LeaderboardLevel level, level_val.as<LeaderboardLevel>());
+            levels.push_back(level);
+        }
+        return Ok(LeaderboardResponse { total, levels });
     }
 };
 

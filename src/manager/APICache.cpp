@@ -1,5 +1,7 @@
 #include "APICache.hpp"
 
+#include <ctime>
+
 BatchLevel fromLevel(const Level& level) {
     return {
         level.levelID,
@@ -15,22 +17,32 @@ BatchLevel fromLevel(const Level& level) {
 
 void APICache::cacheLevel(const int levelID, const std::optional<Level>& level) {
     const time_t currentTime = std::time(nullptr);
-    levelCache[levelID] = CacheEntry{level, currentTime};
+    levelCache[levelID] = OptionalCacheEntry{level, currentTime};
 }
 
 void APICache::cacheBatchLevel(const int levelID, const std::optional<BatchLevel>& batchLevel) {
     const time_t currentTime = std::time(nullptr);
-    batchLevelCache[levelID] = CacheEntry{batchLevel, currentTime};
+    batchLevelCache[levelID] = OptionalCacheEntry{batchLevel, currentTime};
 }
 
 void APICache::cacheCreator(const int creatorID, const std::optional<Creator>& creator) {
     const time_t currentTime = std::time(nullptr);
-    creatorCache[creatorID] = CacheEntry{creator, currentTime};
+    creatorCache[creatorID] = OptionalCacheEntry{creator, currentTime};
+}
+
+void APICache::cacheLeaderboard(const LeaderboardQuery& query, const LeaderboardResponse& response) {
+    const time_t currentTime = std::time(nullptr);
+    const LeaderboardKey key = LeaderboardKey::fromQuery(query);
+    for (int i = 0; i < response.levels.size(); ++i) {
+        const int index = i + query.offset;
+        leaderboardLevelCache[{index, key}] = {response.levels[i], currentTime};
+    }
+    leaderboardCountCache[key] = {response.total, currentTime};
 }
 
 template <typename T>
 std::optional<std::optional<T>> getCachedEntry(
-    const std::unordered_map<int, CacheEntry<T>>& cache,
+    const std::unordered_map<int, OptionalCacheEntry<T>>& cache,
     const int id,
     const int cacheDuration
 ) {
@@ -66,4 +78,36 @@ std::optional<std::optional<BatchLevel>> APICache::getBatchLevel(const int level
 
 std::optional<std::optional<Creator>> APICache::getCreator(const int creatorID) const {
     return getCachedEntry(creatorCache, creatorID, cacheDuration);
+}
+
+std::optional<LeaderboardResponse> APICache::getLeaderboard(const LeaderboardQuery& query) const {
+    const LeaderboardKey key = LeaderboardKey::fromQuery(query);
+    std::vector<LeaderboardLevel> levels;
+    for (int i = 0; i < query.limit; ++i) {
+        const int index = i + query.offset;
+        if (const auto it = leaderboardLevelCache.find({index, key}); it != leaderboardLevelCache.end()) {
+            const auto& [level, timestamp] = it->second;
+            if (const time_t currentTime = std::time(nullptr); currentTime - timestamp <= cacheDuration) {
+                levels.push_back(level);
+            } else {
+                return std::nullopt;
+            }
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    int total = 0;
+    if (const auto it = leaderboardCountCache.find(key); it != leaderboardCountCache.end()) {
+        const auto& [count, timestamp] = it->second;
+        if (const time_t currentTime = std::time(nullptr); currentTime - timestamp <= cacheDuration) {
+            total = count;
+        } else {
+            return std::nullopt;
+        }
+    } else {
+        return std::nullopt;
+    }
+
+    return LeaderboardResponse{total, levels};
 }

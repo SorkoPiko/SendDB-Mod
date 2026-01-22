@@ -1,6 +1,9 @@
 #ifndef SENDDB_SENDCHARTPOINT_HPP
 #define SENDDB_SENDCHARTPOINT_HPP
 
+#include <Geode/cocos/cocoa/CCGeometry.h>
+#include <Geode/cocos/sprite_nodes/CCSprite.h>
+#include <Geode/cocos/support/CCPointExtension.h>
 #include <model/APIResponse.hpp>
 
 using namespace geode::prelude;

@@ -12,6 +12,7 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/web.hpp>
 
+#include <model/APIRequest.hpp>
 #include <model/APIResponse.hpp>
 #include "APICache.hpp"
 
@@ -40,6 +41,7 @@ public:
     void getLevel(int levelID, const std::function<void(std::optional<Level>)>& callback, EventListener<web::WebTask>& listener);
     std::vector<EventListener<web::WebTask>> getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback);
     void getCreator(int creatorID, const std::function<void(std::optional<Creator>)>& callback, EventListener<web::WebTask>& listener);
+    void getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener);
 };
 
 #endif

@@ -115,10 +115,11 @@ std::vector<EventListener<web::WebTask>> SendDBIntegration::getLevels(const std:
     chunkListeners.reserve(totalChunks);
 
     auto processChunk = [this, allFetchedLevels, callback, completedChunks, totalChunks](const std::vector<int>& chunkIDs, EventListener<web::WebTask>& chunkListener) {
-        matjson::Value body;
-        body["level_ids"] = chunkIDs;
+        BatchRequest request = {
+            chunkIDs
+        };
 
-        sendPostRequest(SERVER_URL "/level/batch", body, [this, allFetchedLevels, callback, completedChunks, totalChunks, chunkIDs](const matjson::Value& data) {
+        sendPostRequest(SERVER_URL "/level/batch", request, [this, allFetchedLevels, callback, completedChunks, totalChunks, chunkIDs](const matjson::Value& data) {
             if (data.contains("error")) {
                 log::error("Failed to get levels chunk: {}", data["error"].asString().unwrapOrDefault());
             } else {
@@ -176,6 +177,29 @@ void SendDBIntegration::getCreator(const int creatorID, const std::function<void
                 callback(creator);
             } else {
                 log::error("Failed to parse creator {}: {}", creatorID, result.unwrapErr());
+                callback(std::nullopt);
+            }
+        }
+    }, listener);
+}
+
+void SendDBIntegration::getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener) {
+    if (const auto cachedResponse = cache.getLeaderboard(query)) {
+        callback(cachedResponse);
+        return;
+    }
+
+    sendPostRequest(SERVER_URL "/leaderboard", query, [this, query, callback](const matjson::Value& data) {
+        if (data.contains("error")) {
+            log::error("Failed to get leaderboard: {}", data["error"].asString().unwrapOrDefault());
+            callback(std::nullopt);
+        } else {
+            if (const Result<LeaderboardResponse> result = data.as<LeaderboardResponse>(); result.isOk()) {
+                const LeaderboardResponse& response = result.unwrap();
+                cache.cacheLeaderboard(query, response);
+                callback(response);
+            } else {
+                log::error("Failed to parse leaderboard response: {}", result.unwrapErr());
                 callback(std::nullopt);
             }
         }
