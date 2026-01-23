@@ -4,6 +4,18 @@
 
 long long ShaderNode::firstTime = 0;
 
+GLuint createTexture(const int width, const int height) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    return texture;
+}
+
 bool ShaderNode::init(const std::string& vert, const std::string& frag) {
     auto res = shader.compile(vert, frag);
     if (!res) {
@@ -50,6 +62,23 @@ bool ShaderNode::init(const std::string& vert, const std::string& frag) {
     uniformDeltaTime = glGetUniformLocation(shader.program, "deltaTime");
     uniformFrameRate = glGetUniformLocation(shader.program, "frameRate");
     uniformFrame = glGetUniformLocation(shader.program, "frame");
+    uniformCurrentPass = glGetUniformLocation(shader.program, "currentPass");
+
+    const auto glv = CCDirector::sharedDirector()->getOpenGLView();
+    const auto frSize = glv->getFrameSize() * getDisplayFactor();
+
+    pingTexture = createTexture(frSize.width, frSize.height);
+    pongTexture = createTexture(frSize.width, frSize.height);
+
+    glGenFramebuffers(1, &pingFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, pingFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingTexture, 0);
+
+    glGenFramebuffers(1, &pongFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, pongFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pongTexture, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
         const auto uniform = glGetUniformLocation(shader.program, ("sprite" + std::to_string(i)).c_str());
@@ -81,25 +110,63 @@ void ShaderNode::draw() {
 
     const auto glv = CCDirector::sharedDirector()->getOpenGLView();
     const auto frSize = glv->getFrameSize() * getDisplayFactor();
+    const auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    glUniform2f(uniformResolution, frSize.width, frSize.height);
+    const CCPoint worldPos = convertToWorldSpace(CCPointZero);
+    const CCSize contentSize = getScaledContentSize();
+    const CCSize contentScaleFactor = {frSize.width / winSize.width, frSize.height / winSize.height};
+
+    const int scissorX = worldPos.x * contentScaleFactor.width;
+    const int scissorY = worldPos.y * contentScaleFactor.height;
+    const int scissorW = contentSize.width * contentScaleFactor.width;
+    const int scissorH = contentSize.height * contentScaleFactor.height;
+
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(scissorX, scissorY, scissorW, scissorH);
+
+    GLint currentFbo = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pingFBO);
+    glBlitFramebuffer(
+        0, 0, std::floor(frSize.width), std::floor(frSize.height),
+        0, 0, std::floor(frSize.width), std::floor(frSize.height),
+        GL_COLOR_BUFFER_BIT,
+        GL_NEAREST
+    );
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
         const auto sprite = shaderSprites[i];
-        ccGLBindTexture2DN(i, sprite->getTexture()->getName());
+        ccGLBindTexture2DN(i + 1, sprite->getTexture()->getName());
     }
 
+    glUniform2f(uniformResolution, frSize.width, frSize.height);
     glUniform1f(uniformTime, time);
     glUniform1f(uniformDeltaTime, deltaTime);
     glUniform1f(uniformFrameRate, 1.f / deltaTime);
     glUniform1i(uniformFrame, frame);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    for (int pass = 0; pass < numPasses; ++pass) {
+        const bool isLastPass = pass == numPasses - 1;
 
+        const GLuint readTexture = pass % 2 == 0 ? pingTexture : pongTexture;
+        const GLuint writeFBO = isLastPass ? currentFbo : pass % 2 == 0 ? pongFBO : pingFBO;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, writeFBO);
+        ccGLBindTexture2DN(0, readTexture);
+
+        glUniform1i(uniformCurrentPass, pass);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
     glBindVertexArray(0);
+    glDisable(GL_SCISSOR_TEST);
 
 #if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS)
-    CC_INCREMENT_GL_DRAWS(1);
+    CC_INCREMENT_GL_DRAWS(numPasses);
 #endif
 }
 

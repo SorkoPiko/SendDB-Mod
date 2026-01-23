@@ -5,6 +5,7 @@
 #include <UIBuilder.hpp>
 #include <hook/LevelCell.hpp>
 #include <manager/SendDBIntegration.hpp>
+#include <node/ShaderNode.hpp>
 #include <utils/Messages.hpp>
 
 #include "FadeSpinner.hpp"
@@ -23,7 +24,7 @@ bool LeaderboardLayer::init() {
             .id("level-list")
             .parent(this);
 
-    list->setCellColor(ccColor4B{0, 0, 0, 120});
+    list->setCellColor(ccColor4B{0, 0, 0, 0});
 
     const auto menu = Build<CCMenu>::create()
             .pos(0.f, 0.f)
@@ -208,6 +209,19 @@ void LeaderboardLayer::finishLoading() {
         cell->setContentSize({356.f, 90.f});
 
         auto listCell = list->addCell(cell);
+        const auto shader = ShaderNode::createFromPath("", "kawase.fsh");
+        if (!shader) {
+            log::error("Failed to create blur shader: {}", shader.unwrapErr());
+        } else {
+            auto shaderNode = Build(shader.unwrap())
+                    .anchorPoint({0.0f, 0.0f})
+                    .contentSize(listCell->getContentSize())
+                    .zOrder(-10)
+                    .id("background-blur")
+                    .parent(listCell);
+
+            shaderNode->setPasses(5);
+        }
     }
 
     list->updateLayout();

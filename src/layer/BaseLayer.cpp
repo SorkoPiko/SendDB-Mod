@@ -7,7 +7,7 @@
 #include <node/ShaderNode.hpp>
 
 void BaseLayer::initShaderBackground(const std::string& fragPath) {
-    auto shader = ShaderNode::createFromPath("", fragPath);
+    const auto shader = ShaderNode::createFromPath("", fragPath);
     if (!shader) {
         log::error("Failed to create background shader: {}", shader.unwrapErr());
         return;
@@ -15,6 +15,7 @@ void BaseLayer::initShaderBackground(const std::string& fragPath) {
 
     Build(shader.unwrap())
         .zOrder(-10)
+        .contentSize(getContentSize())
         .id("background-shader")
         .parent(this);
 }

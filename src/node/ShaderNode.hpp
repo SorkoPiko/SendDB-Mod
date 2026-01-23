@@ -13,10 +13,17 @@ class ShaderNode : public CCNode {
     GLint uniformDeltaTime = 0;
     GLint uniformFrameRate = 0;
     GLint uniformFrame = 0;
+    GLint uniformCurrentPass = 0;
+    GLuint pingFBO = 0;
+    GLuint pongFBO = 0;
+    GLuint pingTexture = 0;
+    GLuint pongTexture = 0;
     float deltaTime = 0.f;
     float time = 0.f;
     GLint frame = 0;
     CCArrayExt<CCSprite*> shaderSprites;
+
+    int numPasses = 1;
 
     bool init(const std::string& vert, const std::string& frag);
     void update(float dt) override;
@@ -27,6 +34,10 @@ public:
 
     static ShaderNode* create(const std::string& vert, const std::string& frag, const std::vector<CCSprite*>& sprites = {});
     static Result<ShaderNode*> createFromPath(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites = {});
+
+    void setPasses(const int passes) {
+        numPasses = passes;
+    }
 };
 
 #endif
