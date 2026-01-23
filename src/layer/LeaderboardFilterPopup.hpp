@@ -13,6 +13,7 @@
 using namespace geode::prelude;
 
 class LeaderboardFilterPopup : public FLAlertLayer {
+    LeaderboardQuery originalQuery = {};
     LeaderboardQuery query = {};
     std::function<void(const LeaderboardQuery&)> callback;
 

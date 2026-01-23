@@ -43,7 +43,6 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     void onRefresh();
 
     void getSendCounts(const std::vector<int>& levelIDs);
-
     void updateSendCounts();
 
     void onLoaded(const std::vector<LeaderboardLevel>& levels, int total);
@@ -52,6 +51,8 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     void continueLoading();
     void finishLoading();
     bool loadNextBatch();
+
+    void keyDown(enumKeyCodes key) override;
 
     void onNextPage();
     void onPrevPage();

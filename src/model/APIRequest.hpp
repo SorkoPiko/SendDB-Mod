@@ -27,6 +27,13 @@ struct LeaderboardQuery {
     int32_t offset;
     std::optional<RateFilter> rateFilter;
     std::optional<GamemodeFilter> gamemodeFilter;
+
+    bool operator==(const LeaderboardQuery& other) const {
+        return limit == other.limit &&
+               offset == other.offset &&
+               rateFilter == other.rateFilter &&
+               gamemodeFilter == other.gamemodeFilter;
+    }
 };
 
 template <>

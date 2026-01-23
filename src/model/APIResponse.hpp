@@ -12,11 +12,8 @@ using namespace geode::prelude;
 struct Send {
     int64_t timestamp;
 
-    Send& operator=(const Send& other) {
-        if (this != &other) {
-            timestamp = other.timestamp;
-        }
-        return *this;
+    bool operator==(const Send& other) const {
+        return timestamp == other.timestamp;
     }
 };
 

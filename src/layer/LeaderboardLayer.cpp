@@ -16,12 +16,14 @@ bool LeaderboardLayer::init() {
 
     const auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    list = Build(cue::ListNode::createLevels({358.0f, 220.0f}))
+    list = Build(cue::ListNode::create({358.0f, 320.0f}, {0, 0, 0, 0}, cue::ListBorderStyle::None))
             .zOrder(2)
             .anchorPoint({0.5f, 0.5f})
             .pos(winSize / 2.0f)
             .id("level-list")
             .parent(this);
+
+    list->setCellColor(ccColor4B{0, 0, 0, 120});
 
     const auto menu = Build<CCMenu>::create()
             .pos(0.f, 0.f)
@@ -89,11 +91,11 @@ bool LeaderboardLayer::init() {
             (queryTotal + query.limit - 1) / query.limit,
             "Go to page",
             "Go",
-            true,
+            false,
             1,
             60.0f,
             false,
-            true
+            false
         );
 
         popup->setTag(3);
@@ -205,7 +207,7 @@ void LeaderboardLayer::finishLoading() {
         cell->loadFromLevel(level);
         cell->setContentSize({356.f, 90.f});
 
-        list->addCell(cell);
+        auto listCell = list->addCell(cell);
     }
 
     list->updateLayout();
@@ -246,6 +248,27 @@ bool LeaderboardLayer::loadNextBatch() {
     glm->getOnlineLevels(searchObject);
 
     return true;
+}
+
+void LeaderboardLayer::keyDown(const enumKeyCodes key) {
+    BaseLayer::keyDown(key);
+
+    if (loading) return;
+
+    switch (key) {
+        case CONTROLLER_Left:
+        case KEY_Left:
+            if (prevPageButton->isVisible()) onPrevPage();
+            break;
+
+        case CONTROLLER_Right:
+        case KEY_Right:
+            if (nextPageButton->isVisible()) onNextPage();
+            break;
+
+        default:
+            break;
+    }
 }
 
 void LeaderboardLayer::onNextPage() {

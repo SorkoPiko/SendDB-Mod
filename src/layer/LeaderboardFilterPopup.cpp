@@ -8,6 +8,7 @@ constexpr CCPoint menuSize = {120.0f, 110.0f};
 
 bool LeaderboardFilterPopup::init(const LeaderboardQuery& currentQuery, const std::function<void(const LeaderboardQuery&)>& queryCallback) {
     if (!FLAlertLayer::init(75)) return false;
+    originalQuery = currentQuery;
     query = currentQuery;
     callback = queryCallback;
 
@@ -134,7 +135,7 @@ bool LeaderboardFilterPopup::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 }
 
 void LeaderboardFilterPopup::keyBackClicked() {
-    if (callback) callback(query);
+    if (originalQuery != query && callback) callback(query);
     FLAlertLayer::keyBackClicked();
 }
 
