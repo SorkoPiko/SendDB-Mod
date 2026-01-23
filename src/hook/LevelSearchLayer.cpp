@@ -3,8 +3,7 @@
 #include <Geode/modify/LevelSearchLayer.hpp>
 
 #include <UIBuilder.hpp>
-
-#include "LeaderboardBrowserLayer.hpp"
+#include <layer/LeaderboardLayer.hpp>
 
 using namespace geode::prelude;
 
@@ -18,8 +17,7 @@ class $modify(SendDBLevelSearchLayer, LevelSearchLayer) {
                     .intoMenuItem([](auto*) {
                         const auto scene = CCScene::create();
                         AppDelegate::get()->m_runningScene = scene;
-                        const auto layer = static_cast<LeaderboardBrowserLayer*>(LevelBrowserLayer::create(GJSearchObject::create(SearchType::Type19, "SendDB")));
-                        layer->setFilter({10, 0, std::nullopt, std::nullopt});
+                        const auto layer = LeaderboardLayer::create();
                         scene->addChild(layer);
                         CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5, scene));
                     })

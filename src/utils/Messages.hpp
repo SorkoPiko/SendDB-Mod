@@ -1,6 +1,9 @@
 #ifndef SENDDB_MESSAGES_HPP
 #define SENDDB_MESSAGES_HPP
 
+constexpr auto leaderboardTitle = "SendDB Leaderboard";
+constexpr auto leaderboardDesc = "Browse the <cg>SendDB leaderboard</c> to find the most sent levels in Geometry Dash! Use <cp>filters</c> to narrow down your search by rate and gamemode.";
+
 enum class LevelSendPopupInfo {
     Info,
 

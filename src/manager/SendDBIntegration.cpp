@@ -37,7 +37,7 @@ void SendDBIntegration::sendGetRequest(const std::string& url, const std::functi
             if (!res->ok()) {
                 matjson::Value ret;
                 matjson::Value defaultVal;
-                defaultVal["message"] = "Malformed response";
+                defaultVal["message"] = fmt::format("Malformed response: {}", res->string().unwrapOrDefault());
                 if (matjson::Value unwrapped = res->json().unwrapOr(defaultVal); unwrapped.contains("message")) {
                     ret["error"] = unwrapped["message"];
                 } else {

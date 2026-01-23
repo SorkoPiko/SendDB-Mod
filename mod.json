@@ -28,6 +28,11 @@
 		}
 	],
 	"settings": {
+		"api-category": {
+			"name": "API Settings",
+			"type": "title",
+			"description": "Control how the mod interacts with the SendDB API"
+		},
 		"cacheTime": {
 			"name": "Cache Time (minutes)",
 			"type": "int",
@@ -38,6 +43,22 @@
 			"control": {
 				"slider": true
 			}
+		},
+		"leaderboardPerPage": {
+			"name": "Leaderboard Entries Per Page",
+			"type": "int",
+			"default": 50,
+			"description": "The number of entries to show per page in leaderboards",
+			"min": 5,
+			"max": 50,
+			"control": {
+				"slider": true
+			}
+		},
+		"display-category": {
+			"name": "Display Settings",
+			"type": "title",
+			"description": "Control how SendDB data is displayed in-game"
 		},
 		"graphStyle": {
 			"name": "Graph Style",
@@ -61,6 +82,9 @@
 	"resources": {
 		"sprites": [
 			"resources/*.png"
+		],
+		"files": [
+			"resources/shader/*"
 		]
 	}
 }
