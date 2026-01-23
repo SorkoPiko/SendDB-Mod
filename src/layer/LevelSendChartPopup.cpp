@@ -495,7 +495,7 @@ void LevelSendChartPopup::show() {
     handleTouchPriority(this);
 }
 
-void LevelSendChartPopup::onClose(CCObject* sender) {
+void LevelSendChartPopup::onClose(CCObject*) {
     setKeypadEnabled(false);
     removeFromParentAndCleanup(true);
 }

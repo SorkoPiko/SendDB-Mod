@@ -28,8 +28,22 @@ endif()
 
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
 
+if (GEODE_TARGET_PLATFORM STREQUAL "Win64")
+    target_link_libraries(${PROJECT_NAME} opengl32)
+elseif (GEODE_TARGET_PLATFORM STREQUAL "Android32")
+    target_link_libraries(${PROJECT_NAME} GLESv2)
+elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
+    target_link_libraries(${PROJECT_NAME} GLESv2)
+elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
+    target_link_libraries(${PROJECT_NAME} "-framework OpenGL -framework Cocoa")
+elseif (GEODE_TARGET_PLATFORM STREQUAL "iOS")
+    #target_link_libraries(${PROJECT_NAME} "-framework OpenGLESa")
+endif()
+
 CPMAddPackage("gh:prevter/rock#main")
 CPMAddPackage("gh:camila314/UIBuilder#main")
-target_link_libraries(${PROJECT_NAME} rock UIBuilder)
+CPMAddPackage("gh:dankmeme01/cue#main")
+CPMAddPackage("gh:hanickadot/compile-time-regular-expressions#eb9577a")
+target_link_libraries(${PROJECT_NAME} rock UIBuilder cue ctre)
 
 setup_geode_mod(${PROJECT_NAME})
