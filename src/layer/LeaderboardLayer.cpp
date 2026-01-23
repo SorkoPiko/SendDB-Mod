@@ -24,7 +24,7 @@ bool LeaderboardLayer::init() {
             .id("level-list")
             .parent(this);
 
-    list->setCellColor(ccColor4B{0, 0, 0, 0});
+    list->setCellColor(ccColor4B{0, 0, 0, 80});
 
     const auto menu = Build<CCMenu>::create()
             .pos(0.f, 0.f)
