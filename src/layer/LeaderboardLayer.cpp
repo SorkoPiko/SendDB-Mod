@@ -220,11 +220,11 @@ void LeaderboardLayer::finishLoading() {
 
         const long long startTime = TimeUtils::getCurrentTimestamp();
         cell->loadFromLevel(level);
-        const auto listCell = list->addCell(cell);
         const long long endTime = TimeUtils::getCurrentTimestamp();
         log::debug("loaded level cell {} in {} ms", level->m_levelID.value(), endTime - startTime);
 
         cell->setContentSize({356.f, 90.f});
+        const auto listCell = list->addCell(cell);
 
         if (shadersEnabled) {
             const auto shader = ShaderNode::create("generic.vsh", "kawase.fsh");
