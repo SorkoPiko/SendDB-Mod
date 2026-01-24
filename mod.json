@@ -77,6 +77,12 @@
 			"control": {
 				"slider": true
 			}
+		},
+		"shaders": {
+			"name": "Enable Shaders",
+			"type": "bool",
+			"default": true,
+			"description": "Enable shaders for backgrounds and other effects"
 		}
 	},
 	"resources": {

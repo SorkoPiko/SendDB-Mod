@@ -172,6 +172,10 @@ void LeaderboardLayer::onLoaded(const std::vector<LeaderboardLevel>& levels, con
     startLoadingForPage();
 }
 
+void LeaderboardLayer::setReady(float) {
+    loading = false;
+}
+
 void LeaderboardLayer::startLoadingForPage() {
     loading = true;
 
@@ -232,7 +236,7 @@ void LeaderboardLayer::finishLoading() {
     prevPageButton->setVisible(query.offset > 0);
     nextPageButton->setVisible(query.offset + query.limit < queryTotal);
 
-    loading = false;
+    scheduleOnce(schedule_selector(LeaderboardLayer::setReady), 0.0f);
 }
 
 bool LeaderboardLayer::loadNextBatch() {
@@ -286,11 +290,15 @@ void LeaderboardLayer::keyDown(const enumKeyCodes key) {
 }
 
 void LeaderboardLayer::onNextPage() {
+    if (loading) return;
+
     query.offset += query.limit;
     onRefresh();
 }
 
 void LeaderboardLayer::onPrevPage() {
+    if (loading) return;
+
     query.offset = std::max(0, query.offset - query.limit);
     onRefresh();
 }
@@ -314,6 +322,8 @@ void LeaderboardLayer::loadLevelsFinished(CCArray* levels, const char*, int) {
 }
 
 void LeaderboardLayer::setIDPopupClosed(SetIDPopup* popup, const int value) {
+    if (loading) return;
+
     query.offset = (value - 1) * query.limit;
     onRefresh();
 }

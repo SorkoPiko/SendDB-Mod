@@ -46,6 +46,7 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     void updateSendCounts();
 
     void onLoaded(const std::vector<LeaderboardLevel>& levels, int total);
+    void setReady(float);
 
     void startLoadingForPage();
     void continueLoading();
