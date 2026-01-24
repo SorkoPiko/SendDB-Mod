@@ -38,15 +38,18 @@ bool LeaderboardLayer::init() {
     list->setCellColor(ccColor4B{0, 0, 0, 80});
 
     if (shadersEnabled) {
-        listBackground = Build(ShaderNode::create("generic.vsh", "kawase.fsh"))
-                .zOrder(-10)
-                .anchorPoint({0.5f, 0.5f})
-                .pos(list->getContentSize() / 2.0f)
-                .contentSize(list->getContentSize() + CCSize(10.0f, 10.0f))
-                .id("list-background")
-                .parent(list);
+        const auto shader = ShaderNode::create("generic.vsh", "kawase.fsh");
+        if (shader) {
+            listBackground = Build(ShaderNode::create("generic.vsh", "kawase.fsh"))
+                    .zOrder(-10)
+                    .anchorPoint({0.5f, 0.5f})
+                    .pos(list->getContentSize() / 2.0f)
+                    .contentSize(list->getContentSize() + CCSize(10.0f, 10.0f))
+                    .id("list-background")
+                    .parent(list);
 
-        listBackground->setPasses(Mod::get()->getSettingValue<int>("blurPasses"));
+            listBackground->setPasses(Mod::get()->getSettingValue<int>("blurPasses"));
+        } else shadersEnabled = false;
     }
 
     const auto menu = Build<CCMenu>::create()
