@@ -18,7 +18,7 @@ void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
     vec2 pixelSize = 1.0 / resolution;
 
-    float offset = float(currentPass + 0.5);
+    float offset = float(currentPass) + 0.5;
     vec4 color = kawaseBlur(sprite0, uv, pixelSize, offset);
 
     gl_FragColor = color;
