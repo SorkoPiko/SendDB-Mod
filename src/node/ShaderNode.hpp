@@ -24,8 +24,9 @@ class ShaderNode : public CCNode {
     GLint frame = 0;
     CCArrayExt<CCSprite*> shaderSprites;
 
-    bool onlyScissorFinalPass = false; // if true, only applies scissor test on final pass, meaning intermediate passes render full screen. useful for controlling blur effects (soft edges otherwise)
+    bool onlyScissorFinalPass = false;
     int numPasses = 1;
+    bool passCurrentFrame = false;
 
     CCSize lastSize = {};
 
@@ -44,8 +45,14 @@ public:
         onlyScissorFinalPass = flag;
     }
 
-    void setPasses(const int passes) {
-        numPasses = passes;
+    // if true, only applies scissor test on final pass, meaning intermediate passes render full screen.
+    // useful for controlling blur effects (soft edges otherwise)
+    void setPasses(const int value) {
+        numPasses = value;
+    }
+
+    void setPassCurrentFrame(const bool flag) {
+        passCurrentFrame = flag;
     }
 };
 

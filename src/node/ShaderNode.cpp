@@ -125,18 +125,11 @@ void ShaderNode::draw() {
     GLint currentFbo = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
-    glBindTexture(GL_TEXTURE_2D, pingTexture);
-    glCopyTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        0,
-        0,
-        static_cast<GLsizei>(frSize.width),
-        static_cast<GLsizei>(frSize.height),
-        0
-    );
+    if (passCurrentFrame) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
+        glBindTexture(GL_TEXTURE_2D, pingTexture);
+        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, static_cast<GLsizei>(frSize.width), static_cast<GLsizei>(frSize.height));
+    }
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
         const auto sprite = shaderSprites[i];
@@ -157,7 +150,7 @@ void ShaderNode::draw() {
         const GLuint writeFBO = isLastPass ? currentFbo : pass % 2 == 0 ? pongFBO : pingFBO;
 
         glBindFramebuffer(GL_FRAMEBUFFER, writeFBO);
-        ccGLBindTexture2DN(0, readTexture);
+        if (passCurrentFrame) ccGLBindTexture2DN(0, readTexture);
 
         glUniform1i(uniformCurrentPass, pass);
 

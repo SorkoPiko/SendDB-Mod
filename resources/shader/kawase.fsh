@@ -19,26 +19,24 @@ vec4 kawaseBlur(sampler2D tex, vec2 uv, vec2 pixelSize, float offset) {
 
 float rectMask(vec2 p, vec4 r, float softness) {
     vec2 d = max(r.xy - p, p - (r.xy + r.zw));
-    return 1.0 - smoothstep(-softness, 0.0, max(d.x, d.y));
+    float dist = max(d.x, d.y);
+    return 1.0 - smoothstep(-softness, 0.0, dist);
 }
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
 
     vec4 colour = texture2D(sprite0, uv);
-    if (colour.a == 0.0) {
+    float mask = rectMask(gl_FragCoord.xy, screenRect, edgeSoftness);
+    if (mask == 0.0) {
         gl_FragColor = colour;
         return;
     }
 
     vec2 pixelSize = 1.0 / resolution;
-
     float offset = float(currentPass) + 0.5;
-    float mask = rectMask(gl_FragCoord.xy, screenRect, edgeSoftness);
 
-    if (mask != 0.0) {
-        colour = mix(colour, kawaseBlur(sprite0, uv, pixelSize, offset), mask);
-    }
+    colour = mix(colour, kawaseBlur(sprite0, uv, pixelSize, offset), mask);
 
     gl_FragColor = colour;
 }

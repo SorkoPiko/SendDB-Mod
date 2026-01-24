@@ -49,6 +49,7 @@ bool LeaderboardLayer::init() {
                     .id("list-background")
                     .parent(list);
 
+            listBackground->setPassCurrentFrame(true);
             listBackground->setPasses(Mod::get()->getSettingValue<int>("blurPasses"));
         } else shadersEnabled = false;
     }
