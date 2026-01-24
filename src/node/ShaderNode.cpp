@@ -61,6 +61,7 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     uniformResolution = glGetUniformLocation(shader.program, "resolution");
+    uniformScreenRect = glGetUniformLocation(shader.program, "screenRect");
     uniformTime = glGetUniformLocation(shader.program, "time");
     uniformDeltaTime = glGetUniformLocation(shader.program, "deltaTime");
     uniformFrameRate = glGetUniformLocation(shader.program, "frameRate");
@@ -107,6 +108,8 @@ void ShaderNode::update(const float dt) {
 }
 
 void ShaderNode::draw() {
+    if (numPasses <= 0) return;
+
     glBindVertexArray(vao);
 
     ccGLUseProgram(shader.program);
@@ -147,6 +150,7 @@ void ShaderNode::draw() {
     }
 
     glUniform2f(uniformResolution, frSize.width, frSize.height);
+    glUniform4f(uniformScreenRect, scissorX, scissorY, scissorW, scissorH);
     glUniform1f(uniformTime, time);
     glUniform1f(uniformDeltaTime, deltaTime);
     glUniform1f(uniformFrameRate, 1.f / deltaTime);

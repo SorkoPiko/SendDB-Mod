@@ -9,6 +9,7 @@ class ShaderNode : public CCNode {
     GLuint vao = 0;
     GLuint vbo = 0;
     GLint uniformResolution = 0;
+    GLint uniformScreenRect = 0;
     GLint uniformTime = 0;
     GLint uniformDeltaTime = 0;
     GLint uniformFrameRate = 0;

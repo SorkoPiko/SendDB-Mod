@@ -40,7 +40,9 @@ bool LeaderboardLayer::init() {
     if (shadersEnabled) {
         listBackground = Build(ShaderNode::create("generic.vsh", "kawase.fsh"))
                 .zOrder(-10)
-                .contentSize(list->getContentSize())
+                .anchorPoint({0.5f, 0.5f})
+                .pos(list->getContentSize() / 2.0f)
+                .contentSize(list->getContentSize() + CCSize(10.0f, 10.0f))
                 .id("list-background")
                 .parent(list);
 
