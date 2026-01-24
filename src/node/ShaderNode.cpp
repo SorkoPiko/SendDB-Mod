@@ -77,13 +77,6 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
         glUniform1i(uniform, static_cast<GLint>(i));
     }
 
-    glGenBuffers(2, pbos);
-    for (int i = 0; i < 2; i++) {
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[i]);
-        glBufferData(GL_PIXEL_PACK_BUFFER, frSize.width * frSize.height * 4, nullptr, GL_STREAM_READ);
-    }
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
     scheduleUpdate();
     return true;
 }
@@ -201,6 +194,7 @@ void ShaderNode::updateTextures(const CCSize& frSize) {
     if (pongTexture != 0) glDeleteTextures(1, &pongTexture);
     if (pingFBO != 0) glDeleteFramebuffers(1, &pingFBO);
     if (pongFBO != 0) glDeleteFramebuffers(1, &pongFBO);
+    if (pbos[0] != 0) glDeleteBuffers(2, pbos);
 
     pingTexture = createTexture(frSize.width, frSize.height);
     pongTexture = createTexture(frSize.width, frSize.height);
@@ -216,6 +210,17 @@ void ShaderNode::updateTextures(const CCSize& frSize) {
     glBindFramebuffer(GL_FRAMEBUFFER, pongFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pongTexture, 0);
 
+    GLint currentBuffer = 0;
+    glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &currentBuffer);
+
+    glGenBuffers(2, pbos);
+    const size_t bufferSize = frSize.width * frSize.height * 4;
+    for (int i = 0; i < 2; i++) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[i]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, bufferSize, nullptr, GL_STREAM_READ);
+    }
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, currentBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
 }
 
