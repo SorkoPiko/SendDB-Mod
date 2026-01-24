@@ -14,7 +14,7 @@ vec4 kawaseBlur(sampler2D tex, vec2 uv, vec2 pixelSize, float offset) {
     blur += texture2D(tex, uv + vec2(-offset, offset) * pixelSize);
     blur += texture2D(tex, uv + vec2(offset, -offset) * pixelSize);
     blur += texture2D(tex, uv + vec2(-offset, -offset) * pixelSize);
-    return color * 0.25;
+    return blur * 0.25;
 }
 
 float rectMask(vec2 p, vec4 r, float softness) {
@@ -31,7 +31,7 @@ void main() {
     float offset = float(currentPass) + 0.5;
     float mask = rectMask(gl_FragCoord.xy, screenRect, edgeSoftness);
 
-    if (mask != 0){
+    if (mask != 0.0) {
         colour = kawaseBlur(sprite0, uv, pixelSize, offset);
     }
 
