@@ -24,9 +24,14 @@ float rectMask(vec2 p, vec4 r, float softness) {
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
-    vec2 pixelSize = 1.0 / resolution;
-    
+
     vec4 colour = texture2D(sprite0, uv);
+    if (colour.a == 0.0) {
+        gl_FragColor = colour;
+        return;
+    }
+
+    vec2 pixelSize = 1.0 / resolution;
 
     float offset = float(currentPass) + 0.5;
     float mask = rectMask(gl_FragCoord.xy, screenRect, edgeSoftness);
