@@ -98,7 +98,12 @@
 		"blurPasses": {
 			"name": "Blur Passes",
 			"type": "int",
-			"default": 5,
+			"default": {
+				"win": 6,
+				"mac": 4,
+				"android": 3,
+				"ios": 0
+			},
 			"description": "The number of blur passes to apply. Use 0 to disable blur.",
 			"min": 0,
 			"max": 20,
