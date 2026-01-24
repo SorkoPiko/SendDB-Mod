@@ -3,6 +3,10 @@
 
 #include <Geode/cocos/draw_nodes/CCDrawNode.h>
 
+#ifdef GEODE_IS_ANDROID
+#include <GLES3/gl3.h>
+#endif
+
 class AntialiasedDrawNode : public CCDrawNode{
 public:
     CREATE_FUNC(AntialiasedDrawNode);
