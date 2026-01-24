@@ -37,7 +37,7 @@ elseif (GEODE_TARGET_PLATFORM STREQUAL "Android64")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "MacOS")
     target_link_libraries(${PROJECT_NAME} "-framework OpenGL -framework Cocoa")
 elseif (GEODE_TARGET_PLATFORM STREQUAL "iOS")
-    #target_link_libraries(${PROJECT_NAME} "-framework OpenGLESa")
+    target_link_libraries(${PROJECT_NAME} "-framework OpenGLES")
 endif()
 
 CPMAddPackage("gh:prevter/rock#main")

@@ -52,8 +52,7 @@ struct Shader {
         const char* vertexSources[] = {
 #ifdef GEODE_IS_WINDOWS
             "#version 120\n",
-#endif
-#ifdef GEODE_IS_MOBILE
+#elifdef GEODE_IS_MOBILE
             "precision highp float;\n",
 #endif
             vertexSource.c_str()
@@ -76,8 +75,7 @@ struct Shader {
         const char* fragmentSources[] = {
 #ifdef GEODE_IS_WINDOWS
             "#version 120\n",
-#endif
-#ifdef GEODE_IS_MOBILE
+#elifdef GEODE_IS_MOBILE
             "precision highp float;\n",
 #endif
             fragmentSource.c_str()
