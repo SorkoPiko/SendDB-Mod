@@ -7,7 +7,6 @@ class AntialiasedDrawNode : public CCDrawNode{
 public:
     CREATE_FUNC(AntialiasedDrawNode);
 
-#ifndef GEODE_IS_ANDROID
     void draw() override {
         glEnable(GL_LINE_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -19,7 +18,6 @@ public:
         glDisable(GL_POLYGON_SMOOTH);
         glDisable(GL_LINE_SMOOTH);
     }
-#endif
 };
 
 #endif
