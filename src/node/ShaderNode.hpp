@@ -24,6 +24,9 @@ class ShaderNode : public CCNode {
     GLint frame = 0;
     CCArrayExt<CCSprite*> shaderSprites;
 
+    GLuint pbos[2] = {0, 0};
+    int pboIndex = 0;
+
     bool onlyScissorFinalPass = false;
     int numPasses = 1;
     bool passCurrentFrame = false;

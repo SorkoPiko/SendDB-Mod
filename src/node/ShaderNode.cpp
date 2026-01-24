@@ -77,6 +77,13 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
         glUniform1i(uniform, static_cast<GLint>(i));
     }
 
+    glGenBuffers(2, pbos);
+    for (int i = 0; i < 2; i++) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[i]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, frSize.width * frSize.height * 4, nullptr, GL_STREAM_READ);
+    }
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
     scheduleUpdate();
     return true;
 }
@@ -126,9 +133,20 @@ void ShaderNode::draw() {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
 
     if (passCurrentFrame) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
+        GLint currentBuffer = 0;
+        glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &currentBuffer);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[pboIndex]);
+
+        glReadPixels(0, 0, frSize.width, frSize.height, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+        const int nextPboIndex = (pboIndex + 1) % 2;
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[nextPboIndex]);
+
         glBindTexture(GL_TEXTURE_2D, pingTexture);
         glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frSize.width, frSize.height);
+
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, currentBuffer);
+        pboIndex = nextPboIndex;
     }
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
