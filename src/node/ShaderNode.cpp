@@ -128,7 +128,7 @@ void ShaderNode::draw() {
     if (passCurrentFrame) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
         glBindTexture(GL_TEXTURE_2D, pingTexture);
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, static_cast<GLsizei>(frSize.width), static_cast<GLsizei>(frSize.height));
+        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frSize.width, frSize.height);
     }
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
