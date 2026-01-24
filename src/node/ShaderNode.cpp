@@ -139,6 +139,8 @@ void ShaderNode::draw() {
         ccGLBindTexture2DN(i + 1, sprite->getTexture()->getName());
     }
 
+    log::debug("scissor {} {} {} {}", scissorX, scissorY, scissorW, scissorH);
+
     glUniform2f(uniformResolution, frSize.width, frSize.height);
     glUniform4f(uniformScreenRect, scissorX, scissorY, scissorW, scissorH);
     glUniform1f(uniformTime, time);
@@ -181,6 +183,7 @@ void ShaderNode::draw() {
 void ShaderNode::updateTextures(const CCSize& frSize) {
     if (frSize == lastSize) return;
     lastSize = frSize;
+    log::info("updating shader textures to size {}x{}", frSize.width, frSize.height);
 
     if (pingTexture != 0) glDeleteTextures(1, &pingTexture);
     if (pongTexture != 0) glDeleteTextures(1, &pongTexture);
