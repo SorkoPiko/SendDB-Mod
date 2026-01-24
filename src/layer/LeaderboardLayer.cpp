@@ -1,12 +1,10 @@
 #include "LeaderboardLayer.hpp"
 
-#include <numeric>
 #include <ranges>
 
 #include <UIBuilder.hpp>
 #include <hook/LevelCell.hpp>
 #include <manager/SendDBIntegration.hpp>
-#include <node/ShaderNode.hpp>
 #include <utils/Messages.hpp>
 #include <utils/TimeUtils.hpp>
 
@@ -24,7 +22,13 @@ bool LeaderboardLayer::init() {
 
     const auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    list = Build(cue::ListNode::create({358.0f, 320.0f}, {0, 0, 0, 0}, cue::ListBorderStyle::None))
+    const bool expandedListView = Mod::get()->getSettingValue<bool>("expandedListView");
+
+    list = Build(cue::ListNode::create(
+        {358.0f, expandedListView? 320.0f : 220.0f},
+        {0, 0, 0, 0},
+        expandedListView ? cue::ListBorderStyle::None : cue::ListBorderStyle::SlimLevels
+    ))
             .zOrder(2)
             .anchorPoint({0.5f, 0.5f})
             .pos(winSize / 2.0f)
@@ -32,6 +36,16 @@ bool LeaderboardLayer::init() {
             .parent(this);
 
     list->setCellColor(ccColor4B{0, 0, 0, 80});
+
+    if (shadersEnabled) {
+        listBackground = Build(ShaderNode::create("generic.vsh", "kawase.fsh"))
+                .zOrder(-10)
+                .contentSize(list->getContentSize())
+                .id("list-background")
+                .parent(list);
+
+        listBackground->setPasses(Mod::get()->getSettingValue<int>("blurPasses"));
+    }
 
     const auto menu = Build<CCMenu>::create()
             .pos(0.f, 0.f)
@@ -174,6 +188,7 @@ void LeaderboardLayer::onLoaded(const std::vector<LeaderboardLevel>& levels, con
     pageLabel->setVisible(true);
     pageLabel->setString(fmt::format("{} to {} of {}", query.offset + 1, query.offset + query.limit, total).c_str());
     pageText->setString(fmt::format("{}", query.offset / query.limit + 1).c_str());
+    pageText->limitLabelWidth(32.0f, 0.8f, 0.0f);
     queryTotal = total;
     pageLevels = levels;
     startLoadingForPage();
@@ -218,27 +233,10 @@ void LeaderboardLayer::finishLoading() {
         const auto cell = static_cast<SendDBLevelCell*>(new LevelCell("", 356.f, 90.f));
         cell->autorelease();
 
-        const long long startTime = TimeUtils::getCurrentTimestamp();
         cell->loadFromLevel(level);
-        const long long endTime = TimeUtils::getCurrentTimestamp();
-        log::debug("loaded level cell {} in {} ms", level->m_levelID.value(), endTime - startTime);
 
         cell->setContentSize({356.f, 90.f});
-        const auto listCell = list->addCell(cell);
-
-        if (shadersEnabled) {
-            const auto shader = ShaderNode::create("generic.vsh", "kawase.fsh");
-            if (shader) {
-                auto shaderNode = Build(shader)
-                        .anchorPoint({0.0f, 0.0f})
-                        .contentSize(listCell->getContentSize())
-                        .zOrder(-10)
-                        .id("background-blur")
-                        .parent(listCell);
-
-                shaderNode->setPasses(5);
-            }
-        }
+        list->addCell(cell);
     }
 
     const long long globalEndTime = TimeUtils::getCurrentTimestamp();

@@ -124,6 +124,11 @@ void ShaderNode::draw() {
     const int scissorW = contentSize.width * contentScaleFactor.width;
     const int scissorH = contentSize.height * contentScaleFactor.height;
 
+    if (!onlyScissorFinalPass) {
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(scissorX, scissorY, scissorW, scissorH);
+    }
+
     GLint currentFbo = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
 
@@ -158,7 +163,7 @@ void ShaderNode::draw() {
 
         glUniform1i(uniformCurrentPass, pass);
 
-        if (isLastPass) {
+        if (isLastPass && onlyScissorFinalPass) {
             glEnable(GL_SCISSOR_TEST);
             glScissor(scissorX, scissorY, scissorW, scissorH);
         }
