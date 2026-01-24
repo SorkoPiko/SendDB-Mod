@@ -74,6 +74,9 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
     pingTexture = createTexture(frSize.width, frSize.height);
     pongTexture = createTexture(frSize.width, frSize.height);
 
+    GLint currentFbo = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
+
     glGenFramebuffers(1, &pingFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, pingFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingTexture, 0);
@@ -82,7 +85,7 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
     glBindFramebuffer(GL_FRAMEBUFFER, pongFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pongTexture, 0);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
         const auto uniform = glGetUniformLocation(shader.program, ("sprite" + std::to_string(i)).c_str());
