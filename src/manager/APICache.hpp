@@ -6,6 +6,7 @@
 #include <model/APIRequest.hpp>
 
 #include <model/APIResponse.hpp>
+#include <utils/HashUtils.hpp>
 
 using namespace geode::prelude;
 
@@ -37,10 +38,10 @@ struct LeaderboardLevelKey {
 template <>
 struct std::hash<LeaderboardKey> {
     size_t operator()(const LeaderboardKey& key) const noexcept {
-        const size_t h1 = key.rateFilter ? hash<RateFilter>()(*key.rateFilter) : 0;
-        const size_t h2 = key.gamemodeFilter ? hash<GamemodeFilter>()(*key.gamemodeFilter) : 0;
-
-        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+        size_t seed = 0;
+        hash_combine(seed, key.rateFilter);
+        hash_combine(seed, key.gamemodeFilter);
+        return seed;
     }
 };
 

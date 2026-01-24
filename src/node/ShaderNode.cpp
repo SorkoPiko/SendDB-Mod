@@ -2,6 +2,7 @@
 
 #include <utils/TimeUtils.hpp>
 #include <include/Shader.hpp>
+#include <manager/ShaderCache.hpp>
 
 long long ShaderNode::firstTime = 0;
 
@@ -17,25 +18,26 @@ GLuint createTexture(const int width, const int height) {
     return texture;
 }
 
-bool ShaderNode::init(const std::string& vert, const std::string& frag) {
-    auto res = shader.compile(vert, frag);
-    if (!res) {
-        log::error("{}", res.unwrapErr());
+bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) {
+    const auto cachedShader = ShaderCache::get()->getShader(vertPath, fragPath);
+    if (!cachedShader) {
+        log::error("Failed to load shader");
         return false;
     }
 
+    shader = cachedShader->copy();
     glBindAttribLocation(shader.program, 0, "aPosition");
 
-    res = shader.link();
-    if (!res) {
-        log::error("{}", res.unwrapErr());
+    const auto linkRes = shader.link();
+    if (!linkRes) {
+        log::error("failed to link shader (vert: {}, frag: {}): {}", vertPath, fragPath, linkRes.unwrapErr());
         return false;
     }
 
     ccGLUseProgram(shader.program);
 
     shaderSprites.inner()->retain();
-    std::istringstream stream(frag);
+    std::istringstream stream(fragPath);
     std::string line;
 
     constexpr GLfloat vertices[] = {
@@ -122,9 +124,6 @@ void ShaderNode::draw() {
     const int scissorW = contentSize.width * contentScaleFactor.width;
     const int scissorH = contentSize.height * contentScaleFactor.height;
 
-    glEnable(GL_SCISSOR_TEST);
-    glScissor(scissorX, scissorY, scissorW, scissorH);
-
     GLint currentFbo = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
 
@@ -159,7 +158,16 @@ void ShaderNode::draw() {
 
         glUniform1i(uniformCurrentPass, pass);
 
+        if (isLastPass) {
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(scissorX, scissorY, scissorW, scissorH);
+        }
+
         glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+
+    for (size_t i = 0; i <= shaderSprites.size(); ++i) {
+        ccGLBindTexture2DN(i, 0);
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
@@ -171,35 +179,15 @@ void ShaderNode::draw() {
 #endif
 }
 
-ShaderNode* ShaderNode::create(const std::string& vert, const std::string& frag, const std::vector<CCSprite*>& sprites) {
+ShaderNode* ShaderNode::create(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites) {
     auto node = new ShaderNode();
 
-    for (const auto sprite : sprites) {
-        node->shaderSprites.push_back(sprite);
-    }
+    for (const auto sprite : sprites) node->shaderSprites.push_back(sprite);
 
-    if (node->init(vert, frag)) {
+    if (node->init(vertPath, fragPath)) {
         node->autorelease();
         return node;
     }
     CC_SAFE_DELETE(node);
     return nullptr;
-}
-
-Result<ShaderNode*> ShaderNode::createFromPath(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites) {
-    const std::string _vertPath = vertPath.empty() ? "generic.vsh" : vertPath;
-
-    const std::filesystem::path vertexPath = Mod::get()->getResourcesDir() / _vertPath;
-    const std::filesystem::path fragmentPath = Mod::get()->getResourcesDir() / fragPath;
-
-    auto vertexSource = file::readString(vertexPath);
-    if (!vertexSource) return Err("failed to read vertex shader at path {}: {}", vertexPath.string(), vertexSource.unwrapErr());
-
-    auto fragmentSourceRes = file::readString(fragmentPath);
-    if (!fragmentSourceRes) return Err("failed to read fragment shader at path {}: {}", fragmentPath.string(), fragmentSourceRes.unwrapErr());
-
-    auto shader = create(vertexSource.unwrap(), fragmentSourceRes.unwrap(), sprites);
-    if (!shader) return Err("failed to create shader node");
-
-    return Ok(shader);
 }

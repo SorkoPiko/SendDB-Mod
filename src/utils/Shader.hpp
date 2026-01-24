@@ -12,10 +12,12 @@ struct Shader {
     GLuint fragment = 0;
     GLuint program = 0;
 
-    Result<> compile(
+    static Result<Shader> compile(
         std::string vertexSource,
         std::string fragmentSource
     ) {
+        Shader shader;
+
         vertexSource = string::trim(vertexSource);
         if (const auto match = ctre::multiline_search<"^#version [0-9]+( core| compatibility|)$">(vertexSource)) {
             vertexSource.erase(match.get<0>().begin(), match.get<0>().end());
@@ -48,7 +50,7 @@ struct Shader {
         };
         GLint res;
 
-        vertex = glCreateShader(GL_VERTEX_SHADER);
+        shader.vertex = glCreateShader(GL_VERTEX_SHADER);
         const char* vertexSources[] = {
 #ifdef GEODE_IS_WINDOWS
             "#version 120\n",
@@ -57,21 +59,21 @@ struct Shader {
 #endif
             vertexSource.c_str()
         };
-        glShaderSource(vertex, sizeof(vertexSources) / sizeof(char*), vertexSources, nullptr);
-        glCompileShader(vertex);
-        auto vertexLog = string::trim(getShaderLog(vertex));
+        glShaderSource(shader.vertex, sizeof(vertexSources) / sizeof(char*), vertexSources, nullptr);
+        glCompileShader(shader.vertex);
+        auto vertexLog = string::trim(getShaderLog(shader.vertex));
 
-        glGetShaderiv(vertex, GL_COMPILE_STATUS, &res);
+        glGetShaderiv(shader.vertex, GL_COMPILE_STATUS, &res);
         if (!res) {
-            glDeleteShader(vertex);
-            vertex = 0;
+            glDeleteShader(shader.vertex);
+            shader.vertex = 0;
             return Err("vertex shader compilation failed:\n{}", vertexLog);
         }
 
         if (vertexLog.empty()) log::debug("vertex shader compilation successful");
         else log::debug("vertex shader compilation successful:\n{}", vertexLog);
 
-        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        shader.fragment = glCreateShader(GL_FRAGMENT_SHADER);
         const char* fragmentSources[] = {
 #ifdef GEODE_IS_WINDOWS
             "#version 120\n",
@@ -80,27 +82,23 @@ struct Shader {
 #endif
             fragmentSource.c_str()
         };
-        glShaderSource(fragment, sizeof(vertexSources) / sizeof(char*), fragmentSources, nullptr);
-        glCompileShader(fragment);
-        auto fragmentLog = string::trim(getShaderLog(fragment));
+        glShaderSource(shader.fragment, sizeof(fragmentSources) / sizeof(char*), fragmentSources, nullptr);
+        glCompileShader(shader.fragment);
+        auto fragmentLog = string::trim(getShaderLog(shader.fragment));
 
-        glGetShaderiv(fragment, GL_COMPILE_STATUS, &res);
+        glGetShaderiv(shader.fragment, GL_COMPILE_STATUS, &res);
         if (!res) {
-            glDeleteShader(vertex);
-            glDeleteShader(fragment);
-            vertex = 0;
-            fragment = 0;
+            glDeleteShader(shader.vertex);
+            glDeleteShader(shader.fragment);
+            shader.vertex = 0;
+            shader.fragment = 0;
             return Err("fragment shader compilation failed:\n{}", fragmentLog);
         }
 
         if (fragmentLog.empty()) log::debug("fragment shader compilation successful");
         else log::debug("fragment shader compilation successful:\n{}", fragmentLog);
 
-        program = glCreateProgram();
-        glAttachShader(program, vertex);
-        glAttachShader(program, fragment);
-
-        return Ok();
+        return Ok(std::move(shader));
     }
 
     Result<> link() {
@@ -119,6 +117,10 @@ struct Shader {
         };
         GLint res;
 
+
+        program = glCreateProgram();
+        glAttachShader(program, vertex);
+        glAttachShader(program, fragment);
         glLinkProgram(program);
         const auto programLog = string::trim(getProgramLog(program));
 
@@ -140,9 +142,16 @@ struct Shader {
         return Ok();
     }
 
+    Shader copy() const {
+        Shader newShader;
+        newShader.vertex = vertex;
+        newShader.fragment = fragment;
+        newShader.program = program;
+        return newShader;
+    }
+
     void cleanup() {
-        if (program)
-            glDeleteProgram(program);
+        if (program) glDeleteProgram(program);
         program = 0;
     }
 };

@@ -1,5 +1,6 @@
 #include "LeaderboardLayer.hpp"
 
+#include <numeric>
 #include <ranges>
 
 #include <UIBuilder.hpp>
@@ -7,13 +8,19 @@
 #include <manager/SendDBIntegration.hpp>
 #include <node/ShaderNode.hpp>
 #include <utils/Messages.hpp>
+#include <utils/TimeUtils.hpp>
 
 #include "FadeSpinner.hpp"
 #include "LeaderboardFilterPopup.hpp"
 
+bool shadersEnabled = true;
+
 bool LeaderboardLayer::init() {
     if (!BaseLayer::init()) return false;
-    initShaderBackground("leaderboard.fsh");
+    shadersEnabled = Mod::get()->getSettingValue<bool>("shaders");
+
+    if (shadersEnabled) initShaderBackground("leaderboard.fsh");
+    else initBackground();
 
     const auto winSize = CCDirector::sharedDirector()->getWinSize();
 
@@ -206,27 +213,36 @@ void LeaderboardLayer::finishLoading() {
 
     list->clear();
 
+    const long long globalStartTime = TimeUtils::getCurrentTimestamp();
     for (auto level : page) {
         const auto cell = static_cast<SendDBLevelCell*>(new LevelCell("", 356.f, 90.f));
         cell->autorelease();
+
+        const long long startTime = TimeUtils::getCurrentTimestamp();
         cell->loadFromLevel(level);
+        const auto listCell = list->addCell(cell);
+        const long long endTime = TimeUtils::getCurrentTimestamp();
+        log::debug("loaded level cell {} in {} ms", level->m_levelID.value(), endTime - startTime);
+
         cell->setContentSize({356.f, 90.f});
 
-        auto listCell = list->addCell(cell);
-        const auto shader = ShaderNode::createFromPath("", "kawase.fsh");
-        if (!shader) {
-            log::error("Failed to create blur shader: {}", shader.unwrapErr());
-        } else {
-            auto shaderNode = Build(shader.unwrap())
-                    .anchorPoint({0.0f, 0.0f})
-                    .contentSize(listCell->getContentSize())
-                    .zOrder(-10)
-                    .id("background-blur")
-                    .parent(listCell);
+        if (shadersEnabled) {
+            const auto shader = ShaderNode::create("generic.vsh", "kawase.fsh");
+            if (shader) {
+                auto shaderNode = Build(shader)
+                        .anchorPoint({0.0f, 0.0f})
+                        .contentSize(listCell->getContentSize())
+                        .zOrder(-10)
+                        .id("background-blur")
+                        .parent(listCell);
 
-            shaderNode->setPasses(5);
+                shaderNode->setPasses(5);
+            }
         }
     }
+
+    const long long globalEndTime = TimeUtils::getCurrentTimestamp();
+    log::debug("total load time for page: {} ms ({} unloaded levels)", globalEndTime - globalStartTime, unloadedLevels);
 
     list->updateLayout();
     updateSendCounts();

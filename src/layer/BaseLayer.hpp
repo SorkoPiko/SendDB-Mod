@@ -14,6 +14,8 @@ public:
 
     void initShaderBackground(const std::string& fragPath);
 
+    void initBackground();
+
     BaseLayer() = default;
     BaseLayer(const BaseLayer&) = delete;
     BaseLayer& operator=(const BaseLayer&) = delete;

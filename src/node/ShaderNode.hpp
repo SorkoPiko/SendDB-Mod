@@ -25,15 +25,14 @@ class ShaderNode : public CCNode {
 
     int numPasses = 1;
 
-    bool init(const std::string& vert, const std::string& frag);
+    bool init(const std::string& vertPath, const std::string& fragPath);
     void update(float dt) override;
     void draw() override;
 
 public:
     static long long firstTime;
 
-    static ShaderNode* create(const std::string& vert, const std::string& frag, const std::vector<CCSprite*>& sprites = {});
-    static Result<ShaderNode*> createFromPath(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites = {});
+    static ShaderNode* create(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites = {});
 
     void setPasses(const int passes) {
         numPasses = passes;
