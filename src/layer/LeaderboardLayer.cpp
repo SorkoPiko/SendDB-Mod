@@ -26,7 +26,7 @@ bool LeaderboardLayer::init() {
 
     list = Build(cue::ListNode::create(
         {358.0f, expandedListView? 320.0f : 220.0f},
-        {0, 0, 0, 0},
+        shadersEnabled || expandedListView ? ccColor4B{0, 0, 0, 0} : cue::Brown,
         expandedListView ? cue::ListBorderStyle::None : cue::ListBorderStyle::SlimLevels
     ))
             .zOrder(2)
@@ -35,9 +35,10 @@ bool LeaderboardLayer::init() {
             .id("level-list")
             .parent(this);
 
-    list->setCellColor(ccColor4B{0, 0, 0, 80});
 
     if (shadersEnabled) {
+        list->setCellColor(ccColor4B{0, 0, 0, 80});
+
         const auto shader = ShaderNode::create("generic.vsh", "kawase.fsh");
         if (shader) {
             listBackground = Build(shader)

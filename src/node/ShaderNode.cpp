@@ -70,22 +70,7 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
 
     const auto glv = CCDirector::sharedDirector()->getOpenGLView();
     const auto frSize = glv->getFrameSize() * getDisplayFactor();
-
-    pingTexture = createTexture(frSize.width, frSize.height);
-    pongTexture = createTexture(frSize.width, frSize.height);
-
-    GLint currentFbo = 0;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
-
-    glGenFramebuffers(1, &pingFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, pingFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingTexture, 0);
-
-    glGenFramebuffers(1, &pongFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, pongFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pongTexture, 0);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
+    updateTextures(frSize);
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
         const auto uniform = glGetUniformLocation(shader.program, ("sprite" + std::to_string(i)).c_str());
@@ -120,6 +105,8 @@ void ShaderNode::draw() {
     const auto glv = CCDirector::sharedDirector()->getOpenGLView();
     const auto frSize = glv->getFrameSize() * getDisplayFactor();
     const auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+    updateTextures(frSize);
 
     const CCPoint worldPos = convertToWorldSpace(CCPointZero);
     const CCSize contentSize = getScaledContentSize();
@@ -190,6 +177,33 @@ void ShaderNode::draw() {
     CC_INCREMENT_GL_DRAWS(numPasses);
 #endif
 }
+
+void ShaderNode::updateTextures(const CCSize& frSize) {
+    if (frSize == lastSize) return;
+    lastSize = frSize;
+
+    if (pingTexture != 0) glDeleteTextures(1, &pingTexture);
+    if (pongTexture != 0) glDeleteTextures(1, &pongTexture);
+    if (pingFBO != 0) glDeleteFramebuffers(1, &pingFBO);
+    if (pongFBO != 0) glDeleteFramebuffers(1, &pongFBO);
+
+    pingTexture = createTexture(frSize.width, frSize.height);
+    pongTexture = createTexture(frSize.width, frSize.height);
+
+    GLint currentFbo = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
+
+    glGenFramebuffers(1, &pingFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, pingFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingTexture, 0);
+
+    glGenFramebuffers(1, &pongFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, pongFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pongTexture, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
+}
+
 
 ShaderNode* ShaderNode::create(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites) {
     auto node = new ShaderNode();

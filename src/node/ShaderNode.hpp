@@ -24,12 +24,16 @@ class ShaderNode : public CCNode {
     GLint frame = 0;
     CCArrayExt<CCSprite*> shaderSprites;
 
-    bool onlyScissorFinalPass = true; // if true, only applies scissor test on final pass, meaning intermediate passes render full screen. useful for controlling blur effects (soft edges otherwise)
+    bool onlyScissorFinalPass = false; // if true, only applies scissor test on final pass, meaning intermediate passes render full screen. useful for controlling blur effects (soft edges otherwise)
     int numPasses = 1;
+
+    CCSize lastSize = {};
 
     bool init(const std::string& vertPath, const std::string& fragPath);
     void update(float dt) override;
     void draw() override;
+
+    void updateTextures(const CCSize& frSize);
 
 public:
     static long long firstTime;

@@ -37,7 +37,7 @@ void main() {
     float mask = rectMask(gl_FragCoord.xy, screenRect, edgeSoftness);
 
     if (mask != 0.0) {
-        colour = kawaseBlur(sprite0, uv, pixelSize, offset);
+        colour = mix(colour, kawaseBlur(sprite0, uv, pixelSize, offset), mask);
     }
 
     gl_FragColor = colour;

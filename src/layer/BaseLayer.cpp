@@ -8,7 +8,7 @@
 
 void BaseLayer::initShaderBackground(const std::string& fragPath) {
     const auto shader = ShaderNode::create("generic.vsh", fragPath);
-    if (!shader) return;
+    if (!shader) return initBackground();
 
     Build(shader)
         .zOrder(-10)

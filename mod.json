@@ -31,13 +31,13 @@
 		"api-category": {
 			"name": "API Settings",
 			"type": "title",
-			"description": "Control how the mod interacts with the SendDB API"
+			"description": "Control how the mod interacts with the SendDB API."
 		},
 		"cacheTime": {
 			"name": "Cache Time (minutes)",
 			"type": "int",
 			"default": 20,
-			"description": "How long to cache SendDB data for (in minutes)",
+			"description": "How long to cache SendDB data for (in minutes).",
 			"min": 1,
 			"max": 60,
 			"control": {
@@ -48,7 +48,7 @@
 			"name": "Leaderboard Entries Per Page",
 			"type": "int",
 			"default": 50,
-			"description": "The number of entries to show per page in leaderboards",
+			"description": "The number of entries to show per page in leaderboards.",
 			"min": 5,
 			"max": 50,
 			"control": {
@@ -58,20 +58,20 @@
 		"display-category": {
 			"name": "Display Settings",
 			"type": "title",
-			"description": "Control how SendDB data is displayed in-game"
+			"description": "Control how SendDB data is displayed in-game."
 		},
 		"graphStyle": {
 			"name": "Graph Style",
 			"type": "string",
 			"default": "Line",
-			"description": "The style of the graphs displayed",
+			"description": "The style of the graphs displayed.",
 			"one-of": ["Line", "Step"]
 		},
 		"trendingSamplePoints": {
 			"name": "Trending Sample Points",
 			"type": "int",
 			"default": 200,
-			"description": "The number of sample points to use for the trending graph",
+			"description": "The number of sample points to use for the trending graph.",
 			"min": 50,
 			"max": 10000,
 			"control": {
@@ -82,24 +82,24 @@
 			"name": "Expanded Leaderboard List",
 			"type": "bool",
 			"default": true,
-			"description": "Increase the size of the leaderboard list for better visibility"
+			"description": "Increase the size of the leaderboard list for better visibility."
 		},
 		"shader-category": {
 			"name": "Shader Settings",
 			"type": "title",
-			"description": "Control the visual effects used in the mod"
+			"description": "Control the visual effects used in the mod."
 		},
 		"shaders": {
 			"name": "Enable Shaders",
 			"type": "bool",
 			"default": true,
-			"description": "Enable shaders for backgrounds and other effects"
+			"description": "Enable shaders for backgrounds and other effects."
 		},
 		"blurPasses": {
 			"name": "Blur Passes",
 			"type": "int",
 			"default": 5,
-			"description": "The number of blur passes to apply",
+			"description": "The number of blur passes to apply. Use 0 to disable blur.",
 			"min": 0,
 			"max": 20,
 			"control": {
