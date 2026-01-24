@@ -40,7 +40,7 @@ bool LeaderboardLayer::init() {
     if (shadersEnabled) {
         const auto shader = ShaderNode::create("generic.vsh", "kawase.fsh");
         if (shader) {
-            listBackground = Build(ShaderNode::create("generic.vsh", "kawase.fsh"))
+            listBackground = Build(shader)
                     .zOrder(-10)
                     .anchorPoint({0.5f, 0.5f})
                     .pos(list->getContentSize() / 2.0f)
