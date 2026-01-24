@@ -9,33 +9,36 @@ varying vec2 v_texCoord;
 const float edgeSoftness = 50.0;
 
 vec4 kawaseBlur(sampler2D tex, vec2 uv, vec2 pixelSize, float offset) {
-    vec4 color = vec4(0.0);
-    color += texture2D(tex, uv + vec2(offset, offset) * pixelSize);
-    color += texture2D(tex, uv + vec2(-offset, offset) * pixelSize);
-    color += texture2D(tex, uv + vec2(offset, -offset) * pixelSize);
-    color += texture2D(tex, uv + vec2(-offset, -offset) * pixelSize);
-    return color * 0.25;
+    vec4 blur = vec4(0.0);
+    blur += texture2D(tex, uv + vec2(offset, offset) * pixelSize);
+    blur += texture2D(tex, uv + vec2(-offset, offset) * pixelSize);
+    blur += texture2D(tex, uv + vec2(offset, -offset) * pixelSize);
+    blur += texture2D(tex, uv + vec2(-offset, -offset) * pixelSize);
+    return blur * 0.25;
 }
 
-float rectMask(vec2 fragCoord, vec4 rect, float softness) {
-    vec2 rectMin = rect.xy;
-    vec2 rectMax = rect.xy + rect.zw;
-
-    vec2 distFromEdge = max(rectMin - fragCoord, fragCoord - rectMax);
-    float dist = max(distFromEdge.x, distFromEdge.y);
-
-    return 1.0 - smoothstep(-softness, 0.0, dist);
+float rectMask(vec2 p, vec4 r, float softness) {
+    vec2 d = max(r.xy - p, p - (r.xy + r.zw));
+    return 1.0 - smoothstep(-softness, 0.0, max(d.x, d.y));
 }
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
+
+    vec4 colour = texture2D(sprite0, uv);
+    if (colour.a == 0.0) {
+        gl_FragColor = colour;
+        return;
+    }
+
     vec2 pixelSize = 1.0 / resolution;
 
     float offset = float(currentPass) + 0.5;
-    vec4 blurred = kawaseBlur(sprite0, uv, pixelSize, offset);
-
     float mask = rectMask(gl_FragCoord.xy, screenRect, edgeSoftness);
 
-    vec4 original = texture2D(sprite0, uv);
-    gl_FragColor = mix(original, blurred, mask);
+    if (mask != 0.0) {
+        colour = kawaseBlur(sprite0, uv, pixelSize, offset);
+    }
+
+    gl_FragColor = colour;
 }
