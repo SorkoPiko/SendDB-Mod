@@ -1,12 +1,7 @@
 #include "ShaderNode.hpp"
 
-#ifdef GEODE_IS_ANDROID
-#include <GLES3/gl3.h>
-#elifdef GEODE_IS_IOS
-#include <OpenGLES/ES3/gl.h>
-#endif
-
 #include <utils/TimeUtils.hpp>
+#include <include/Shader.hpp>
 
 long long ShaderNode::firstTime = 0;
 
