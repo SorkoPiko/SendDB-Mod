@@ -9,24 +9,40 @@ class ShaderNode : public CCNode {
     GLuint vao = 0;
     GLuint vbo = 0;
     GLint uniformResolution = 0;
+    GLint uniformScreenRect = 0;
     GLint uniformTime = 0;
     GLint uniformDeltaTime = 0;
     GLint uniformFrameRate = 0;
     GLint uniformFrame = 0;
+    GLint uniformCurrentPass = 0;
+    GLuint pingFBO = 0;
+    GLuint pongFBO = 0;
+    GLuint pingTexture = 0;
+    GLuint pongTexture = 0;
     float deltaTime = 0.f;
     float time = 0.f;
     GLint frame = 0;
     CCArrayExt<CCSprite*> shaderSprites;
 
-    bool init(const std::string& vert, const std::string& frag);
+    bool onlyScissorFinalPass = true; // if true, only applies scissor test on final pass, meaning intermediate passes render full screen. useful for controlling blur effects (soft edges otherwise)
+    int numPasses = 1;
+
+    bool init(const std::string& vertPath, const std::string& fragPath);
     void update(float dt) override;
     void draw() override;
 
 public:
     static long long firstTime;
 
-    static ShaderNode* create(const std::string& vert, const std::string& frag, const std::vector<CCSprite*>& sprites = {});
-    static Result<ShaderNode*> createFromPath(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites = {});
+    static ShaderNode* create(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites = {});
+
+    void setOnlyScissorFinalPass(const bool flag) {
+        onlyScissorFinalPass = flag;
+    }
+
+    void setPasses(const int passes) {
+        numPasses = passes;
+    }
 };
 
 #endif

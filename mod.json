@@ -77,6 +77,35 @@
 			"control": {
 				"slider": true
 			}
+		},
+		"expandedListView": {
+			"name": "Expanded Leaderboard List",
+			"type": "bool",
+			"default": true,
+			"description": "Increase the size of the leaderboard list for better visibility"
+		},
+		"shader-category": {
+			"name": "Shader Settings",
+			"type": "title",
+			"description": "Control the visual effects used in the mod"
+		},
+		"shaders": {
+			"name": "Enable Shaders",
+			"type": "bool",
+			"default": true,
+			"description": "Enable shaders for backgrounds and other effects"
+		},
+		"blurPasses": {
+			"name": "Blur Passes",
+			"type": "int",
+			"default": 5,
+			"description": "The number of blur passes to apply",
+			"min": 0,
+			"max": 20,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "shaders"
 		}
 	},
 	"resources": {

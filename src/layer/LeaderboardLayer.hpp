@@ -7,6 +7,7 @@
 #include <Geode/binding/LevelManagerDelegate.hpp>
 #include <model/APIRequest.hpp>
 #include <model/APIResponse.hpp>
+#include <node/ShaderNode.hpp>
 
 #include "BaseLayer.hpp"
 #include "FadeSpinner.hpp"
@@ -15,6 +16,7 @@ using namespace geode::prelude;
 
 class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDelegate {
     cue::ListNode* list = nullptr;
+    ShaderNode* listBackground = nullptr;
     CCLabelBMFont* pageLabel = nullptr;
     CCMenuItemSpriteExtra* refreshButton = nullptr;
     CCMenuItemSpriteExtra* filterButton = nullptr;
@@ -46,6 +48,7 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     void updateSendCounts();
 
     void onLoaded(const std::vector<LeaderboardLevel>& levels, int total);
+    void setReady(float);
 
     void startLoadingForPage();
     void continueLoading();

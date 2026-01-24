@@ -6,24 +6,48 @@
 #include <hook/LevelCell.hpp>
 #include <manager/SendDBIntegration.hpp>
 #include <utils/Messages.hpp>
+#include <utils/TimeUtils.hpp>
 
 #include "FadeSpinner.hpp"
 #include "LeaderboardFilterPopup.hpp"
 
+bool shadersEnabled = true;
+
 bool LeaderboardLayer::init() {
     if (!BaseLayer::init()) return false;
-    initShaderBackground("leaderboard.fsh");
+    shadersEnabled = Mod::get()->getSettingValue<bool>("shaders");
+
+    if (shadersEnabled) initShaderBackground("leaderboard.fsh");
+    else initBackground();
 
     const auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    list = Build(cue::ListNode::create({358.0f, 320.0f}, {0, 0, 0, 0}, cue::ListBorderStyle::None))
+    const bool expandedListView = Mod::get()->getSettingValue<bool>("expandedListView");
+
+    list = Build(cue::ListNode::create(
+        {358.0f, expandedListView? 320.0f : 220.0f},
+        {0, 0, 0, 0},
+        expandedListView ? cue::ListBorderStyle::None : cue::ListBorderStyle::SlimLevels
+    ))
             .zOrder(2)
             .anchorPoint({0.5f, 0.5f})
             .pos(winSize / 2.0f)
             .id("level-list")
             .parent(this);
 
-    list->setCellColor(ccColor4B{0, 0, 0, 120});
+    list->setCellColor(ccColor4B{0, 0, 0, 80});
+
+    if (shadersEnabled) {
+        listBackground = Build(ShaderNode::create("generic.vsh", "kawase.fsh"))
+                .zOrder(-10)
+                .anchorPoint({0.5f, 0.5f})
+                .pos(list->getContentSize() / 2.0f)
+                .contentSize(list->getContentSize() + CCSize(10.0f, 10.0f))
+                .id("list-background")
+                .parent(list);
+
+        listBackground->setPasses(Mod::get()->getSettingValue<int>("blurPasses"));
+    }
 
     const auto menu = Build<CCMenu>::create()
             .pos(0.f, 0.f)
@@ -166,9 +190,14 @@ void LeaderboardLayer::onLoaded(const std::vector<LeaderboardLevel>& levels, con
     pageLabel->setVisible(true);
     pageLabel->setString(fmt::format("{} to {} of {}", query.offset + 1, query.offset + query.limit, total).c_str());
     pageText->setString(fmt::format("{}", query.offset / query.limit + 1).c_str());
+    pageText->limitLabelWidth(32.0f, 0.8f, 0.0f);
     queryTotal = total;
     pageLevels = levels;
     startLoadingForPage();
+}
+
+void LeaderboardLayer::setReady(float) {
+    loading = false;
 }
 
 void LeaderboardLayer::startLoadingForPage() {
@@ -201,14 +230,19 @@ void LeaderboardLayer::finishLoading() {
 
     list->clear();
 
+    const long long globalStartTime = TimeUtils::getCurrentTimestamp();
     for (auto level : page) {
         const auto cell = static_cast<SendDBLevelCell*>(new LevelCell("", 356.f, 90.f));
         cell->autorelease();
-        cell->loadFromLevel(level);
-        cell->setContentSize({356.f, 90.f});
 
-        auto listCell = list->addCell(cell);
+        cell->loadFromLevel(level);
+
+        cell->setContentSize({356.f, 90.f});
+        list->addCell(cell);
     }
+
+    const long long globalEndTime = TimeUtils::getCurrentTimestamp();
+    log::debug("total load time for page: {} ms ({} unloaded levels)", globalEndTime - globalStartTime, unloadedLevels);
 
     list->updateLayout();
     updateSendCounts();
@@ -218,7 +252,7 @@ void LeaderboardLayer::finishLoading() {
     prevPageButton->setVisible(query.offset > 0);
     nextPageButton->setVisible(query.offset + query.limit < queryTotal);
 
-    loading = false;
+    scheduleOnce(schedule_selector(LeaderboardLayer::setReady), 0.0f);
 }
 
 bool LeaderboardLayer::loadNextBatch() {
@@ -272,11 +306,15 @@ void LeaderboardLayer::keyDown(const enumKeyCodes key) {
 }
 
 void LeaderboardLayer::onNextPage() {
+    if (loading) return;
+
     query.offset += query.limit;
     onRefresh();
 }
 
 void LeaderboardLayer::onPrevPage() {
+    if (loading) return;
+
     query.offset = std::max(0, query.offset - query.limit);
     onRefresh();
 }
@@ -300,6 +338,8 @@ void LeaderboardLayer::loadLevelsFinished(CCArray* levels, const char*, int) {
 }
 
 void LeaderboardLayer::setIDPopupClosed(SetIDPopup* popup, const int value) {
+    if (loading) return;
+
     query.offset = (value - 1) * query.limit;
     onRefresh();
 }

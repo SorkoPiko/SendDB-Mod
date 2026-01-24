@@ -7,16 +7,32 @@
 #include <node/ShaderNode.hpp>
 
 void BaseLayer::initShaderBackground(const std::string& fragPath) {
-    auto shader = ShaderNode::createFromPath("", fragPath);
-    if (!shader) {
-        log::error("Failed to create background shader: {}", shader.unwrapErr());
-        return;
-    }
+    const auto shader = ShaderNode::create("generic.vsh", fragPath);
+    if (!shader) return;
 
-    Build(shader.unwrap())
+    Build(shader)
         .zOrder(-10)
+        .contentSize(getContentSize())
         .id("background-shader")
         .parent(this);
+}
+
+void BaseLayer::initBackground() {
+    constexpr ccColor3B bgColor = {0, 102, 255};
+
+    const auto winSize = CCDirector::get()->getWinSize();
+    const auto bg = CCSprite::create("GJ_gradientBG.png");
+    const auto bgSize = bg->getTextureRect().size;
+
+    Build(bg)
+            .anchorPoint(0.f, 0.f)
+            .scaleX((winSize.width + 10.f) / bgSize.width)
+            .scaleY((winSize.height + 10.f) / bgSize.height)
+            .pos(-5.f, -5.f)
+            .color(bgColor)
+            .zOrder(-10)
+            .id("background")
+            .parent(this);
 }
 
 void BaseLayer::keyBackClicked() {
