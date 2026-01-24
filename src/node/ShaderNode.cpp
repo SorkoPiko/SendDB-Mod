@@ -126,20 +126,22 @@ void ShaderNode::draw() {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pingFBO);
-    glBlitFramebuffer(
-        0, 0, std::floor(frSize.width), std::floor(frSize.height),
-        0, 0, std::floor(frSize.width), std::floor(frSize.height),
-        GL_COLOR_BUFFER_BIT,
-        GL_NEAREST
+    glBindTexture(GL_TEXTURE_2D, pingTexture);
+    glCopyTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        0,
+        0,
+        static_cast<GLsizei>(frSize.width),
+        static_cast<GLsizei>(frSize.height),
+        0
     );
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
         const auto sprite = shaderSprites[i];
         ccGLBindTexture2DN(i + 1, sprite->getTexture()->getName());
     }
-
-    log::debug("scissor {} {} {} {}", scissorX, scissorY, scissorW, scissorH);
 
     glUniform2f(uniformResolution, frSize.width, frSize.height);
     glUniform4f(uniformScreenRect, scissorX, scissorY, scissorW, scissorH);
@@ -183,7 +185,6 @@ void ShaderNode::draw() {
 void ShaderNode::updateTextures(const CCSize& frSize) {
     if (frSize == lastSize) return;
     lastSize = frSize;
-    log::info("updating shader textures to size {}x{}", frSize.width, frSize.height);
 
     if (pingTexture != 0) glDeleteTextures(1, &pingTexture);
     if (pongTexture != 0) glDeleteTextures(1, &pongTexture);
