@@ -136,7 +136,7 @@ void ShaderNode::draw() {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[nextPboIndex]);
 
         glBindTexture(GL_TEXTURE_2D, pingTexture);
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frSize.width, frSize.height);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frSize.width, frSize.height, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
         glBindBuffer(GL_PIXEL_PACK_BUFFER, currentBuffer);
         pboIndex = nextPboIndex;
