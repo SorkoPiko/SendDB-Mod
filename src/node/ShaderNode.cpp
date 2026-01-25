@@ -67,6 +67,7 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
     uniformFrameRate = glGetUniformLocation(shader.program, "frameRate");
     uniformFrame = glGetUniformLocation(shader.program, "frame");
     uniformCurrentPass = glGetUniformLocation(shader.program, "currentPass");
+    uniformSprites = glGetUniformLocation(shader.program, "sprites");
 
     const auto glv = CCDirector::sharedDirector()->getOpenGLView();
     const auto frSize = glv->getFrameSize() * getDisplayFactor();
@@ -126,20 +127,20 @@ void ShaderNode::draw() {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFbo);
 
     if (passCurrentFrame) {
-        GLint currentBuffer = 0;
-        glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &currentBuffer);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[pboIndex]);
-
-        glReadPixels(0, 0, frSize.width, frSize.height, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-        const int nextPboIndex = (pboIndex + 1) % 2;
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[nextPboIndex]);
-
+#ifdef GEODE_IS_IOS
+        glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
         glBindTexture(GL_TEXTURE_2D, pingTexture);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frSize.width, frSize.height, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, currentBuffer);
-        pboIndex = nextPboIndex;
+        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frSize.width, frSize.height);
+#else
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pingFBO);
+        glBlitFramebuffer(
+            0, 0, frSize.width, frSize.height,
+            0, 0, frSize.width, frSize.height,
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST
+        );
+#endif
     }
 
     for (size_t i = 0; i < shaderSprites.size(); ++i) {
@@ -153,6 +154,7 @@ void ShaderNode::draw() {
     glUniform1f(uniformDeltaTime, deltaTime);
     glUniform1f(uniformFrameRate, 1.f / deltaTime);
     glUniform1i(uniformFrame, frame);
+    glUniform1i(uniformSprites, shaderSprites.size());
 
     for (int pass = 0; pass < numPasses; ++pass) {
         const bool isLastPass = pass == numPasses - 1;
@@ -194,7 +196,6 @@ void ShaderNode::updateTextures(const CCSize& frSize) {
     if (pongTexture != 0) glDeleteTextures(1, &pongTexture);
     if (pingFBO != 0) glDeleteFramebuffers(1, &pingFBO);
     if (pongFBO != 0) glDeleteFramebuffers(1, &pongFBO);
-    if (pbos[0] != 0) glDeleteBuffers(2, pbos);
 
     pingTexture = createTexture(frSize.width, frSize.height);
     pongTexture = createTexture(frSize.width, frSize.height);
@@ -213,17 +214,8 @@ void ShaderNode::updateTextures(const CCSize& frSize) {
     GLint currentBuffer = 0;
     glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &currentBuffer);
 
-    glGenBuffers(2, pbos);
-    const size_t bufferSize = frSize.width * frSize.height * 4;
-    for (int i = 0; i < 2; i++) {
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos[i]);
-        glBufferData(GL_PIXEL_PACK_BUFFER, bufferSize, nullptr, GL_STREAM_READ);
-    }
-
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, currentBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
 }
-
 
 ShaderNode* ShaderNode::create(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites) {
     auto node = new ShaderNode();

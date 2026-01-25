@@ -50,6 +50,7 @@ bool LeaderboardLayer::init() {
                     .parent(list);
 
             listBackground->setPassCurrentFrame(true);
+            listBackground->setOnlyScissorFinalPass(true);
             listBackground->setPasses(Mod::get()->getSettingValue<int>("blurPasses"));
         } else shadersEnabled = false;
     }

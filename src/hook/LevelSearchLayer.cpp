@@ -7,7 +7,7 @@
 
 using namespace geode::prelude;
 
-class $modify(SendDBLevelSearchLayer, LevelSearchLayer) {
+class $modify(LevelSearchLayer) {
     bool init(const int searchType) {
         if (!LevelSearchLayer::init(searchType)) return false;
 

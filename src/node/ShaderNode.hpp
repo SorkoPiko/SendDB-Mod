@@ -15,6 +15,7 @@ class ShaderNode : public CCNode {
     GLint uniformFrameRate = 0;
     GLint uniformFrame = 0;
     GLint uniformCurrentPass = 0;
+    GLint uniformSprites = 0;
     GLuint pingFBO = 0;
     GLuint pongFBO = 0;
     GLuint pingTexture = 0;

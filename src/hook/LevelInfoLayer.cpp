@@ -11,7 +11,7 @@
 
 using namespace geode::prelude;
 
-class $modify(SendDBLevelInfoLayer, LevelInfoLayer) {
+class $modify(LevelInfoLayer) {
     struct Fields {
         EventListener<web::WebTask> levelListener;
         std::optional<Level> levelInfo;
@@ -49,15 +49,13 @@ class $modify(SendDBLevelInfoLayer, LevelInfoLayer) {
 
         Build<CCSprite>::create("logo-circle.png"_spr)
                 .scale(0.125f)
-                .intoMenuItem(this, menu_selector(SendDBLevelInfoLayer::onChart))
+                .intoMenuItem([this](auto*) {
+                    const auto chart = LevelSendChartPopup::create(m_level, m_level->m_levelID, m_fields->levelInfo, m_fields->creator);
+                    chart->show();
+        })
                 .parent(menu)
                 .matchPos(menu->getChildByID("favorite-button"))
                 .move({38.0f, 0.0f})
                 .id("chart-button"_spr);
-    }
-
-    void onChart(CCObject* sender) {
-        const auto chart = LevelSendChartPopup::create(m_level, m_level->m_levelID, m_fields->levelInfo, m_fields->creator);
-        chart->show();
     }
 };
