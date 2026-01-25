@@ -129,9 +129,9 @@ void main() {
         gl_FragColor = liquidGlassRefraction();
     } else if (ignoreLast && currentPass == finalPass + 1) {
         gl_FragColor = texture2D(sprite0, uv);
-    } else if (currentPass % 2 == 0) {
+    } else if (mod(currentPass, 2) == 0) {
         gl_FragColor = blur13(sprite0, uv, resolution, vec2(u_blurRadius, 0.0));
-    } else if (currentPass % 2 == 1) {
+    } else if (mod(currentPass, 2) == 1) {
         gl_FragColor = blur13(sprite0, uv, resolution, vec2(0.0, u_blurRadius));
     }
 }
