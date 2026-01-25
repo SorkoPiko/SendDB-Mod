@@ -205,3 +205,26 @@ void SendDBIntegration::getLeaderboard(const LeaderboardQuery& query, const std:
         }
     }, listener);
 }
+
+void SendDBIntegration::getTrendingLeaderboard(const TrendingLeaderboardQuery& query, const std::function<void(std::optional<TrendingLeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener) {
+    if (const auto cachedResponse = cache.getTrendingLeaderboard(query)) {
+        callback(cachedResponse);
+        return;
+    }
+
+    sendPostRequest(SERVER_URL "/leaderboard/trending", query, [this, query, callback](const matjson::Value& data) {
+        if (data.contains("error")) {
+            log::error("Failed to get trending leaderboard: {}", data["error"].asString().unwrapOrDefault());
+            callback(std::nullopt);
+        } else {
+            if (const Result<TrendingLeaderboardResponse> result = data.as<TrendingLeaderboardResponse>(); result.isOk()) {
+                const TrendingLeaderboardResponse& response = result.unwrap();
+                cache.cacheTrendingLeaderboard(query, response);
+                callback(response);
+            } else {
+                log::error("Failed to parse trending leaderboard response: {}", result.unwrapErr());
+                callback(std::nullopt);
+            }
+        }
+    }, listener);
+}

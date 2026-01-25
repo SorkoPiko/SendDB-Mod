@@ -25,10 +25,10 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     CCLabelBMFont* pageText = nullptr;
     CCMenuItemSpriteExtra* pageButton = nullptr;
     FadeSpinner* loadingCircle = nullptr;
+    std::vector<Ref<CCSprite>> shaderSprites;
 
     EventListener<web::WebTask> leaderboardListener;
     std::vector<EventListener<web::WebTask>> sendCountListeners;
-    LeaderboardQuery query = {Mod::get()->getSettingValue<int>("leaderboardPerPage"), 0, std::nullopt, std::nullopt};
     int queryTotal = 0;
     std::vector<LeaderboardLevel> pageLevels = {};
     std::vector<int> currentQuery;
@@ -36,11 +36,13 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     bool circleShown = false;
 
     static std::unordered_map<int, Ref<GJGameLevel>> cache;
+    static std::set<int> failedCache;
     std::unordered_map<int, BatchLevel> batchCache;
-    std::set<int> failedCache;
 
     bool init() override;
     ~LeaderboardLayer() override;
+
+    void updateShaderSprites();
 
     void onRefresh();
 
@@ -62,12 +64,16 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
 
     void loadLevelsFinished(CCArray* levels, const char* key) override;
     void loadLevelsFinished(CCArray* levels, const char*, int) override;
+    void loadLevelsFailed(const char* key) override;
+    void loadLevelsFailed(const char*, int) override;
 
     void setIDPopupClosed(SetIDPopup* popup, int value) override;
 
     void toggleLoadingUi(bool loadingState);
 
 public:
+    static LeaderboardQuery query;
+
     static LeaderboardLayer* create();
 
     void setQuery(LeaderboardQuery query);

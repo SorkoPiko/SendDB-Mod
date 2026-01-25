@@ -4,13 +4,12 @@
 #include <Geode/cocos/CCDirector.h>
 
 #include <UIBuilder.hpp>
-#include <node/ShaderNode.hpp>
 
 void BaseLayer::initShaderBackground(const std::string& fragPath) {
     const auto shader = ShaderNode::create("generic.vsh", fragPath);
     if (!shader) return initBackground();
 
-    Build(shader)
+    backgroundShader = Build(shader)
         .zOrder(-10)
         .contentSize(getContentSize())
         .id("background-shader")

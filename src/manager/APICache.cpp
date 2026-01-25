@@ -40,6 +40,15 @@ void APICache::cacheLeaderboard(const LeaderboardQuery& query, const Leaderboard
     leaderboardCountCache[key] = {response.total, currentTime};
 }
 
+void APICache::cacheTrendingLeaderboard(const TrendingLeaderboardQuery& query, const TrendingLeaderboardResponse& response) {
+    const time_t currentTime = std::time(nullptr);
+    for (int i = 0; i < response.levels.size(); ++i) {
+        const int index = i + query.offset;
+        trendingLeaderboardLevelCache[index] = {response.levels[i], currentTime};
+    }
+    trendingLeaderboardCountCache = {response.total, currentTime};
+}
+
 template <typename T>
 std::optional<std::optional<T>> getCachedEntry(
     const std::unordered_map<int, OptionalCacheEntry<T>>& cache,
@@ -110,4 +119,31 @@ std::optional<LeaderboardResponse> APICache::getLeaderboard(const LeaderboardQue
     }
 
     return LeaderboardResponse{total, levels};
+}
+
+std::optional<TrendingLeaderboardResponse> APICache::getTrendingLeaderboard(const TrendingLeaderboardQuery& query) const {
+    std::vector<TrendingLeaderboardLevel> levels;
+    for (int i = 0; i < query.limit; ++i) {
+        const int index = i + query.offset;
+        if (const auto it = trendingLeaderboardLevelCache.find(index); it != trendingLeaderboardLevelCache.end()) {
+            const auto& [level, timestamp] = it->second;
+            if (const time_t currentTime = std::time(nullptr); currentTime - timestamp <= cacheDuration) {
+                levels.push_back(level);
+            } else {
+                return std::nullopt;
+            }
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    int total = 0;
+    const auto& [count, timestamp] = trendingLeaderboardCountCache;
+    if (const time_t currentTime = std::time(nullptr); currentTime - timestamp <= cacheDuration) {
+        total = count;
+    } else {
+        return std::nullopt;
+    }
+
+    return TrendingLeaderboardResponse{total, levels};
 }

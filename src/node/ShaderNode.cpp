@@ -37,7 +37,6 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
 
     ccGLUseProgram(shader.program);
 
-    shaderSprites.inner()->retain();
     std::istringstream stream(fragPath);
     std::string line;
 
@@ -75,10 +74,7 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
     const auto frSize = glv->getFrameSize() * getDisplayFactor();
     updateTextures(frSize);
 
-    for (size_t i = 0; i < shaderSprites.size(); ++i) {
-        const auto uniform = glGetUniformLocation(shader.program, ("sprite" + std::to_string(i)).c_str());
-        glUniform1i(uniform, static_cast<GLint>(i));
-    }
+    glUniform1i(glGetUniformLocation(shader.program, "sprite0"), 0);
 
     scheduleUpdate();
     return true;
@@ -145,9 +141,9 @@ void ShaderNode::draw() {
 #endif
     }
 
-    for (size_t i = 0; i < shaderSprites.size(); ++i) {
-        const auto sprite = shaderSprites[i];
-        ccGLBindTexture2DN(i + 1, sprite->getTexture()->getName());
+    for (size_t i = 1; i <= allocatedSprites; ++i) {
+        const GLuint spriteTex = i <= shaderSprites.size() ? shaderSprites[i - 1]->getTexture()->getName() : 0;
+        ccGLBindTexture2DN(i, spriteTex);
     }
 
     glUniform2f(uniformResolution, frSize.width, frSize.height);
@@ -220,11 +216,18 @@ void ShaderNode::updateTextures(const CCSize& frSize) {
     glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
 }
 
-ShaderNode* ShaderNode::create(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites) {
+void ShaderNode::updateSprites(const int newSpriteCount) {
+    if (newSpriteCount <= allocatedSprites) return;
+    allocatedSprites = newSpriteCount;
+
+    for (size_t i = 1; i <= allocatedSprites; ++i) {
+        const auto uniform = glGetUniformLocation(shader.program, ("sprite" + std::to_string(i)).c_str());
+        glUniform1i(uniform, i);
+    }
+}
+
+ShaderNode* ShaderNode::create(const std::string& vertPath, const std::string& fragPath) {
     auto node = new ShaderNode();
-
-    for (const auto sprite : sprites) node->shaderSprites.push_back(sprite);
-
     if (node->init(vertPath, fragPath)) {
         node->autorelease();
         return node;

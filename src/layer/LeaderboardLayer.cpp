@@ -14,13 +14,29 @@
 
 bool shadersEnabled = true;
 
+LeaderboardQuery LeaderboardLayer::query = {
+    Mod::get()->getSettingValue<int>("leaderboardPerPage"),
+    0,
+    std::nullopt,
+    std::nullopt
+};
+
 std::unordered_map<int, Ref<GJGameLevel>> LeaderboardLayer::cache = {};
+std::set<int> LeaderboardLayer::failedCache = {};
 
 bool LeaderboardLayer::init() {
     if (!BaseLayer::init()) return false;
     shadersEnabled = Mod::get()->getSettingValue<bool>("shaders");
 
-    if (shadersEnabled) initShaderBackground("leaderboard.fsh");
+    if (shadersEnabled) {
+        initShaderBackground("leaderboard.fsh");
+        if (!backgroundShader) {
+            shadersEnabled = false;
+            initBackground();
+        } else {
+            backgroundShader->allocateSprites(2);
+        }
+    }
     else initBackground();
 
     const auto winSize = CCDirector::sharedDirector()->getWinSize();
@@ -88,6 +104,7 @@ bool LeaderboardLayer::init() {
             LeaderboardFilterPopup::create(query, [this](auto res) {
                 query = res;
                 query.offset = 0;
+                updateShaderSprites();
                 onRefresh();
             })->show();
         })
@@ -165,6 +182,12 @@ bool LeaderboardLayer::init() {
         }
     }
 
+    shaderSprites.push_back(CCSprite::create("classic.png"_spr));
+    shaderSprites.push_back(CCSprite::create("platformer.png"_spr));
+    shaderSprites.push_back(CCSprite::create("rated.png"_spr));
+    shaderSprites.push_back(CCSprite::create("unrated.png"_spr));
+    updateShaderSprites();
+
     onRefresh();
 
     return true;
@@ -172,6 +195,30 @@ bool LeaderboardLayer::init() {
 
 LeaderboardLayer::~LeaderboardLayer() {
     GameLevelManager::get()->m_levelManagerDelegate = nullptr;
+}
+
+void LeaderboardLayer::updateShaderSprites() {
+    if (!shadersEnabled || !backgroundShader) return;
+
+    std::vector<Ref<CCSprite>> sprites;
+    if (query.gamemodeFilter == GamemodeFilter::Classic) {
+        sprites.push_back(shaderSprites[0]);
+    } else if (query.gamemodeFilter == GamemodeFilter::Platformer) {
+        sprites.push_back(shaderSprites[1]);
+    }
+
+    if (query.rateFilter == RateFilter::Rated) {
+        sprites.push_back(shaderSprites[2]);
+    } else if (query.rateFilter == RateFilter::Unrated) {
+        sprites.push_back(shaderSprites[3]);
+    }
+
+    log::info("Updating shader sprites, count: {}", sprites.size());
+    for (const auto sprite : sprites) {
+        log::info(" - Sprite: {}", sprite->getTexture()->getName());
+    }
+
+    backgroundShader->setSprites(sprites);
 }
 
 void LeaderboardLayer::onRefresh() {
@@ -363,6 +410,18 @@ void LeaderboardLayer::loadLevelsFinished(CCArray* levels, const char*, int) {
         if (!cache.contains(id)) {
             failedCache.insert(id);
         }
+    }
+
+    continueLoading();
+}
+
+void LeaderboardLayer::loadLevelsFailed(const char* key) {
+    loadLevelsFailed(key, -1);
+}
+
+void LeaderboardLayer::loadLevelsFailed(const char*, int) {
+    for (auto id : currentQuery) {
+        failedCache.insert(id);
     }
 
     continueLoading();

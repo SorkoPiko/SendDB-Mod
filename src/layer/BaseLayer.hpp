@@ -3,11 +3,15 @@
 
 #include <Geode/Prelude.hpp>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
+#include <node/ShaderNode.hpp>
 
 using namespace geode::prelude;
 
 class BaseLayer : public CCLayer {
     void keyBackClicked() override;
+
+protected:
+    ShaderNode* backgroundShader = nullptr;
 
 public:
     bool init() override;

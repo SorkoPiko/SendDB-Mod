@@ -24,24 +24,26 @@ class ShaderNode : public CCNode {
     float deltaTime = 0.f;
     float time = 0.f;
     GLint frame = 0;
-    CCArrayExt<CCSprite*> shaderSprites;
+    std::vector<Ref<CCSprite>> shaderSprites;
 
     bool onlyScissorFinalPass = false;
     int numPasses = 1;
     bool passCurrentFrame = false;
 
     CCSize lastSize = {};
+    int allocatedSprites = 0;
 
     bool init(const std::string& vertPath, const std::string& fragPath);
     void update(float dt) override;
     void draw() override;
 
     void updateTextures(const CCSize& frSize);
+    void updateSprites(int newSpriteCount);
 
 public:
     static long long firstTime;
 
-    static ShaderNode* create(const std::string& vertPath, const std::string& fragPath, const std::vector<CCSprite*>& sprites = {});
+    static ShaderNode* create(const std::string& vertPath, const std::string& fragPath);
 
     void setOnlyScissorFinalPass(const bool flag) {
         onlyScissorFinalPass = flag;
@@ -55,6 +57,15 @@ public:
 
     void setPassCurrentFrame(const bool flag) {
         passCurrentFrame = flag;
+    }
+
+    void setSprites(const std::vector<Ref<CCSprite>>& sprites) {
+        shaderSprites = sprites;
+        updateSprites(shaderSprites.size());
+    }
+
+    void allocateSprites(const int count) {
+        updateSprites(count);
     }
 };
 

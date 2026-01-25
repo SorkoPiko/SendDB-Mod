@@ -85,6 +85,18 @@ struct LeaderboardResponse {
     std::vector<LeaderboardLevel> levels;
 };
 
+struct TrendingLeaderboardLevel {
+    int32_t levelID;
+    int32_t send_count;
+    int32_t rank;
+    double trending_score;
+};
+
+struct TrendingLeaderboardResponse {
+    int32_t total;
+    std::vector<TrendingLeaderboardLevel> levels;
+};
+
 template <>
 struct matjson::Serialize<Send> {
     static Result<Send> fromJson(const Value& value) {
@@ -222,6 +234,31 @@ struct matjson::Serialize<LeaderboardResponse> {
             levels.push_back(level);
         }
         return Ok(LeaderboardResponse { total, levels });
+    }
+};
+
+template <>
+struct matjson::Serialize<TrendingLeaderboardLevel> {
+    static Result<TrendingLeaderboardLevel> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t levelID, value["level_id"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t send_count, value["send_count"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t rank, value["rank"].asInt());
+        GEODE_UNWRAP_INTO(const double trending_score, value["trending_score"].asDouble());
+        return Ok(TrendingLeaderboardLevel { levelID, send_count, rank, trending_score });
+    }
+};
+
+template <>
+struct matjson::Serialize<TrendingLeaderboardResponse> {
+    static Result<TrendingLeaderboardResponse> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t total, value["total"].asInt());
+        GEODE_UNWRAP_INTO(const std::vector<Value> levels_json, value["levels"].asArray());
+        std::vector<TrendingLeaderboardLevel> levels;
+        for (const Value& level_val : levels_json) {
+            GEODE_UNWRAP_INTO(const TrendingLeaderboardLevel level, level_val.as<TrendingLeaderboardLevel>());
+            levels.push_back(level);
+        }
+        return Ok(TrendingLeaderboardResponse { total, levels });
     }
 };
 

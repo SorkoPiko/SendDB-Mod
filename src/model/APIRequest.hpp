@@ -36,6 +36,16 @@ struct LeaderboardQuery {
     }
 };
 
+struct TrendingLeaderboardQuery {
+    int32_t limit;
+    int32_t offset;
+
+    bool operator==(const TrendingLeaderboardQuery& other) const {
+        return limit == other.limit &&
+               offset == other.offset;
+    }
+};
+
 template <>
 struct matjson::Serialize<BatchRequest> {
     static Value toJson(const BatchRequest& request) {
@@ -87,6 +97,16 @@ struct matjson::Serialize<LeaderboardQuery> {
         }
 
         return obj;
+    }
+};
+
+template <>
+struct matjson::Serialize<TrendingLeaderboardQuery> {
+    static Value toJson(const TrendingLeaderboardQuery& filter) {
+        return makeObject({
+            { "limit", filter.limit },
+            { "offset", filter.offset }
+        });
     }
 };
 

@@ -46,7 +46,7 @@ float PointUtils::nodeSDF(CCNode* node, const CCPoint& touch) {
         std::abs(offset.y) - halfHeight
     );
 
-    const float outsideDist = ccpLength(ccp(std::max(distance.x, 0.0f), std::max(distance.y, 0.0f)));
+    const float outsideDist = ccp(std::max(distance.x, 0.0f), std::max(distance.y, 0.0f)).getLength();
     const float insideDist = std::min(std::max(distance.x, distance.y), 0.0f);
 
     return outsideDist + insideDist;
