@@ -3,6 +3,7 @@
 #include <utils/TimeUtils.hpp>
 #include <include/Shader.hpp>
 #include <manager/ShaderCache.hpp>
+#include <utils/PointUtils.hpp>
 
 long long ShaderNode::firstTime = 0;
 
@@ -111,7 +112,7 @@ void ShaderNode::draw() {
     updateTextures(frSize);
 
     const CCPoint worldPos = convertToWorldSpace(CCPointZero);
-    const CCSize contentSize = getScaledContentSize();
+    const CCSize contentSize = PointUtils::getNodeScreenSize(this);
     const CCSize contentScaleFactor = {frSize.width / winSize.width, frSize.height / winSize.height};
 
     const int scissorX = worldPos.x * contentScaleFactor.width;

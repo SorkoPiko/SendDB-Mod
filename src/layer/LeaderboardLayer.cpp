@@ -147,10 +147,9 @@ bool LeaderboardLayer::init() {
     if (shadersEnabled && blurPasses > 0) {
         auto dragNode = Build<DragNode>::create()
                 .zOrder(100)
-                .anchorPoint({0.5f, 0.5f})
                 .pos(32.0f, 32.0f)
                 .contentSize({50.0f, 50.0f})
-                .parent(this);
+                .parent(menu);
 
         const auto shader = ShaderNode::create("generic.vsh", "glass.fsh");
         if (shader) {

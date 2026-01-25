@@ -7,10 +7,14 @@
 using namespace geode::prelude;
 
 class DragNode : public CCLayer {
+    int touchPriority = 0;
     std::function<void()> onPress;
     CCPoint dragOffset = CCPoint{0, 0};
+    float dragDistance = 0.0f;
+    CCSize originalScale = {};
+    bool scaleOnDrag = false;
 
-    bool init(std::function<void()> onPressCallback);
+    bool init(int initTouchPriority, std::function<void()> onPressCallback);
 
     bool ccTouchBegan(CCTouch* touch, CCEvent* event) override;
     void ccTouchMoved(CCTouch* touch, CCEvent* event) override;
@@ -20,7 +24,7 @@ class DragNode : public CCLayer {
     void registerWithTouchDispatcher() override;
 
 public:
-    static DragNode* create(std::function<void()> onPressCallback = nullptr);
+    static DragNode* create(int initTouchPriority = 0, std::function<void()> onPressCallback = nullptr);
 };
 
 #endif
