@@ -17,21 +17,26 @@ using namespace geode::prelude;
 class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDelegate {
     cue::ListNode* list = nullptr;
     ShaderNode* listBackground = nullptr;
+    CCLabelBMFont* title = nullptr;
     CCLabelBMFont* pageLabel = nullptr;
     CCMenuItemSpriteExtra* refreshButton = nullptr;
     CCMenuItemSpriteExtra* filterButton = nullptr;
     CCMenuItemSpriteExtra* prevPageButton = nullptr;
     CCMenuItemSpriteExtra* nextPageButton = nullptr;
+    CCMenuItemSpriteExtra* trendingButton = nullptr;
     CCLabelBMFont* pageText = nullptr;
     CCMenuItemSpriteExtra* pageButton = nullptr;
     FadeSpinner* loadingCircle = nullptr;
     std::vector<Ref<CCSprite>> shaderSprites;
 
+    ShaderNode* trendingBackground = nullptr;
+
     EventListener<web::WebTask> leaderboardListener;
     std::vector<EventListener<web::WebTask>> sendCountListeners;
     int queryTotal = 0;
-    std::vector<LeaderboardLevel> pageLevels = {};
+    std::vector<int> pageIDs;
     std::vector<int> currentQuery;
+    static bool trending;
     bool loading = false;
     bool circleShown = false;
 
@@ -49,7 +54,7 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     void getSendCounts(const std::vector<int>& levelIDs);
     void updateSendCounts();
 
-    void onLoaded(const std::vector<LeaderboardLevel>& levels, int total);
+    void onLoaded(const std::vector<int>& levels, int total);
     void setReady(float);
 
     void startLoadingForPage();

@@ -55,7 +55,7 @@ bool BaseLayer::init() {
     Build<CCMenu>::create()
         .contentSize(backButton->getScaledContentSize())
         .anchorPoint(0.0f, 1.0f)
-        .pos(25.f, winSize.height - 25.f)
+        .pos(24.f, winSize.height - 23.f)
         .id("back-menu")
         .child(backButton)
         .parent(this);

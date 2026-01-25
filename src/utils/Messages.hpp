@@ -4,6 +4,9 @@
 constexpr auto leaderboardTitle = "SendDB Leaderboard";
 constexpr auto leaderboardDesc = "Browse the <cg>SendDB leaderboard</c> to find the most sent levels in Geometry Dash! Use <cp>filters</c> to narrow down your search by rate and gamemode.";
 
+constexpr auto trendingLeaderboardTitle = "Trending Leaderboard";
+constexpr auto trendingLeaderboardDesc = "Check out the <cp>trending leaderboard</c> to see which unrated levels are gaining the most attention right now based on their <cp>trending scores</c>!";
+
 enum class LevelSendPopupInfo {
     Info,
 
@@ -62,7 +65,7 @@ public:
             case LevelSendPopupInfo::Info: return "Don't understand something? Click on it to get more information.";
 
             case LevelSendPopupInfo::SendCategory: return "View information about the <cy>level's send count</c>.";
-            case LevelSendPopupInfo::SendCount: return "The <cg>total number of sends</c> the level has received.";
+            case LevelSendPopupInfo::SendCount: return "The <cg>total number of sends</c> the level has received.\nIf there is a <cr>question mark</c> next to the send count, it means the level was created before SendDB started tracking sends, and the real send count <cy>may be higher</c>.";
             case LevelSendPopupInfo::SendDifference: return "The <cr>difference</c> between this level's send count and the creator's levels' average send count.";
             case LevelSendPopupInfo::SendCreatorAverage: return "The creator's levels' <cy>average send count</c>.";
 

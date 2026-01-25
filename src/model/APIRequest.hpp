@@ -40,6 +40,8 @@ struct TrendingLeaderboardQuery {
     int32_t limit;
     int32_t offset;
 
+    TrendingLeaderboardQuery(const LeaderboardQuery& other) : limit(other.limit), offset(other.offset) {}
+
     bool operator==(const TrendingLeaderboardQuery& other) const {
         return limit == other.limit &&
                offset == other.offset;

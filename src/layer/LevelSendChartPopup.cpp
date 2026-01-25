@@ -261,7 +261,7 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
                 .id("send-icon")
                 .parent(sendInfoNode);
 
-        auto sendCountLabel = Build<CCLabelBMFont>::create(fmt::format("Send Count: {}", levelInfo.sends.size()).c_str(), "bigFont.fnt")
+        auto sendCountLabel = Build<CCLabelBMFont>::create(fmt::format("Send Count: {}{}", levelInfo.sends.size(), levelInfo.accurate ? "" : "?").c_str(), "bigFont.fnt")
                 .limitLabelWidth(110.0f, 0.45f, 0.25f)
                 .intoMenuItem([](auto*) {infoPopup(LevelSendPopupInfo::SendCount);})
                 .animationEnabled(false)

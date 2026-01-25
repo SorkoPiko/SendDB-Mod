@@ -6,6 +6,7 @@
 #include <hook/LevelCell.hpp>
 #include <manager/SendDBIntegration.hpp>
 #include <node/DragNode.hpp>
+#include <node/SwitchNode.hpp>
 #include <utils/Messages.hpp>
 #include <utils/TimeUtils.hpp>
 
@@ -14,6 +15,7 @@
 
 bool shadersEnabled = true;
 
+bool LeaderboardLayer::trending = false;
 LeaderboardQuery LeaderboardLayer::query = {
     Mod::get()->getSettingValue<int>("leaderboardPerPage"),
     0,
@@ -29,12 +31,20 @@ bool LeaderboardLayer::init() {
     shadersEnabled = Mod::get()->getSettingValue<bool>("shaders");
 
     if (shadersEnabled) {
+        initShaderBackground("trending.fsh");
+        if (backgroundShader) {
+            trendingBackground = backgroundShader;
+            trendingBackground->setID("trending-background");
+            trendingBackground->setVisible(trending);
+        }
+
         initShaderBackground("leaderboard.fsh");
         if (!backgroundShader) {
             shadersEnabled = false;
             initBackground();
         } else {
             backgroundShader->allocateSprites(2);
+            backgroundShader->setVisible(!trending);
         }
     }
     else initBackground();
@@ -43,6 +53,16 @@ bool LeaderboardLayer::init() {
 
     const bool expandedListView = Mod::get()->getSettingValue<bool>("expandedListView");
     const int blurPasses = Mod::get()->getSettingValue<int>("blurPasses");
+
+    if (!expandedListView) {
+        title = Build<CCLabelBMFont>::create(trending ? trendingLeaderboardTitle : leaderboardTitle, "bigFont.fnt")
+                .limitLabelWidth(300.0f, 0.8f, 0.0f)
+                .pos({winSize.width / 2.0f, winSize.height / 2 + 126.0f})
+                .anchorPoint({0.5f, 0.0f})
+                .zOrder(3)
+                .id("title-label")
+                .parent(this);
+    }
 
     list = Build(cue::ListNode::create(
         {358.0f, expandedListView? 320.0f : 220.0f},
@@ -78,38 +98,70 @@ bool LeaderboardLayer::init() {
     const auto menu = Build<CCMenu>::create()
             .pos(0.f, 0.f)
             .zOrder(2)
-            .parent(this)
-            .collect();
+            .id("main-menu")
+            .parent(this);
 
     pageLabel = Build<CCLabelBMFont>::create("0 to 0 of 0", "goldFont.fnt")
-        .scale(0.44f)
-        .pos({winSize.width - 3.0f, winSize.height - 4.0f})
-        .anchorPoint({1.0f, 1.0f})
-        .parent(menu);
+            .scale(0.44f)
+            .pos({winSize.width - 3.0f, winSize.height - 4.0f})
+            .anchorPoint({1.0f, 1.0f})
+            .id("page-label")
+            .parent(menu);
+
+    auto chartSwitchSprite = SwitchNode::create();
+    chartSwitchSprite->addNode(Build<CCSprite>::createSpriteName("GJ_starsIcon_001.png").scale(1.0f/0.94f));
+    chartSwitchSprite->addNode(Build<CCSprite>::createSpriteName("GJ_sTrendingIcon_001.png").scale(1.0f/0.66f));
+    chartSwitchSprite->setActiveIndex(trending);
+
+    trendingButton = Build(CircleButtonSprite::create(chartSwitchSprite, CircleBaseColor::Gray))
+            .intoMenuItem([this, chartSwitchSprite](auto*) {
+                if (trending) {
+                    trending = false;
+                    chartSwitchSprite->setActiveIndex(0);
+                } else {
+                    trending = true;
+                    chartSwitchSprite->setActiveIndex(1);
+                }
+                if (trendingBackground) trendingBackground->setVisible(trending);
+                if (backgroundShader) backgroundShader->setVisible(!trending);
+                if (title) {
+                    title->setString(trending ? trendingLeaderboardTitle : leaderboardTitle);
+                    title->limitLabelWidth(300.0f, 0.8f, 0.0f);
+                }
+                query.offset = 0;
+                onRefresh();
+            })
+            .pos({32.0f, 32.0f})
+            .id("chart-button")
+            .parent(menu);
+
+    chartSwitchSprite->setScale(1.0f); // ???
 
     Build<CCSprite>::createSpriteName("GJ_infoIcon_001.png")
-        .intoMenuItem([](auto) {
-            FLAlertLayer::create(
-                leaderboardTitle,
-                leaderboardDesc,
-                "OK"
-            )->show();
-        })
-        .pos(32.0f, 32.0f)
-        .parent(menu);
+            .intoMenuItem([](auto) {
+                FLAlertLayer::create(
+                    trending ? trendingLeaderboardTitle : leaderboardTitle,
+                    trending ? trendingLeaderboardDesc :leaderboardDesc,
+                    "OK"
+                )->show();
+            })
+            .pos({winSize.width - 32.0f, 32.0f})
+            .id("info-button")
+            .parent(menu);
 
     filterButton = Build<CCSprite>::createSpriteName("GJ_plusBtn_001.png")
-        .scale(0.7f)
-        .intoMenuItem([this](auto) {
-            LeaderboardFilterPopup::create(query, [this](auto res) {
-                query = res;
-                query.offset = 0;
-                updateShaderSprites();
-                onRefresh();
-            })->show();
-        })
-        .pos(25.0f, winSize.height - 70.0f)
-        .parent(menu);
+            .scale(0.7f)
+            .intoMenuItem([this](auto) {
+                LeaderboardFilterPopup::create(query, [this](auto res) {
+                    query = res;
+                    query.offset = 0;
+                    updateShaderSprites();
+                    onRefresh();
+                })->show();
+            })
+            .pos(25.0f, winSize.height - 70.0f)
+            .id("filter-button")
+            .parent(menu);
 
     constexpr float pageBtnPadding = 20.0f;
 
@@ -118,6 +170,7 @@ bool LeaderboardLayer::init() {
                 onPrevPage();
             })
             .pos(pageBtnPadding, winSize.height / 2.0f)
+            .id("prev-page-button")
             .parent(menu);
 
     nextPageButton = Build<CCSprite>::createSpriteName("GJ_arrow_03_001.png")
@@ -126,6 +179,7 @@ bool LeaderboardLayer::init() {
                 onNextPage();
             })
             .pos(winSize.width - pageBtnPadding, winSize.height / 2.0f)
+            .id("next-page-button")
             .parent(menu);
 
     auto pageSprite = Build<CCSprite>::create("GJ_button_02.png");
@@ -154,18 +208,21 @@ bool LeaderboardLayer::init() {
         popup->show();
     })
             .pos({winSize.width - 23.0f, winSize.height / 2.0f + 122.0f})
+            .id("page-button")
             .parent(menu);
 
     loadingCircle = Build<FadeSpinner>::create()
             .zOrder(-1)
             .pos(list->getContentSize() / 2.0f)
+            .id("loading-circle")
             .parent(list);
 
     if (shadersEnabled && blurPasses > 0) {
-        auto dragNode = Build<DragNode>::create()
+        auto dragNode = Build<DragNode>::create(-512)
                 .zOrder(100)
-                .pos(32.0f, 32.0f)
+                .pos(32.0f, 92.0f)
                 .contentSize({50.0f, 50.0f})
+                .id("drag-node")
                 .parent(menu);
 
         const auto shader = ShaderNode::create("generic.vsh", "glass.fsh");
@@ -178,7 +235,7 @@ bool LeaderboardLayer::init() {
                     .parent(dragNode);
 
             shader->setPassCurrentFrame(true);
-            shader->setPasses(blurPasses * 0.5f * 2 + 1);
+            shader->setPasses(blurPasses * 2 + 1);
         }
     }
 
@@ -213,11 +270,6 @@ void LeaderboardLayer::updateShaderSprites() {
         sprites.push_back(shaderSprites[3]);
     }
 
-    log::info("Updating shader sprites, count: {}", sprites.size());
-    for (const auto sprite : sprites) {
-        log::info(" - Sprite: {}", sprite->getTexture()->getName());
-    }
-
     backgroundShader->setSprites(sprites);
 }
 
@@ -229,16 +281,31 @@ void LeaderboardLayer::onRefresh() {
     pageLabel->setVisible(false);
     list->clear();
 
-    SendDBIntegration::get()->getLeaderboard(query, [this](const std::optional<LeaderboardResponse>& response) {
-        if (response.has_value()) {
-            auto responseData = response.value();
-            const auto levelIDs = ranges::map<std::vector<int>>(responseData.levels, [](const LeaderboardLevel& c) {
-                return c.levelID;
-            });
-            getSendCounts(levelIDs);
-            onLoaded(responseData.levels, responseData.total);
-        }
-    }, leaderboardListener);
+    if (trending) {
+        SendDBIntegration::get()->getTrendingLeaderboard(query, [this](const std::optional<TrendingLeaderboardResponse>& response) {
+                if (response.has_value()) {
+                    auto responseData = response.value();
+                    const auto levelIDs = ranges::map<std::vector<int>>(responseData.levels, [](const TrendingLeaderboardLevel& c) {
+                        return c.levelID;
+                    });
+                    getSendCounts(levelIDs);
+                    onLoaded(levelIDs, responseData.total);
+                }
+            },
+            leaderboardListener
+        );
+    } else {
+        SendDBIntegration::get()->getLeaderboard(query, [this](const std::optional<LeaderboardResponse>& response) {
+            if (response.has_value()) {
+                auto responseData = response.value();
+                const auto levelIDs = ranges::map<std::vector<int>>(responseData.levels, [](const LeaderboardLevel& c) {
+                    return c.levelID;
+                });
+                getSendCounts(levelIDs);
+                onLoaded(levelIDs, responseData.total);
+            }
+        }, leaderboardListener);
+    }
 }
 
 void LeaderboardLayer::getSendCounts(const std::vector<int>& levelIDs) {
@@ -264,13 +331,13 @@ void LeaderboardLayer::updateSendCounts() {
     }
 }
 
-void LeaderboardLayer::onLoaded(const std::vector<LeaderboardLevel>& levels, const int total) {
+void LeaderboardLayer::onLoaded(const std::vector<int>& levels, const int total) {
     pageLabel->setVisible(true);
     pageLabel->setString(fmt::format("{} to {} of {}", query.offset + 1, query.offset + query.limit, total).c_str());
     pageText->setString(fmt::format("{}", query.offset / query.limit + 1).c_str());
     pageText->limitLabelWidth(32.0f, 0.8f, 0.0f);
     queryTotal = total;
-    pageLevels = levels;
+    pageIDs = levels;
     startLoadingForPage();
 }
 
@@ -283,7 +350,7 @@ void LeaderboardLayer::startLoadingForPage() {
 
     toggleLoadingUi(true);
 
-    if (pageLevels.empty()) {
+    if (pageIDs.empty()) {
         finishLoading();
         return;
     }
@@ -300,8 +367,7 @@ void LeaderboardLayer::finishLoading() {
 
     int unloadedLevels = 0;
 
-    for (const auto level : pageLevels) {
-        const auto id = level.levelID;
+    for (const int id : pageIDs) {
         if (cache.contains(id)) page.push_back(cache[id]);
         else if (!failedCache.contains(id)) unloadedLevels++;
     }
@@ -336,8 +402,7 @@ void LeaderboardLayer::finishLoading() {
 bool LeaderboardLayer::loadNextBatch() {
     currentQuery.clear();
 
-    for (const auto level : pageLevels) {
-        const auto id = level.levelID;
+    for (const int id : pageIDs) {
         if (cache.contains(id) || failedCache.contains(id)) continue;
 
         currentQuery.push_back(id);
@@ -439,6 +504,7 @@ void LeaderboardLayer::toggleLoadingUi(const bool loadingState) {
     prevPageButton->setVisible(!loadingState);
     nextPageButton->setVisible(!loadingState);
     pageButton->setVisible(!loadingState);
+    trendingButton->setVisible(!loadingState);
 
     const bool prevShown = circleShown;
     circleShown = loadingState;

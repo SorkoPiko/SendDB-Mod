@@ -104,6 +104,21 @@ vec4 liquidGlassRefraction() {
     return color * vec4(vec3(mul), 1.0);
 }
 
+vec4 passthrough() {
+    vec2 rectCenter = screenRect.xy + screenRect.zw * 0.5;
+
+    vec2 rectSize = screenRect.zw;
+
+    vec2 p = (gl_FragCoord.xy - rectCenter) / (rectSize * 0.5);
+
+    float r = 1.0;
+    float d = sdSuperellipse(p, u_powerFactor, r);
+
+    if (d > 0.0) discard;
+
+    return texture2D(sprite0, gl_FragCoord.xy / resolution);
+}
+
 int mod(int a, int b) {
     return a - (a / b) * b;
 }
@@ -118,17 +133,10 @@ void main() {
         ignoreLast = true;
     }
 
-    if (currentPass == passes - 1) {
-        vec2 p = gl_FragCoord.xy;
-        vec2 d = max(screenRect.xy - p, p - (screenRect.xy + screenRect.zw));
-        float dist = max(d.x, d.y);
-        if (dist > 0.0) discard;
-    }
-
     if (currentPass == finalPass) {
         gl_FragColor = liquidGlassRefraction();
     } else if (ignoreLast && currentPass == finalPass + 1) {
-        gl_FragColor = texture2D(sprite0, uv);
+        gl_FragColor = passthrough();
     } else if (mod(currentPass, 2) == 0) {
         gl_FragColor = blur13(sprite0, uv, resolution, vec2(u_blurRadius, 0.0));
     } else if (mod(currentPass, 2) == 1) {
