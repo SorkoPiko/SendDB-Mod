@@ -26,6 +26,7 @@ bool LeaderboardLayer::init() {
     const auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     const bool expandedListView = Mod::get()->getSettingValue<bool>("expandedListView");
+    const int blurPasses = Mod::get()->getSettingValue<int>("blurPasses");
 
     list = Build(cue::ListNode::create(
         {358.0f, expandedListView? 320.0f : 220.0f},
@@ -54,7 +55,7 @@ bool LeaderboardLayer::init() {
 
             listBackground->setPassCurrentFrame(true);
             listBackground->setOnlyScissorFinalPass(true);
-            listBackground->setPasses(Mod::get()->getSettingValue<int>("blurPasses"));
+            listBackground->setPasses(blurPasses);
         } else shadersEnabled = false;
     }
 
@@ -143,7 +144,7 @@ bool LeaderboardLayer::init() {
             .pos(list->getContentSize() / 2.0f)
             .parent(list);
 
-    if (shadersEnabled) {
+    if (shadersEnabled && blurPasses > 0) {
         auto dragNode = Build<DragNode>::create()
                 .zOrder(100)
                 .anchorPoint({0.5f, 0.5f})
@@ -161,8 +162,7 @@ bool LeaderboardLayer::init() {
                     .parent(dragNode);
 
             shader->setPassCurrentFrame(true);
-            shader->setPasses(9); // 4(x2) + 1
-            shader->setOnlyScissorFinalPass(true);
+            shader->setPasses(blurPasses * 0.5f * 2 + 1);
         }
     }
 

@@ -1,6 +1,4 @@
-// port of https://github.com/OverShifted/LiquidGlass
-
-#extension GL_EXT_gpu_shader4 : enable
+// ported from https://github.com/OverShifted/LiquidGlass
 
 uniform vec2 resolution;
 uniform vec4 screenRect;
@@ -106,12 +104,16 @@ vec4 liquidGlassRefraction() {
     return color * vec4(vec3(mul), 1.0);
 }
 
+int mod(int a, int b) {
+    return a - (a / b) * b;
+}
+
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
 
     int finalPass = passes - 1;
     bool ignoreLast = false;
-    if (passes % 2 == 0) {
+    if (mod(passes, 2) == 0) {
         finalPass -= 1;
         ignoreLast = true;
     }
