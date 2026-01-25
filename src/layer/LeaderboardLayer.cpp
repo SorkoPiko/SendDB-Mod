@@ -5,6 +5,7 @@
 #include <UIBuilder.hpp>
 #include <hook/LevelCell.hpp>
 #include <manager/SendDBIntegration.hpp>
+#include <node/DragNode.hpp>
 #include <utils/Messages.hpp>
 #include <utils/TimeUtils.hpp>
 
@@ -12,6 +13,8 @@
 #include "LeaderboardFilterPopup.hpp"
 
 bool shadersEnabled = true;
+
+std::unordered_map<int, Ref<GJGameLevel>> LeaderboardLayer::cache = {};
 
 bool LeaderboardLayer::init() {
     if (!BaseLayer::init()) return false;
@@ -139,6 +142,29 @@ bool LeaderboardLayer::init() {
             .zOrder(-1)
             .pos(list->getContentSize() / 2.0f)
             .parent(list);
+
+    if (shadersEnabled) {
+        auto dragNode = Build<DragNode>::create()
+                .zOrder(100)
+                .anchorPoint({0.5f, 0.5f})
+                .pos(32.0f, 32.0f)
+                .contentSize({50.0f, 50.0f})
+                .parent(this);
+
+        const auto shader = ShaderNode::create("generic.vsh", "glass.fsh");
+        if (shader) {
+            Build(shader)
+                    .anchorPoint({0.5f, 0.5f})
+                    .pos(dragNode->getContentSize() / 2.0f)
+                    .contentSize(dragNode->getContentSize())
+                    .id("drag-shader")
+                    .parent(dragNode);
+
+            shader->setPassCurrentFrame(true);
+            shader->setPasses(9); // 4(x2) + 1
+            shader->setOnlyScissorFinalPass(true);
+        }
+    }
 
     onRefresh();
 

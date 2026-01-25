@@ -15,6 +15,7 @@ class ShaderNode : public CCNode {
     GLint uniformFrameRate = 0;
     GLint uniformFrame = 0;
     GLint uniformCurrentPass = 0;
+    GLint uniformPasses = 0;
     GLint uniformSprites = 0;
     GLuint pingFBO = 0;
     GLuint pongFBO = 0;
@@ -24,9 +25,6 @@ class ShaderNode : public CCNode {
     float time = 0.f;
     GLint frame = 0;
     CCArrayExt<CCSprite*> shaderSprites;
-
-    GLuint pbos[2] = {0, 0};
-    int pboIndex = 0;
 
     bool onlyScissorFinalPass = false;
     int numPasses = 1;

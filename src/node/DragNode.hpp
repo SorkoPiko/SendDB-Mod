@@ -1,0 +1,26 @@
+#ifndef SENDDB_DRAGNODE_HPP
+#define SENDDB_DRAGNODE_HPP
+
+#include <Geode/Prelude.hpp>
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
+
+using namespace geode::prelude;
+
+class DragNode : public CCLayer {
+    std::function<void()> onPress;
+    CCPoint dragOffset = CCPoint{0, 0};
+
+    bool init(std::function<void()> onPressCallback);
+
+    bool ccTouchBegan(CCTouch* touch, CCEvent* event) override;
+    void ccTouchMoved(CCTouch* touch, CCEvent* event) override;
+    void ccTouchEnded(CCTouch* touch, CCEvent* event) override;
+    void ccTouchCancelled(CCTouch* touch, CCEvent* event) override;
+
+    void registerWithTouchDispatcher() override;
+
+public:
+    static DragNode* create(std::function<void()> onPressCallback = nullptr);
+};
+
+#endif

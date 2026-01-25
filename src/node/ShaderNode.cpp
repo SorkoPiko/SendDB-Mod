@@ -67,6 +67,7 @@ bool ShaderNode::init(const std::string& vertPath, const std::string& fragPath) 
     uniformFrameRate = glGetUniformLocation(shader.program, "frameRate");
     uniformFrame = glGetUniformLocation(shader.program, "frame");
     uniformCurrentPass = glGetUniformLocation(shader.program, "currentPass");
+    uniformPasses = glGetUniformLocation(shader.program, "passes");
     uniformSprites = glGetUniformLocation(shader.program, "sprites");
 
     const auto glv = CCDirector::sharedDirector()->getOpenGLView();
@@ -154,6 +155,7 @@ void ShaderNode::draw() {
     glUniform1f(uniformDeltaTime, deltaTime);
     glUniform1f(uniformFrameRate, 1.f / deltaTime);
     glUniform1i(uniformFrame, frame);
+    glUniform1i(uniformPasses, numPasses);
     glUniform1i(uniformSprites, shaderSprites.size());
 
     for (int pass = 0; pass < numPasses; ++pass) {
