@@ -448,7 +448,7 @@ void LevelSendChartPopup::update(const float delta) {
 
     const bool rated = levelData.value_or(Level{}).rate.has_value();
     double trendingScore = SendUtils::calculateTrendingScore(TimeUtils::getCurrentTimestamp(), sendTimestamps);
-    std::string trendingStr = trendingScore > 0.0 && rated ? fmt::format("{:.2f}", trendingScore) : "N/A";
+    std::string trendingStr = trendingScore > 0.0 && !rated ? fmt::format("{:.2f}", trendingScore) : "N/A";
     trendingScoreLabel->setString(fmt::format("Trending Score: {}", trendingStr).c_str());
 
     peakTrendingScoreLabel->setString(fmt::format(

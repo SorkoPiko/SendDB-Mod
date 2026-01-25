@@ -116,9 +116,14 @@ void ShaderNode::draw() {
     const int scissorW = contentSize.width * contentScaleFactor.width;
     const int scissorH = contentSize.height * contentScaleFactor.height;
 
+    const int clampedScissorX = std::max(0, std::min(scissorX, static_cast<int>(frSize.width)));
+    const int clampedScissorY = std::max(0, std::min(scissorY, static_cast<int>(frSize.height)));
+    const int clampedScissorW = std::max(0, std::min(scissorW, static_cast<int>(frSize.width) - scissorX));
+    const int clampedScissorH = std::max(0, std::min(scissorH, static_cast<int>(frSize.height) - scissorY));
+
     if (!onlyScissorFinalPass) {
         glEnable(GL_SCISSOR_TEST);
-        glScissor(scissorX, scissorY, scissorW, scissorH);
+        glScissor(clampedScissorX, clampedScissorY, clampedScissorW, clampedScissorH);
     }
 
     GLint currentFbo = 0;
@@ -128,16 +133,29 @@ void ShaderNode::draw() {
 #ifdef GEODE_IS_IOS
         glBindFramebuffer(GL_FRAMEBUFFER, currentFbo);
         glBindTexture(GL_TEXTURE_2D, pingTexture);
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frSize.width, frSize.height);
+        if (!onlyScissorFinalPass) {
+            glCopyTexSubImage2D(GL_TEXTURE_2D, 0, clampedScissorX, clampedScissorY, clampedScissorX, clampedScissorY, clampedScissorW, clampedScissorH);
+        } else {
+            glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frSize.width, frSize.height);
+        }
 #else
         glBindFramebuffer(GL_READ_FRAMEBUFFER, currentFbo);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pingFBO);
-        glBlitFramebuffer(
-            0, 0, frSize.width, frSize.height,
-            0, 0, frSize.width, frSize.height,
-            GL_COLOR_BUFFER_BIT,
-            GL_NEAREST
-        );
+        if (!onlyScissorFinalPass) {
+            glBlitFramebuffer(
+                scissorX, scissorY, scissorX + scissorW, scissorY + scissorH,
+                scissorX, scissorY, scissorX + scissorW, scissorY + scissorH,
+                GL_COLOR_BUFFER_BIT,
+                GL_NEAREST
+            );
+        } else {
+            glBlitFramebuffer(
+                0, 0, frSize.width, frSize.height,
+                0, 0, frSize.width, frSize.height,
+                GL_COLOR_BUFFER_BIT,
+                GL_NEAREST
+            );
+        }
 #endif
     }
 
@@ -168,7 +186,7 @@ void ShaderNode::draw() {
 
         if (isLastPass && onlyScissorFinalPass) {
             glEnable(GL_SCISSOR_TEST);
-            glScissor(scissorX, scissorY, scissorW, scissorH);
+            glScissor(clampedScissorX, clampedScissorY, clampedScissorW, clampedScissorH);
         }
 
         glDrawArrays(GL_TRIANGLES, 0, 6);

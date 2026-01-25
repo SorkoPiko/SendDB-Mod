@@ -500,7 +500,7 @@ void LeaderboardLayer::setIDPopupClosed(SetIDPopup* popup, const int value) {
 }
 
 void LeaderboardLayer::toggleLoadingUi(const bool loadingState) {
-    filterButton->setVisible(!loadingState);
+    filterButton->setVisible(!loadingState && !trending);
     prevPageButton->setVisible(!loadingState);
     nextPageButton->setVisible(!loadingState);
     pageButton->setVisible(!loadingState);
