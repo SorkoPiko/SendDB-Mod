@@ -14,6 +14,7 @@ class CreatorInfoPopup : public FLAlertLayer, public LevelManagerDelegate {
     int playerID = 0;
     std::optional<Creator> creatorData;
     std::function<void()> closeCallback;
+    GJCommentListLayer* commentList;
 
     CCScale9Sprite* bg = nullptr;
     cue::ListNode* levelList = nullptr;
@@ -24,7 +25,7 @@ class CreatorInfoPopup : public FLAlertLayer, public LevelManagerDelegate {
     static std::unordered_map<int, GJGameLevel*> cache;
     static std::set<int> failedLevelIDs;
 
-    bool init(const GJUserScore* creator, const std::optional<Creator>& _creatorData);
+    bool init(const GJUserScore* creator, const std::optional<Creator>& _creatorData, const GJCommentListLayer* commentList);
     ~CreatorInfoPopup() override;
 
     void updateLevelNodes();
@@ -38,12 +39,13 @@ class CreatorInfoPopup : public FLAlertLayer, public LevelManagerDelegate {
     void loadLevelsFailed(const char* key) override;
     void loadLevelsFailed(const char*, int) override;
 
+    void keyDown(enumKeyCodes key) override;
     void onClose(CCObject*);
 
     static void infoPopup(const CreatorPopupInfo& info);
 
 public:
-    static CreatorInfoPopup* create(const GJUserScore* creator, const std::optional<Creator>& creatorData);
+    static CreatorInfoPopup* create(const GJUserScore* creator, const std::optional<Creator>& creatorData, const GJCommentListLayer* commentList);
     void show() override;
 
     void setCloseCallback(const std::function<void()>& callback) {

@@ -72,6 +72,11 @@ void SentLevelNode::update(GJGameLevel* level) {
     playButton = Build<CCSprite>::createSpriteName("GJ_playBtn2_001.png")
             .scale(0.25f)
             .intoMenuItem([level](auto*) {
+                const auto levelInfo = CCScene::get()->getChildByType<LevelInfoLayer>(0);
+                if (levelInfo && levelInfo->m_level && levelInfo->m_level->m_levelID.value() == level->m_levelID) {
+                    return;
+                }
+
                 const auto scene = CCScene::create();
                 AppDelegate::get()->m_runningScene = scene;
                 const auto layer = LevelInfoLayer::create(level, false);

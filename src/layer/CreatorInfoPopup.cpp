@@ -11,7 +11,7 @@ constexpr CCPoint menuSize = {340.0f, 190.0f};
 std::unordered_map<int, GJGameLevel*> CreatorInfoPopup::cache = {};
 std::set<int> CreatorInfoPopup::failedLevelIDs = {};
 
-bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Creator>& _creatorData) {
+bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Creator>& _creatorData, const GJCommentListLayer* commentList) {
     if (!FLAlertLayer::init(75)) return false;
 
     playerID = creator->m_userID;
@@ -348,8 +348,17 @@ void CreatorInfoPopup::loadLevelsFailed(const char*, int) {
     downloadLevelInfo();
 }
 
+void CreatorInfoPopup::keyDown(const enumKeyCodes key) {
+    FLAlertLayer::keyDown(key);
+
+    if (key == KEY_Escape) {
+        onClose(nullptr);
+    }
+}
+
 void CreatorInfoPopup::onClose(CCObject*) {
     if (closeCallback) closeCallback();
+    if (commentList) commentList->setVisible(true);
     setKeypadEnabled(false);
     removeFromParentAndCleanup(true);
 }
@@ -362,8 +371,8 @@ void CreatorInfoPopup::infoPopup(const CreatorPopupInfo& info) {
     )->show();
 }
 
-CreatorInfoPopup* CreatorInfoPopup::create(const GJUserScore* creator, const std::optional<Creator>& creatorData) {
-    if (const auto newLayer = new CreatorInfoPopup(); newLayer->init(creator, creatorData)) {
+CreatorInfoPopup* CreatorInfoPopup::create(const GJUserScore* creator, const std::optional<Creator>& creatorData, const GJCommentListLayer* commentList) {
+    if (const auto newLayer = new CreatorInfoPopup(); newLayer->init(creator, creatorData, commentList)) {
         newLayer->autorelease();
         return newLayer;
     } else {

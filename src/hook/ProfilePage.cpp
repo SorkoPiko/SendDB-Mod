@@ -33,7 +33,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
         Build<CCSprite>::create("logo-circle.png"_spr)
                 .scale(0.125f)
                 .intoMenuItem([this](auto*) {
-                    const auto popup = CreatorInfoPopup::create(m_score, m_fields->creatorInfo);
+                    const auto popup = CreatorInfoPopup::create(m_score, m_fields->creatorInfo, m_list);
                     popup->show();
 
                     m_list->setVisible(false);
