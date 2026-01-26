@@ -5,7 +5,7 @@ constexpr auto leaderboardTitle = "SendDB Leaderboard";
 constexpr auto leaderboardDesc = "Browse the <cg>SendDB leaderboard</c> to find the most sent levels in Geometry Dash! Use <cp>filters</c> to narrow down your search by rate and gamemode.";
 
 constexpr auto trendingLeaderboardTitle = "Trending Leaderboard";
-constexpr auto trendingLeaderboardDesc = "Check out the <cp>trending leaderboard</c> to see which unrated levels are gaining the most attention right now based on their <cp>trending scores</c>!";
+constexpr auto trendingLeaderboardDesc = "Check out the <cy>trending leaderboard</c> to see which unrated levels are gaining the most attention right now based on their <cp>trending scores</c>!";
 
 enum class LevelSendPopupInfo {
     Info,
@@ -30,6 +30,23 @@ enum class LevelSendPopupInfo {
     RankingJoined
 };
 
+enum class CreatorPopupInfo {
+    Info,
+
+    SendCategory,
+    SendTotalSends,
+    SendRecentSends,
+    SendAverageSends,
+    SendLevelCount,
+
+    TrendingCategory,
+    TrendingTotalScore,
+    TrendingAverageScore,
+    TrendingLevelCount,
+
+    RankingAll,
+    RankingTrending
+};
 
 class Messages {
 public:
@@ -82,6 +99,50 @@ public:
             case LevelSendPopupInfo::RankingRate: return "The level's send count ranking amongst <cy>levels with the same rate</c> (rated/unrated).";
             case LevelSendPopupInfo::RankingGamemode: return "The level's send count ranking amongst <cy>levels with the same gamemode</c> (classic/platformer).";
             case LevelSendPopupInfo::RankingJoined: return "The level's send count ranking amongst <cr>levels with the same rate</c> (rated/unrated) <cr>and gamemode</c> (classic/platformer).";
+
+            default: return "unknown";
+        }
+    }
+
+    static std::string getCreatorPopupInfoTitle(const CreatorPopupInfo e) {
+        switch (e) {
+            case CreatorPopupInfo::Info: return "Confused?";
+
+            case CreatorPopupInfo::SendCategory: return "Sends";
+            case CreatorPopupInfo::SendTotalSends: return "Total Sends";
+            case CreatorPopupInfo::SendRecentSends: return "Recent Sends";
+            case CreatorPopupInfo::SendAverageSends: return "Average Sends";
+            case CreatorPopupInfo::SendLevelCount: return "Level Count";
+
+            case CreatorPopupInfo::TrendingCategory: return "Trending";
+            case CreatorPopupInfo::TrendingTotalScore: return "Total Trending Score";
+            case CreatorPopupInfo::TrendingAverageScore: return "Average Trending Score";
+            case CreatorPopupInfo::TrendingLevelCount: return "Trending Level Count";
+
+            case CreatorPopupInfo::RankingAll: return "Global Ranking";
+            case CreatorPopupInfo::RankingTrending: return "Trending Ranking";
+
+            default: return "unknown";
+        }
+    }
+
+    static std::string getCreatorPopupInfoContent(const CreatorPopupInfo e) {
+        switch (e) {
+            case CreatorPopupInfo::Info: return "Don't understand something? Click on it to get more information.";
+
+            case CreatorPopupInfo::SendCategory: return "View information about the <cy>creator's send statistics</c>.";
+            case CreatorPopupInfo::SendTotalSends: return "The <cg>total number of sends</c> across all of the creator's levels.";
+            case CreatorPopupInfo::SendRecentSends: return "The number of sends the creator's levels have received in the <cp>last 30 days</c>.";
+            case CreatorPopupInfo::SendAverageSends: return "The creator's levels' <cy>average send count</c>.";
+            case CreatorPopupInfo::SendLevelCount: return "The <cr>number of levels</c> the creator has uploaded.";
+
+            case CreatorPopupInfo::TrendingCategory: return "View information about the creator's <cp>trending score statistics</c>.";
+            case CreatorPopupInfo::TrendingTotalScore: return "The sum of the <cg>creator's levels' trending scores.</c>";
+            case CreatorPopupInfo::TrendingAverageScore: return "The creator's levels' <cy>average trending score</c>.";
+            case CreatorPopupInfo::TrendingLevelCount: return "The <cr>number of levels</c> the creator has uploaded that have a trending score.";
+
+            case CreatorPopupInfo::RankingAll: return "The creator's total send count ranking amongst <cy>all creators</c>.";
+            case CreatorPopupInfo::RankingTrending: return "The creator's total <cp>trending score</c> ranking amongst <cy>all creators</c>.";
 
             default: return "unknown";
         }

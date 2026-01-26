@@ -1,5 +1,6 @@
 #include "LeaderboardFilterPopup.hpp"
 
+#include <node/ShaderNode.hpp>
 #include <utils/PointUtils.hpp>
 #include <utils/Style.hpp>
 
@@ -29,15 +30,15 @@ bool LeaderboardFilterPopup::init(const LeaderboardQuery& currentQuery, const st
             .parent(m_mainLayer);
 
     Build(CircleButtonSprite::createWithSpriteFrameName("geode.loader/close.png", 0.85f, CircleBaseColor::Gray))
-        .scale(0.65f)
-        .intoMenuItem([this](auto) {keyBackClicked();})
-        .pos({-5.0f, menuSize.y + 5.0f})
-        .id("close-button")
-        .parent(m_buttonMenu);
+            .scale(0.65f)
+            .intoMenuItem([this](auto) {keyBackClicked();})
+            .pos({-5.0f, menuSize.y + 5.0f})
+            .id("close-button")
+            .parent(m_buttonMenu);
 
     Build<CCLabelBMFont>::create("Filters", "bigFont.fnt")
             .anchorPoint({0.5f, 1.0f})
-            .pos({menuSize.x / 2.0f, menuSize.y})
+            .pos({menuSize.x / 2.0f, menuSize.y - 5.0f})
             .scale(0.85f)
             .id("title-label")
             .parent(m_buttonMenu);
@@ -59,7 +60,7 @@ bool LeaderboardFilterPopup::init(const LeaderboardQuery& currentQuery, const st
         else query.rateFilter = std::nullopt;
         updateFilters();
     })
-            .pos(menuSize / 2 + ccp(-30.0f, 3.0f))
+            .pos(menuSize / 2 + ccp(-30.0f, 0.0f))
             .parent(m_buttonMenu);
 
     rateFilterUnratedButton = rateFilterUnrated.intoMenuItem([this](auto) {
@@ -67,7 +68,7 @@ bool LeaderboardFilterPopup::init(const LeaderboardQuery& currentQuery, const st
         else query.rateFilter = std::nullopt;
         updateFilters();
     })
-            .pos(menuSize / 2 + ccp(-30.0f, -32.0f))
+            .pos(menuSize / 2 + ccp(-30.0f, -35.0f))
             .parent(m_buttonMenu);
 
     gamemodeFilterClassicButton = gamemodeFilterClassic.intoMenuItem([this](auto) {
@@ -75,7 +76,7 @@ bool LeaderboardFilterPopup::init(const LeaderboardQuery& currentQuery, const st
         else query.gamemodeFilter = std::nullopt;
         updateFilters();
     })
-            .pos(menuSize / 2 + ccp(30.0f, 3.0f))
+            .pos(menuSize / 2 + ccp(30.0f, 0.0f))
             .parent(m_buttonMenu);
 
     gamemodeFilterPlatformerButton = gamemodeFilterPlatformer.intoMenuItem([this](auto) {
@@ -83,7 +84,7 @@ bool LeaderboardFilterPopup::init(const LeaderboardQuery& currentQuery, const st
         else query.gamemodeFilter = std::nullopt;
         updateFilters();
     })
-            .pos(menuSize / 2 + ccp(30.0f, -32.0f))
+            .pos(menuSize / 2 + ccp(30.0f, -35.0f))
             .parent(m_buttonMenu);
 
     selectBg1 = Build(rock::RoundedRect::create(

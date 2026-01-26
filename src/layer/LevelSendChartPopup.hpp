@@ -16,7 +16,6 @@ class LevelSendChartPopup final : public FLAlertLayer {
 
     std::vector<int> sendTimestamps;
     PeakTrendingScore peakTrendingScore = {};
-    bool soleLevel;
 
     CCScale9Sprite* bg = nullptr;
     SendChartNode* chartNode = nullptr;

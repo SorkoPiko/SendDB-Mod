@@ -40,6 +40,8 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     bool loading = false;
     bool circleShown = false;
 
+    std::unordered_map<int, int> ranks;
+    std::unordered_map<int, double> trendingScores;
     static std::unordered_map<int, Ref<GJGameLevel>> cache;
     static std::set<int> failedCache;
     std::unordered_map<int, BatchLevel> batchCache;

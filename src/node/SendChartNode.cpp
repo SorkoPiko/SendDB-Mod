@@ -331,6 +331,7 @@ void SendChartNode::handleZoom(const CCPoint& start, const CCPoint& end) {
 
     drawGraph();
     drawLabelsAndGrid();
+    hoverMenu->updateLayout();
 }
 
 void SendChartNode::drawGraph() const {
@@ -597,7 +598,7 @@ std::string SendChartNode::getLabelText(
 ) {
     switch (config.type) {
         case AxisType::Numeric:
-            return std::to_string(static_cast<int>(absoluteValue));
+            return fmt::format("{:g}", absoluteValue);
         case AxisType::Time:
             return TimeUtils::timestampToDate(static_cast<long long>(absoluteValue) * 1000LL);
     }

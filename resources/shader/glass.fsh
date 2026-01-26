@@ -71,7 +71,6 @@ vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {
 
 vec4 liquidGlassRefraction() {
     vec2 rectCenter = screenRect.xy + screenRect.zw * 0.5;
-
     vec2 rectSize = screenRect.zw;
 
     vec2 p = (gl_FragCoord.xy - rectCenter) / (rectSize * 0.5);
@@ -106,7 +105,6 @@ vec4 liquidGlassRefraction() {
 
 vec4 passthrough() {
     vec2 rectCenter = screenRect.xy + screenRect.zw * 0.5;
-
     vec2 rectSize = screenRect.zw;
 
     vec2 p = (gl_FragCoord.xy - rectCenter) / (rectSize * 0.5);

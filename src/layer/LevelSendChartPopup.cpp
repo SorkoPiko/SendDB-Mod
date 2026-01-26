@@ -84,7 +84,7 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
     Build<CCLabelBMFont>::create(level->m_levelName.c_str(), "goldFont.fnt")
             .anchorPoint({0.5f, 1.0f})
             .pos({menuSize.x / 2.0f, menuSize.y + 2.0f})
-            .scale(0.85f)
+            .scale(0.9f)
             .id("title-label")
             .parent(m_buttonMenu);
 
@@ -503,7 +503,7 @@ void LevelSendChartPopup::onClose(CCObject*) {
 void LevelSendChartPopup::infoPopup(const LevelSendPopupInfo& info) {
     FLAlertLayer::create(
         Messages::getSendPopupInfoTitle(info).c_str(),
-        Messages::getSendPopupInfoContent(info).c_str(),
+        Messages::getSendPopupInfoContent(info),
         "OK"
     )->show();
 }

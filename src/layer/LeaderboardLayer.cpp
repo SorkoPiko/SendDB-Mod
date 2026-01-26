@@ -65,7 +65,7 @@ bool LeaderboardLayer::init() {
     }
 
     list = Build(cue::ListNode::create(
-        {358.0f, expandedListView? 320.0f : 220.0f},
+        {358.0f, expandedListView ? 320.0f : 220.0f},
         shadersEnabled || expandedListView ? ccColor4B{0, 0, 0, 0} : cue::Brown,
         expandedListView ? cue::ListBorderStyle::None : cue::ListBorderStyle::SlimLevels
     ))
@@ -288,6 +288,14 @@ void LeaderboardLayer::onRefresh() {
                     const auto levelIDs = ranges::map<std::vector<int>>(responseData.levels, [](const TrendingLeaderboardLevel& c) {
                         return c.levelID;
                     });
+
+                    ranks.clear();
+                    trendingScores.clear();
+                    for (const auto& level : responseData.levels) {
+                        ranks[level.levelID] = level.rank;
+                        trendingScores[level.levelID] = level.trending_score;
+                    }
+
                     getSendCounts(levelIDs);
                     onLoaded(levelIDs, responseData.total);
                 }
@@ -301,6 +309,13 @@ void LeaderboardLayer::onRefresh() {
                 const auto levelIDs = ranges::map<std::vector<int>>(responseData.levels, [](const LeaderboardLevel& c) {
                     return c.levelID;
                 });
+
+                ranks.clear();
+                trendingScores.clear();
+                for (const auto& level : responseData.levels) {
+                    ranks[level.levelID] = level.rank;
+                }
+
                 getSendCounts(levelIDs);
                 onLoaded(levelIDs, responseData.total);
             }
@@ -378,10 +393,14 @@ void LeaderboardLayer::finishLoading() {
     for (auto level : page) {
         const auto cell = static_cast<SendDBLevelCell*>(new LevelCell("", 356.f, 90.f));
         cell->autorelease();
-
         cell->loadFromLevel(level);
-
         cell->setContentSize({356.f, 90.f});
+
+        int levelID = level->m_levelID.value();
+
+        cell->setRank(ranks.contains(levelID) ? ranks[levelID] : 0);
+        cell->setTrendingScore(trendingScores.contains(levelID) ? trendingScores[levelID] : 0.0);
+
         list->addCell(cell);
     }
 
