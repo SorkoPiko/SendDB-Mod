@@ -141,7 +141,7 @@ bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Crea
                 .move({0.0f, -9.0f})
                 .color(secondaryTextColor);
 
-        Build<CCLabelBMFont>::create(fmt::format("Levels: {}", creatorInfo.levels.size()).c_str(), "bigFont.fnt")
+        Build<CCLabelBMFont>::create(fmt::format("Sent Levels: {}", creatorInfo.levels.size()).c_str(), "bigFont.fnt")
                 .scale(0.3f)
                 .intoMenuItem([](auto*) {infoPopup(CreatorPopupInfo::SendLevelCount);})
                 .animationEnabled(false)
@@ -202,7 +202,7 @@ bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Crea
                 .color(secondaryTextColor);
 
         levelList = Build(cue::ListNode::create(
-            {220.0f, 100.0f},
+            {230.0f, 100.0f},
             gridBackgroundColor,
             cue::ListBorderStyle::None
         ))
@@ -221,7 +221,7 @@ bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Crea
 
         for (const auto& level : sortedLevels) {
             SentLevelNode* node = SentLevelNode::create(
-                {220.0f, 30.0f},
+                {230.0f, 30.0f},
                 level.levelID,
                 level.send_count,
                 true
