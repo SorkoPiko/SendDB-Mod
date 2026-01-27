@@ -4,6 +4,7 @@
 #include <utils/FormatUtils.hpp>
 #include <utils/PointUtils.hpp>
 #include <utils/Style.hpp>
+#include <utils/TimeUtils.hpp>
 
 constexpr CCPoint popupSize = {350.0f, 200.0f};
 constexpr CCPoint menuSize = {340.0f, 190.0f};
@@ -211,6 +212,7 @@ bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Crea
                 .parent(m_buttonMenu);
 
         levelList->setCellColor(ccColor4B{0, 0, 0, 0});
+        fixTouchPrio();
 
         std::vector<CreatorLevel> sortedLevels = creatorInfo.levels;
         std::sort(sortedLevels.begin(), sortedLevels.end(), [](const CreatorLevel& a, const CreatorLevel& b) {
@@ -358,9 +360,32 @@ void CreatorInfoPopup::keyDown(const enumKeyCodes key) {
 
 void CreatorInfoPopup::onClose(CCObject*) {
     if (closeCallback) closeCallback();
-    if (commentList) commentList->setVisible(true);
     setKeypadEnabled(false);
     removeFromParentAndCleanup(true);
+}
+
+void CreatorInfoPopup::onEnter() {
+    FLAlertLayer::onEnter();
+
+    fixTouchPrio();
+}
+
+void fixTouchPrioNode(CCNode* node, const int prio) {
+    if (const auto delegate = dynamic_cast<CCTouchDelegate*>(node)) {
+        if (const auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
+            CCTouchDispatcher::get()->setPriority(prio, handler->getDelegate());
+        }
+    }
+}
+
+void CreatorInfoPopup::fixTouchPrio() {
+    if (!levelList) return;
+
+    fixTouchPrioNode(levelList->getScrollLayer(), -511);
+
+    for (const auto cell : levelList->iterChecked<SentLevelNode>()) {
+        fixTouchPrioNode(cell->getMenu(), -512);
+    }
 }
 
 void CreatorInfoPopup::infoPopup(const CreatorPopupInfo& info) {

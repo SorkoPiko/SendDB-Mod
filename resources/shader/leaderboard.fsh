@@ -36,19 +36,6 @@ float fbm(vec2 p) {
 void main() {
 	vec2 uv = gl_FragCoord.xy / resolution.xy;
 
-//  example sprite overlay code
-//	vec2 flippedUV = vec2(uv.x, 1.0 - uv.y);
-//	if (sprites == 1) {
-//		vec4 tex1 = texture2D(sprite1, flippedUV);
-//		gl_FragColor = tex1;
-//		if (gl_FragColor.a > 0.0) return;
-//	} else if (sprites == 2) {
-//		vec4 tex1 = texture2D(sprite1, flippedUV);
-//		vec4 tex2 = texture2D(sprite2, flippedUV);
-//		gl_FragColor = mix(tex1, tex2, 0.5);
-//		if (gl_FragColor.a > 0.0) return;
-//	}
-
 	vec3 colour = vec3(0.1, 0.3, 0.07); // base colour
 	float cell_size = 50.0; // square max size
 	float dither = 1.0; // dither strength
@@ -94,8 +81,72 @@ void main() {
 	float new_noise = fbm((uv * 3.0) + (time / 20.0));
 	new_noise += fbm(vec2(uv.y * 3.0, uv.x * 3.0) + (time / 10.0));
 
-	if (new_noise < 0.8) colour = void_colour;
-	else {
+	vec2 random_pos1 = gl_FragCoord.xy;
+	float multiplier = (sin(time + (uv.x * 1.5)) + 1.0) / 2.0;
+	random_pos1.x = gl_FragCoord.x + random(uv) * 30.0 * multiplier;
+	random_pos1.y += random(gl_FragCoord.xy) * 15.0 * multiplier;
+
+	vec2 random_pos2 = gl_FragCoord.xy;
+	random_pos2.x = gl_FragCoord.x + 450.0 + random(uv) * 30.0 * multiplier;
+	random_pos2.y += random(gl_FragCoord.xy) * 15.0 * multiplier;
+
+	vec2 icon_uv = vec2(
+		fract((random_pos1.x + (time * 75.0)) / 900.0) * 2.0,
+		1.0 - fract((random_pos1.y + (time * 25.0))/ 900.0) * 2.0
+	);
+	vec2 icon_uv2 = vec2(
+		fract((random_pos2.x + (time * 75.0)) / 900.0) * 2.0,
+		2.0 - fract((random_pos2.y + (time * 25.0)) / 900.0) * 2.0
+	);
+
+	if (new_noise < 0.8) {
+		colour = void_colour;
+
+		if ((icon_uv.x <= 1.0 && icon_uv.y <= 1.0) || (icon_uv2.x <= 1.0 && icon_uv2.y <= 1.0)) {
+			if (sprites == 1) {
+				vec4 tex1 = texture2D(sprite1, icon_uv);
+				colour = vec3((tex1.r + tex1.g + tex1.b) / 6.0);
+				if (colour.r > 0.1) {
+					colour.g += 0.1;
+					colour.b += 0.04;
+				}
+
+			} else if (sprites == 2) {
+				vec4 tex1 = texture2D(sprite1, icon_uv);
+				vec4 tex2 = texture2D(sprite2, icon_uv2);
+				colour = vec3((tex1.r + tex1.g + tex1.b) / 6.0);
+				colour += vec3((tex2.r + tex2.g + tex2.b) / 6.0);
+				if (colour.r > 0.1) {
+					colour.g += 0.1;
+					colour.b += 0.04;
+				}
+			}
+		}
+	} else {
+		if ((icon_uv.x <= 1.0 && icon_uv.y <= 1.0) || (icon_uv2.x <= 1.0 && icon_uv2.y <= 1.0)) {
+			if (sprites == 1) {
+				vec4 tex1 = texture2D(sprite1, icon_uv);
+				if (tex1.r > 0.04 && tex1.a > 0.9) {
+					colour /= 2.0;
+					colour.g += 0.08;
+					colour.b += 0.05;
+				}
+			} else if (sprites == 2) {
+				vec4 tex1 = texture2D(sprite1, icon_uv);
+				vec4 tex2 = texture2D(sprite2, icon_uv2);
+				if (tex1.r > 0.04 && tex1.a > 0.9) {
+					colour /= 2.0;
+					colour.g += 0.08;
+					colour.b += 0.05;
+				}
+				if (tex2.r > 0.04 && tex2.a > 0.9) {
+					colour /= 2.0;
+					colour.g += 0.08;
+					colour.b += 0.05;
+				}
+			}
+		}
+
 		for (int i = 0; i < 2; i++) {
 			new_noise *= new_noise + 0.35;
 		}

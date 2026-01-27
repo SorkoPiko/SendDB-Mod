@@ -13,7 +13,6 @@ class $modify(SendDBProfilePage, ProfilePage) {
     struct Fields {
         EventListener<web::WebTask> listener;
         std::optional<Creator> creatorInfo;
-        bool popupVisible;
     };
 
     void loadPageFromUserInfo(GJUserScore* score){
@@ -35,24 +34,9 @@ class $modify(SendDBProfilePage, ProfilePage) {
                 .intoMenuItem([this](auto*) {
                     const auto popup = CreatorInfoPopup::create(m_score, m_fields->creatorInfo, m_list);
                     popup->show();
-
-                    m_list->setVisible(false);
-                    m_fields->popupVisible = true;
-                    popup->setCloseCallback([this] {
-                        m_list->setVisible(true); // TODO: add globed's mouse dispatcher fix
-                        m_fields->popupVisible = false;
-                    });
                 })
                 .parent(menu)
                 .pos({16.0f, -189.0f})
                 .id("chart-button"_spr);
-    }
-
-    void setupCommentsBrowser(CCArray* comments) {
-        ProfilePage::setupCommentsBrowser(comments);
-
-        if (m_fields->popupVisible) {
-            m_list->setVisible(false);
-        }
     }
 };

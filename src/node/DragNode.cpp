@@ -65,7 +65,7 @@ void DragNode::registerWithTouchDispatcher() {
 
 DragNode* DragNode::create(const int initTouchPriority, std::function<void()> onPressCallback) {
     auto ret = new DragNode();
-    if (ret && ret->init(initTouchPriority, std::move(onPressCallback))) {
+    if (ret->init(initTouchPriority, std::move(onPressCallback))) {
         ret->autorelease();
         return ret;
     }

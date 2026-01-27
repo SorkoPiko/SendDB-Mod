@@ -23,6 +23,10 @@ public:
     static SentLevelNode* create(const CCSize& size, int levelID, int sendCount, bool accurate);
 
     void update(GJGameLevel* level);
+
+    CCMenu* getMenu() const {
+        return menu;
+    }
 };
 
 #endif

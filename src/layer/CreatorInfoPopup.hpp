@@ -42,6 +42,10 @@ class CreatorInfoPopup : public FLAlertLayer, public LevelManagerDelegate {
     void keyDown(enumKeyCodes key) override;
     void onClose(CCObject*);
 
+    void onEnter() override;
+
+    void fixTouchPrio();
+
     static void infoPopup(const CreatorPopupInfo& info);
 
 public:
