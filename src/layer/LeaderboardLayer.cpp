@@ -336,12 +336,10 @@ void LeaderboardLayer::getSendCounts(const std::vector<int>& levelIDs) {
 }
 
 void LeaderboardLayer::updateSendCounts() {
-    for (const auto levelObj : CCArrayExt<CCObject*>(list->getCells())) {
-        if (const auto genericCell = typeinfo_cast<cue::ListCell*>(levelObj)) {
-            const auto cell = static_cast<SendDBLevelCell*>(genericCell->getInner());
-            if (const auto levelID = cell->m_level->m_levelID.value(); batchCache.contains(levelID)) {
-                cell->setLevelInfo(batchCache[levelID]);
-            }
+    for (const auto genericCell : list->iterChecked<LevelCell>()) {
+        const auto cell = static_cast<SendDBLevelCell*>(genericCell);
+        if (const auto levelID = cell->m_level->m_levelID.value(); batchCache.contains(levelID)) {
+            cell->setLevelInfo(batchCache[levelID]);
         }
     }
 }
