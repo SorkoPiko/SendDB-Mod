@@ -77,10 +77,7 @@ void SentLevelNode::update(GJGameLevel* level) {
                     return;
                 }
 
-                const auto scene = CCScene::create();
-                AppDelegate::get()->m_runningScene = scene;
-                const auto layer = LevelInfoLayer::create(level, false);
-                scene->addChild(layer);
+                const auto scene = LevelInfoLayer::scene(level, false);
                 CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5, scene));
             })
             .pos({getContentSize().width - 20.0f, getContentSize().height / 2.0f})
