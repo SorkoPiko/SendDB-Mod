@@ -5,7 +5,6 @@
 #include <UIBuilder.hpp>
 #include <hook/LevelCell.hpp>
 #include <manager/SendDBIntegration.hpp>
-#include <node/DragNode.hpp>
 #include <node/SwitchNode.hpp>
 #include <utils/Messages.hpp>
 #include <utils/TimeUtils.hpp>
@@ -216,28 +215,6 @@ bool LeaderboardLayer::init() {
             .pos(list->getContentSize() / 2.0f)
             .id("loading-circle")
             .parent(list);
-
-    if (shadersEnabled && blurPasses > 0) {
-        auto dragNode = Build<DragNode>::create(-512)
-                .zOrder(100)
-                .pos(32.0f, 92.0f)
-                .contentSize({50.0f, 50.0f})
-                .id("drag-node")
-                .parent(menu);
-
-        const auto shader = ShaderNode::create("generic.vsh", "glass.fsh");
-        if (shader) {
-            Build(shader)
-                    .anchorPoint({0.5f, 0.5f})
-                    .pos(dragNode->getContentSize() / 2.0f)
-                    .contentSize(dragNode->getContentSize())
-                    .id("drag-shader")
-                    .parent(dragNode);
-
-            shader->setPassCurrentFrame(true);
-            shader->setPasses(blurPasses * 2 + 1);
-        }
-    }
 
     shaderSprites.push_back(CCSprite::create("classic.png"_spr));
     shaderSprites.push_back(CCSprite::create("platformer.png"_spr));
