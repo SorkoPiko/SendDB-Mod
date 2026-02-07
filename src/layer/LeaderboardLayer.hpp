@@ -82,8 +82,6 @@ public:
     static LeaderboardQuery query;
 
     static LeaderboardLayer* create();
-
-    void setQuery(LeaderboardQuery query);
 };
 
 #endif
