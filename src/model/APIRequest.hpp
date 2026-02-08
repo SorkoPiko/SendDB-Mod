@@ -1,5 +1,4 @@
-#ifndef SENDDB_APIREQUEST_HPP
-#define SENDDB_APIREQUEST_HPP
+#pragma once
 
 #include <Geode/Prelude.hpp>
 #include <matjson/std.hpp>
@@ -111,5 +110,3 @@ struct matjson::Serialize<TrendingLeaderboardQuery> {
         });
     }
 };
-
-#endif

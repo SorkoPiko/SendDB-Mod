@@ -1,5 +1,4 @@
-#ifndef SENDDB_DRAGNODE_HPP
-#define SENDDB_DRAGNODE_HPP
+#pragma once
 
 #include <Geode/Prelude.hpp>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
@@ -26,5 +25,3 @@ class DragNode : public CCLayer {
 public:
     static DragNode* create(int initTouchPriority = 0, std::function<void()> onPressCallback = nullptr);
 };
-
-#endif

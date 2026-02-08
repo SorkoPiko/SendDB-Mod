@@ -1,5 +1,4 @@
-#ifndef SENDDB_SWITCHNODE_HPP
-#define SENDDB_SWITCHNODE_HPP
+#pragma once
 
 #include <Geode/cocos/base_nodes/CCNode.h>
 
@@ -18,5 +17,3 @@ public:
     void setActiveIndex(int index);
     int getActiveIndex() const;
 };
-
-#endif

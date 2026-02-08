@@ -231,7 +231,7 @@ LeaderboardLayer::~LeaderboardLayer() {
     GameLevelManager::get()->m_levelManagerDelegate = nullptr;
 }
 
-void LeaderboardLayer::updateShaderSprites() {
+void LeaderboardLayer::updateShaderSprites() const {
     if (!shadersEnabled || !backgroundShader) return;
 
     std::vector<Ref<CCSprite>> sprites;

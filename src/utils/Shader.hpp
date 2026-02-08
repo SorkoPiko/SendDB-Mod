@@ -1,5 +1,4 @@
-#ifndef SENDDB_SHADER_HPP
-#define SENDDB_SHADER_HPP
+#pragma once
 
 #include <Geode/Geode.hpp>
 
@@ -155,5 +154,3 @@ struct Shader {
         program = 0;
     }
 };
-
-#endif

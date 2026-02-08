@@ -1,5 +1,4 @@
-#ifndef SENDDB_FADESPINNER_HPP
-#define SENDDB_FADESPINNER_HPP
+#pragma once
 
 #include <Geode/Prelude.hpp>
 
@@ -58,5 +57,3 @@ public:
         setVisible(false);
     }
 };
-
-#endif

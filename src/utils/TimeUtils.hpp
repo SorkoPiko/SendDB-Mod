@@ -1,5 +1,4 @@
-#ifndef SENDDB_TIMEUTILS_HPP
-#define SENDDB_TIMEUTILS_HPP
+#pragma once
 
 #include <string>
 
@@ -11,5 +10,3 @@ public:
     static std::string timestampToDate(long long timestamp);
     static std::string timestampAgo(long long timestamp);
 };
-
-#endif

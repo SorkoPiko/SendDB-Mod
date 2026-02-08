@@ -1,5 +1,4 @@
-#ifndef SENDDB_ANTIALIASEDDRAWNODE_HPP
-#define SENDDB_ANTIALIASEDDRAWNODE_HPP
+#pragma once
 
 #include <Geode/cocos/draw_nodes/CCDrawNode.h>
 
@@ -23,5 +22,3 @@ public:
     }
 #endif
 };
-
-#endif

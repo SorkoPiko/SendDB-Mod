@@ -1,5 +1,4 @@
-#ifndef SENDDB_RANKINGNODE_HPP
-#define SENDDB_RANKINGNODE_HPP
+#pragma once
 
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/label_nodes/CCLabelBMFont.h>
@@ -36,5 +35,3 @@ public:
         const std::optional<RankingFilter>& filter2 = std::nullopt
     );
 };
-
-#endif

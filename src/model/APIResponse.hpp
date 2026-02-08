@@ -1,5 +1,4 @@
-#ifndef SENDDB_APIRESPONSE_HPP
-#define SENDDB_APIRESPONSE_HPP
+#pragma once
 
 #include <Geode/Prelude.hpp>
 #include <matjson.hpp>
@@ -261,5 +260,3 @@ struct matjson::Serialize<TrendingLeaderboardResponse> {
         return Ok(TrendingLeaderboardResponse { total, levels });
     }
 };
-
-#endif

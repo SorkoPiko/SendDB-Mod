@@ -1,5 +1,4 @@
-#ifndef SENDDB_SHADERNODE_HPP
-#define SENDDB_SHADERNODE_HPP
+#pragma once
 
 #include <utils/Shader.hpp>
 
@@ -68,5 +67,3 @@ public:
         updateSprites(count);
     }
 };
-
-#endif

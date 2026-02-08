@@ -1,5 +1,4 @@
-#ifndef SENDDB_SENTLEVELNODE_HPP
-#define SENDDB_SENTLEVELNODE_HPP
+#pragma once
 
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/cocos/base_nodes/CCNode.h>
@@ -28,5 +27,3 @@ public:
         return menu;
     }
 };
-
-#endif

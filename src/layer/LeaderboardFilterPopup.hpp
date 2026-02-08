@@ -1,5 +1,4 @@
-#ifndef SENDDB_LEADERBOARDFILTERPOPUP_HPP
-#define SENDDB_LEADERBOARDFILTERPOPUP_HPP
+#pragma once
 
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/Geode.hpp>
@@ -48,5 +47,3 @@ public:
         const std::function<void(const LeaderboardQuery&)>& queryCallback
     );
 };
-
-#endif

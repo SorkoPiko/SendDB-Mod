@@ -1,5 +1,4 @@
-#ifndef SENDDB_LEVELCELL_HPP
-#define SENDDB_LEVELCELL_HPP
+#pragma once
 
 #include <Geode/modify/Modify.hpp>
 #include <Geode/modify/LevelCell.hpp>
@@ -30,5 +29,3 @@ struct $modify(SendDBLevelCell, LevelCell) {
     void createRankContainer();
     void createTrendingContainer();
 };
-
-#endif

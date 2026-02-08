@@ -1,5 +1,4 @@
-#ifndef SENDDB_MULTICALLBACK_HPP
-#define SENDDB_MULTICALLBACK_HPP
+#pragma once
 
 #include <functional>
 #include <set>
@@ -24,5 +23,3 @@ public:
         if (calledIndices.size() == totalCalls) finalCallback();
     }
 };
-
-#endif

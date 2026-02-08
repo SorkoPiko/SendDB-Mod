@@ -1,5 +1,4 @@
-#ifndef SENDDB_STYLE_HPP
-#define SENDDB_STYLE_HPP
+#pragma once
 
 #include <ccTypes.h>
 
@@ -21,5 +20,3 @@ constexpr ccColor4B infoBoxColor = {25, 25, 25, 220};
 constexpr ccColor3B pointColor = {180, 180, 180};
 constexpr ccColor4B selectionLineColor = {255, 255, 255, 255};
 constexpr ccColor4B selectionHighlightColor = {255, 255, 255, 50};
-
-#endif

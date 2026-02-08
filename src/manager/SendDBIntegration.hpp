@@ -1,5 +1,4 @@
-#ifndef SENDDB_SENDDBINTEGRATION_HPP
-#define SENDDB_SENDDBINTEGRATION_HPP
+#pragma once
 
 #ifdef NDEBUG
 #define SERVER_URL "https://api.senddb.dev/api/v1"
@@ -45,5 +44,3 @@ public:
     void getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener);
     void getTrendingLeaderboard(const TrendingLeaderboardQuery& query, const std::function<void(std::optional<TrendingLeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener);
 };
-
-#endif

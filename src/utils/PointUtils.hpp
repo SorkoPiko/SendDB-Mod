@@ -1,5 +1,4 @@
-#ifndef SENDDB_POINTUTILS_HPP
-#define SENDDB_POINTUTILS_HPP
+#pragma once
 
 #include <Geode/Prelude.hpp>
 #include <Geode/cocos/base_nodes/CCNode.h>
@@ -13,5 +12,3 @@ public:
     static float nodeSDF(CCNode* node, const CCPoint& touch);
     static CCSize getNodeScreenSize(CCNode* node);
 };
-
-#endif

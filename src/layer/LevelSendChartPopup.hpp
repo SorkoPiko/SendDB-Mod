@@ -1,5 +1,4 @@
-#ifndef SENDDB_LEVELSENDCHARTPOPUP_HPP
-#define SENDDB_LEVELSENDCHARTPOPUP_HPP
+#pragma once
 
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <model/APIResponse.hpp>
@@ -37,5 +36,3 @@ public:
     static LevelSendChartPopup* create(const GJGameLevel* level, int levelID, const std::optional<Level>& levelData, const std::optional<Creator>& creatorData);
     void show() override;
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SENDDB_CREATORSENDCHARTPOPUP_HPP
-#define SENDDB_CREATORSENDCHARTPOPUP_HPP
+#pragma once
 
 #include <cue/ListNode.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
@@ -56,5 +55,3 @@ public:
         closeCallback = callback;
     }
 };
-
-#endif

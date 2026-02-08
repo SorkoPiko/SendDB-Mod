@@ -1,5 +1,4 @@
-#ifndef SHADER_INCLUDES_HPP
-#define SHADER_INCLUDES_HPP
+#pragma once
 
 #ifdef GEODE_IS_MOBILE
     #undef glBindVertexArray
@@ -14,6 +13,4 @@
     #include <GLES3/gl3.h>
 #elifdef GEODE_IS_IOS
     #include <OpenGLES/ES3/gl.h>
-#endif
-
 #endif

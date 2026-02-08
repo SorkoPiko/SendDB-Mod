@@ -1,5 +1,4 @@
-#ifndef SENDDB_BASELAYER_HPP
-#define SENDDB_BASELAYER_HPP
+#pragma once
 
 #include <Geode/Prelude.hpp>
 #include <Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h>
@@ -26,5 +25,3 @@ public:
     BaseLayer(BaseLayer&&) = delete;
     BaseLayer& operator=(BaseLayer&&) = delete;
 };
-
-#endif

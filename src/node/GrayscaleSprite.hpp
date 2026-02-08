@@ -1,5 +1,4 @@
-#ifndef SENDDB_GRAYSCALESPRITE_HPP
-#define SENDDB_GRAYSCALESPRITE_HPP
+#pragma once
 
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
@@ -16,6 +15,3 @@ public:
 
     void setGrayscale(bool grayscale);
 };
-
-
-#endif

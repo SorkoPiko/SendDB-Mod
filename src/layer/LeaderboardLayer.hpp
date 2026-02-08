@@ -1,5 +1,4 @@
-#ifndef SENDDB_LEADERBOARDLAYER_HPP
-#define SENDDB_LEADERBOARDLAYER_HPP
+#pragma once
 
 #include <cue/ListNode.hpp>
 #include <Geode/Prelude.hpp>
@@ -49,7 +48,7 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     bool init() override;
     ~LeaderboardLayer() override;
 
-    void updateShaderSprites();
+    void updateShaderSprites() const;
 
     void onRefresh();
 
@@ -83,5 +82,3 @@ public:
 
     static LeaderboardLayer* create();
 };
-
-#endif

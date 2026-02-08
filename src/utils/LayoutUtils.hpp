@@ -1,5 +1,4 @@
-#ifndef SENDDB_LAYOUTUTILS_HPP
-#define SENDDB_LAYOUTUTILS_HPP
+#pragma once
 
 struct ChartPoint {
     int interval;
@@ -21,5 +20,3 @@ public:
 
     static int minStartOffset(ChartAxisLayout layout);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SENDDB_SENDCHARTNODE_HPP
-#define SENDDB_SENDCHARTNODE_HPP
+#pragma once
 
 #include <Geode/Geode.hpp>
 #include <model/APIResponse.hpp>
@@ -121,5 +120,3 @@ static ChartStyle chartStyleFromString(const std::string& str) {
         return ChartStyle::Line;
     }
 }
-
-#endif

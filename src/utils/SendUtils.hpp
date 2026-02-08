@@ -1,5 +1,4 @@
-#ifndef SENDDB_SENDUTILS_HPP
-#define SENDDB_SENDUTILS_HPP
+#pragma once
 
 #include <vector>
 
@@ -15,5 +14,3 @@ public:
 
     static double calculateIndividualTrendingScore(long long timestamp, int sendTimestamp);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef SENDDB_SENDINFOBOX_HPP
-#define SENDDB_SENDINFOBOX_HPP
+#pragma once
 
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/cocos/label_nodes/CCLabelBMFont.h>
@@ -33,5 +32,3 @@ public:
     void setRateData(const std::optional<Rate>& rate);
     void clearData();
 };
-
-#endif

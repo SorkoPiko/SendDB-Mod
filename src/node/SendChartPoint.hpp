@@ -1,5 +1,4 @@
-#ifndef SENDDB_SENDCHARTPOINT_HPP
-#define SENDDB_SENDCHARTPOINT_HPP
+#pragma once
 
 #include <Geode/cocos/cocoa/CCGeometry.h>
 #include <Geode/cocos/sprite_nodes/CCSprite.h>
@@ -44,5 +43,3 @@ public:
     void setPoint(const LineChartPoint& point);
     [[nodiscard]] std::optional<LineChartPoint> getPoint() const;
 };
-
-#endif

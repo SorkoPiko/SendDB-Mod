@@ -1,5 +1,4 @@
-#ifndef SENDDB_SHADERCACHE_HPP
-#define SENDDB_SHADERCACHE_HPP
+#pragma once
 
 #include <unordered_map>
 
@@ -43,5 +42,3 @@ public:
 
     const Shader* getShader(const std::string& vertexPath, const std::string& fragmentPath);
 };
-
-#endif

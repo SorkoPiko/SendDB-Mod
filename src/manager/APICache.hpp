@@ -1,5 +1,4 @@
-#ifndef SENDDB_APICACHE_HPP
-#define SENDDB_APICACHE_HPP
+#pragma once
 
 #include <unordered_map>
 #include <Geode/Prelude.hpp>
@@ -99,5 +98,3 @@ public:
         cacheDuration = duration;
     }
 };
-
-#endif
