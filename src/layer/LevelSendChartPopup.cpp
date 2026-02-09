@@ -480,6 +480,12 @@ void LevelSendChartPopup::ccTouchEnded(CCTouch* touch, CCEvent* event) {
     chartNode->onRelease(touch->getLocation());
 }
 
+void LevelSendChartPopup::ccTouchMoved(CCTouch* touch, CCEvent* event) {
+    FLAlertLayer::ccTouchMoved(touch, event);
+
+    chartNode->onHover(touch->getLocation());
+}
+
 LevelSendChartPopup* LevelSendChartPopup::create(const GJGameLevel* level, const int levelID, const std::optional<Level>& levelData, const std::optional<Creator>& creatorData) {
     if (const auto newLayer = new LevelSendChartPopup(); newLayer->init(level, levelID, levelData, creatorData)) {
         newLayer->autorelease();

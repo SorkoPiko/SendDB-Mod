@@ -79,7 +79,7 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
             .parent(this)
             .zOrder(1);
 
-    if (level.has_value()) {
+    if (level) {
         auto levelValue = level.value();
         levelData = levelValue;
 
@@ -98,7 +98,7 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
             const long long padding = std::clamp(6 * 60 * 60 * 1000.0f, originalTimeRangeMs * 0.1f, 7 * 24 * 60 * 60 * 1000.f);
             startTimestamp -= padding;
 
-            if (levelValue.rate.has_value()) {
+            if (levelValue.rate) {
                 if (const auto& rate = levelValue.rate.value(); rate.timestamp > lastTimestamp) {
                     lastTimestamp = rate.timestamp;
                     rateTimestamp = rate.timestamp;
@@ -181,7 +181,7 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
             placedRatePoint = false;
             for (const auto& x : sampledX) {
                 const long long timestamp = startTimestamp + static_cast<long long>(x * 1000.0f);
-                if (!placedRatePoint && levelValue.rate.has_value() && timestamp >= rateTimestamp) {
+                if (!placedRatePoint && levelValue.rate && timestamp >= rateTimestamp) {
                     const double trendingScore = SendUtils::calculateTrendingScore(rateTimestamp, sendTimestamps);
                     if (trendingScore > maxTrendingScore) maxTrendingScore = trendingScore;
 
@@ -220,30 +220,8 @@ void SendChartNode::update(const float delta) {
     const auto mousePos = getMousePos();
     const auto position = convertToNodeSpace(mousePos);
 
-    selectNode->clear();
-
-    if (touchPoint.has_value()) {
-        const auto touchPos = touchPoint.value();
-
-        selectNode->drawSegment(
-            ccp(touchPos.x, 0),
-            ccp(touchPos.x, chartSize.height),
-            0.2f,
-            ccc4FFromccc4B(selectionLineColor)
-        );
-        selectNode->drawSegment(
-            ccp(0, touchPos.y),
-            ccp(chartSize.width, touchPos.y),
-            0.2f,
-            ccc4FFromccc4B(selectionLineColor)
-        );
-
-        selectNode->drawRect(
-            {touchPos, position - touchPos},
-            ccc4FFromccc4B(selectionHighlightColor),
-            0.0f,
-            {0, 0, 0, 0}
-        );
+    if (!touchPoint) {
+        selectNode->clear();
 
         selectNode->drawSegment(
             ccp(position.x, 0),
@@ -265,21 +243,6 @@ void SendChartNode::update(const float delta) {
         return;
     }
     hovering = true;
-
-    if (!touchPoint.has_value()) {
-        selectNode->drawSegment(
-            ccp(position.x, 0),
-            ccp(position.x, chartSize.height),
-            0.2f,
-            ccc4FFromccc4B(selectionLineColor)
-        );
-        selectNode->drawSegment(
-            ccp(0, position.y),
-            ccp(chartSize.width, position.y),
-            0.2f,
-            ccc4FFromccc4B(selectionLineColor)
-        );
-    }
 
     float closestDistanceSq = std::numeric_limits<float>::max();
     hoveredPoint = nullptr;
@@ -653,9 +616,9 @@ void SendChartNode::onClick(const CCPoint& position) {
     if (hoveredPoint && hoveredPoint != selectedPoint && PointUtils::isPointInsideNode(hoveredPoint, position)) {
         sendInfoBox->setPosition(hoveredPoint->getPosition());
         selectedPoint = hoveredPoint;
-        if (const auto sendData = hoveredPoint->getSendData(); sendData.has_value()) {
+        if (const auto sendData = hoveredPoint->getSendData()) {
             sendInfoBox->setSendData(sendData, hoveredPoint->getSendIndex());
-        } else if (const auto rateData = hoveredPoint->getRateData(); rateData.has_value()) {
+        } else if (const auto rateData = hoveredPoint->getRateData()) {
             sendInfoBox->setRateData(rateData);
         }
     } else {
@@ -666,13 +629,54 @@ void SendChartNode::onClick(const CCPoint& position) {
 }
 
 void SendChartNode::onRelease(const CCPoint& position) {
-    if (touchPoint.has_value()) {
+    if (touchPoint) {
         handleZoom(touchPoint.value(), convertToNodeSpace(position));
         touchPoint = std::nullopt;
     }
     if (!PointUtils::isPointInsideNode(this, position)) {
         touchPoint = std::nullopt;
     }
+}
+
+void SendChartNode::onHover(const CCPoint& position) {
+    if (!touchPoint) return;
+
+    const auto touchPos = touchPoint.value();
+    const auto chartPos = convertToNodeSpace(position);
+
+    selectNode->clear();
+    selectNode->drawSegment(
+        ccp(touchPos.x, 0),
+        ccp(touchPos.x, chartSize.height),
+        0.2f,
+        ccc4FFromccc4B(selectionLineColor)
+    );
+    selectNode->drawSegment(
+        ccp(0, touchPos.y),
+        ccp(chartSize.width, touchPos.y),
+        0.2f,
+        ccc4FFromccc4B(selectionLineColor)
+    );
+
+    selectNode->drawRect(
+        {touchPos, chartPos - touchPos},
+        ccc4FFromccc4B(selectionHighlightColor),
+        0.0f,
+        {0, 0, 0, 0}
+    );
+
+    selectNode->drawSegment(
+        ccp(chartPos.x, 0),
+        ccp(chartPos.x, chartSize.height),
+        0.2f,
+        ccc4FFromccc4B(selectionLineColor)
+    );
+    selectNode->drawSegment(
+        ccp(0, chartPos.y),
+        ccp(chartSize.width, chartPos.y),
+        0.2f,
+        ccc4FFromccc4B(selectionLineColor)
+    );
 }
 
 ChartType SendChartNode::getType() const {

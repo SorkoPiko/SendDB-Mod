@@ -27,6 +27,7 @@ class LevelSendChartPopup final : public FLAlertLayer {
 
     bool ccTouchBegan(CCTouch* touch, CCEvent* event) override;
     void ccTouchEnded(CCTouch* touch, CCEvent* event) override;
+    void ccTouchMoved(CCTouch* touch, CCEvent* event) override;
 
     void onClose(CCObject*);
 

@@ -105,6 +105,7 @@ public:
 
     void onClick(const CCPoint& position);
     void onRelease(const CCPoint& position);
+    void onHover(const CCPoint& position);
 
     ChartType getType() const;
     void setType(ChartType type);
