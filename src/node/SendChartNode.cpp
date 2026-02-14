@@ -131,14 +131,19 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
 
             sendChartPoints.push_back(LineChartPoint(0.0f, 0.0f, false));
 
+            const auto sendTimestamps = ranges::map<std::vector<int>>(levelValue.sends, [](const Send& s) {
+                return s.timestamp / 1000;
+            });
+
             int i = 0;
             for (const auto& send : levelValue.sends) {
                 i++;
                 const auto point = LineChartPoint((send.timestamp - startTimestamp) / 1000.f, i, send.timestamp > rateTimestamp);
                 sendChartPoints.push_back(point);
 
+                const double trendingScore = SendUtils::calculateTrendingScore(send.timestamp, sendTimestamps);
                 const auto scaledPoint = scalePoint(point);
-                SendChartPoint* chartPoint = Build<SendChartPoint>::create(pointColor, send, i)
+                SendChartPoint* chartPoint = Build<SendChartPoint>::create(pointColor, send, i, trendingScore)
                         .pos(scaledPoint.toCCPoint())
                         .scale(0.1f)
                         .parent(hoverMenu);
@@ -150,8 +155,9 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
                 const auto point = LineChartPoint((rateTimestamp - startTimestamp) / 1000.f, i, true);
                 sendChartPoints.push_back(point);
 
+                const double trendingScore = SendUtils::calculateTrendingScore(rateTimestamp, sendTimestamps);
                 const auto scaledPoint = scalePoint(point);
-                SendChartPoint* chartPoint = Build<SendChartPoint>::create(levelValue.rate.value())
+                SendChartPoint* chartPoint = Build<SendChartPoint>::create(levelValue.rate.value(), trendingScore)
                         .pos(scaledPoint.toCCPoint())
                         .scale(0.4f)
                         .parent(hoverMenu);
@@ -173,38 +179,54 @@ bool SendChartNode::init(const std::optional<Level>& level, const CCSize& size, 
                 }
             }
 
-            const auto sendTimestamps = ranges::map<std::vector<int>>(levelValue.sends, [](const Send& s) {
-                return s.timestamp / 1000;
-            });
-
             float maxTrendingScore = 0.0f;
             placedRatePoint = false;
             for (const auto& x : sampledX) {
                 const long long timestamp = startTimestamp + static_cast<long long>(x * 1000.0f);
-                if (!placedRatePoint && levelValue.rate && timestamp >= rateTimestamp) {
-                    const double trendingScore = SendUtils::calculateTrendingScore(rateTimestamp, sendTimestamps);
-                    if (trendingScore > maxTrendingScore) maxTrendingScore = trendingScore;
 
-                    const auto point = LineChartPoint(x, static_cast<float>(trendingScore), true);
-                    trendingChartPoints.push_back(point);
-
-                    const auto scaledPoint = scalePoint(point);
-                    SendChartPoint* chartPoint = Build<SendChartPoint>::create(levelValue.rate)
-                            .pos(scaledPoint.toCCPoint())
-                            .scale(0.4f)
-                            .parent(hoverMenu);
-                    chartPoint->setPoint(point);
-                    trendingPoints.push_back(chartPoint);
-
-                    placedRatePoint = true;
-                    continue;
-
-                }
                 const double trendingScore = SendUtils::calculateTrendingScore(timestamp, sendTimestamps);
                 if (trendingScore > maxTrendingScore) maxTrendingScore = trendingScore;
 
                 trendingChartPoints.push_back(LineChartPoint(x, static_cast<float>(trendingScore), timestamp > rateTimestamp));
             }
+
+            for (const auto& send : levelValue.sends) {
+                const double trendingScore = SendUtils::calculateTrendingScore(send.timestamp, sendTimestamps);
+                if (trendingScore > maxTrendingScore) maxTrendingScore = trendingScore;
+
+                const float x = (send.timestamp - startTimestamp) / 1000.f;
+                const auto point = LineChartPoint(x, static_cast<float>(trendingScore), send.timestamp > rateTimestamp);
+                trendingChartPoints.push_back(point);
+
+                const auto scaledPoint = scalePoint(point);
+                SendChartPoint* chartPoint = Build<SendChartPoint>::create(pointColor, send, &send - &levelValue.sends.front() + 1, trendingScore)
+                        .pos(scaledPoint.toCCPoint())
+                        .scale(0.1f)
+                        .parent(hoverMenu);
+                chartPoint->setPoint(point);
+                trendingPoints.push_back(chartPoint);
+            }
+
+            if (!placedRatePoint && levelValue.rate) {
+                const double trendingScore = SendUtils::calculateTrendingScore(rateTimestamp, sendTimestamps);
+                if (trendingScore > maxTrendingScore) maxTrendingScore = trendingScore;
+
+                const float x = (rateTimestamp - startTimestamp) / 1000.f;
+                const auto point = LineChartPoint(x, static_cast<float>(trendingScore), true);
+                trendingChartPoints.push_back(point);
+
+                const auto scaledPoint = scalePoint(point);
+                SendChartPoint* chartPoint = Build<SendChartPoint>::create(levelValue.rate.value(), trendingScore)
+                        .pos(scaledPoint.toCCPoint())
+                        .scale(0.4f)
+                        .parent(hoverMenu);
+                chartPoint->setPoint(point);
+                trendingPoints.push_back(chartPoint);
+            }
+
+            std::ranges::sort(trendingChartPoints, [](const LineChartPoint& a, const LineChartPoint& b) {
+                return a.x < b.x;
+            });
 
             trendingChartDimensions = ccp(timeRangeSeconds > 0 ? timeRangeSeconds : 1.0f, ceil((maxTrendingScore + 15000.0f) / 25000.0f) * 25000.0f);
         }
@@ -617,9 +639,9 @@ void SendChartNode::onClick(const CCPoint& position) {
         sendInfoBox->setPosition(hoveredPoint->getPosition());
         selectedPoint = hoveredPoint;
         if (const auto sendData = hoveredPoint->getSendData()) {
-            sendInfoBox->setSendData(sendData, hoveredPoint->getSendIndex());
+            sendInfoBox->setSendData(sendData, hoveredPoint->getSendIndex(), hoveredPoint->getTrendingScore());
         } else if (const auto rateData = hoveredPoint->getRateData()) {
-            sendInfoBox->setRateData(rateData);
+            sendInfoBox->setRateData(rateData, hoveredPoint->getTrendingScore());
         }
     } else {
         sendInfoBox->clearData();

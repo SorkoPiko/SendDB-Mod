@@ -12,7 +12,7 @@ bool SendInfoBox::init() {
     if (!CCNode::init()) return false;
     scheduleUpdate();
 
-    setContentSize({70.0f, 40.0f});
+    setContentSize({70.0f, 47.0f});
 
     CCPoint triangleShape[3] = {
         {-10.0f, 10.0f},
@@ -35,7 +35,7 @@ bool SendInfoBox::init() {
     Build(rock::RoundedRect::create(
         infoBoxColor,
         3.0f,
-        {getContentWidth(), 30.0f}
+        {getContentWidth(), getContentHeight() - 10.0f}
     ))
             .pos({0.0f, 10.5f})
             .anchorPoint({0.0f, 0.0f})
@@ -43,8 +43,14 @@ bool SendInfoBox::init() {
 
     infoLabel = Build<CCLabelBMFont>::create("Send #1", "bigFont.fnt")
             .scale(0.4f)
-            .pos({getContentWidth() / 2.0f, 40.0f})
+            .pos({getContentWidth() / 2.0f, 47.0f})
             .anchorPoint({0.5f, 1.0f})
+            .parent(this);
+
+    trendingLabel = Build<CCLabelBMFont>::create("Score: 12345.67", "chatFont.fnt")
+            .scale(0.4f)
+            .pos({getContentWidth() / 2.0f, 30.0f})
+            .anchorPoint({0.5f, 0.5f})
             .parent(this);
 
     timeLabel = Build<CCLabelBMFont>::create("11:56AM 01/02/2026", "chatFont.fnt")
@@ -74,8 +80,9 @@ SendInfoBox* SendInfoBox::create() {
     return nullptr;
 }
 
-void SendInfoBox::setSendData(const std::optional<Send>& send, const int index) {
+void SendInfoBox::setSendData(const std::optional<Send>& send, const int index, const double trending) {
     sendIndex = index;
+    trendingScore = trending;
     rateData.reset();
     if (send.has_value()) {
         sendData = send.value();
@@ -84,8 +91,9 @@ void SendInfoBox::setSendData(const std::optional<Send>& send, const int index) 
     } else clearData();
 }
 
-void SendInfoBox::setRateData(const std::optional<Rate>& rate) {
+void SendInfoBox::setRateData(const std::optional<Rate>& rate, const double trending) {
     sendData.reset();
+    trendingScore = trending;
     if (rate.has_value()) {
         rateData = rate.value();
         setVisible(true);
@@ -120,6 +128,7 @@ void SendInfoBox::prepareSend() {
     const auto [timestamp] = sendData.value();
 
     infoLabel->setString(("Send #" + std::to_string(sendIndex)).c_str());
+    trendingLabel->setString(fmt::format("Score: {}", trendingScore ? fmt::format("{:.2f}", trendingScore) : "N/A").c_str());
     timeLabel->setString(TimeUtils::timestampToDateTime(timestamp).c_str());
 
     updateSend();
@@ -129,6 +138,7 @@ void SendInfoBox::prepareRate() {
     if (!rateData.has_value()) return;
 
     infoLabel->setString(fmt::format("Rated{}", rateData->accurate ? "" : "(?)").c_str());
+    trendingLabel->setString(fmt::format("Score: {}", trendingScore ? fmt::format("{:.2f}", trendingScore) : "N/A").c_str());
     timeLabel->setString(TimeUtils::timestampToDateTime(rateData->timestamp).c_str());
 
     updateRate();

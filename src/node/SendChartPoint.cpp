@@ -1,10 +1,11 @@
 #include "SendChartPoint.hpp"
 
-bool SendChartPoint::init(const ccColor3B& color, const std::optional<Send>& send, const std::optional<Rate>& rate, const int index) {
+bool SendChartPoint::init(const ccColor3B& color, const std::optional<Send>& send, const std::optional<Rate>& rate, const int index, const double score) {
     if (!CCNode::init()) return false;
 
     if (send.has_value()) sendData = send.value();
     sendIndex = index;
+    trendingScore = score;
 
     if (rate.has_value()) {
         rateData = rate.value();
@@ -33,9 +34,9 @@ void SendChartPoint::onHover(const bool isHovering) {
     }
 }
 
-SendChartPoint* SendChartPoint::create(const ccColor3B& color, const std::optional<Send>& send, const int index) {
+SendChartPoint* SendChartPoint::create(const ccColor3B& color, const std::optional<Send>& send, const int index, const double score) {
     auto node = new SendChartPoint();
-    if (node->init(color, send, std::nullopt, index)) {
+    if (node->init(color, send, std::nullopt, index, score)) {
         node->autorelease();
         return node;
     }
@@ -43,9 +44,9 @@ SendChartPoint* SendChartPoint::create(const ccColor3B& color, const std::option
     return nullptr;
 }
 
-SendChartPoint* SendChartPoint::create(const std::optional<Rate>& rate) {
+SendChartPoint* SendChartPoint::create(const std::optional<Rate>& rate, const double score) {
     auto node = new SendChartPoint();
-    if (node->init({0, 0, 0}, std::nullopt, rate, 0)) {
+    if (node->init({0, 0, 0}, std::nullopt, rate, 0, score)) {
         if (rate.has_value()) node->rateData = rate.value();
         node->autorelease();
         return node;
@@ -64,6 +65,10 @@ const std::optional<Rate>& SendChartPoint::getRateData() const {
 
 int SendChartPoint::getSendIndex() const {
     return sendIndex;
+}
+
+double SendChartPoint::getTrendingScore() const {
+    return trendingScore;
 }
 
 void SendChartPoint::setPoint(const LineChartPoint& point) {

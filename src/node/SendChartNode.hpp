@@ -51,6 +51,8 @@ class SendChartNode : public CCNode {
     ChartStyle chartStyle = ChartStyle::Line;
     long long startTimestamp = 0;
     std::optional<Level> levelData;
+    std::vector<double> sendScores;
+    double rateScore = 0.0;
 
     bool hovering = false;
     SendChartPoint* hoveredPoint = nullptr;

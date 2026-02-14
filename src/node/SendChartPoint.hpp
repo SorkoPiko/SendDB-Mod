@@ -24,21 +24,23 @@ class SendChartPoint : public CCNode {
     std::optional<Rate> rateData;
     std::optional<LineChartPoint> point;
     int sendIndex = 0;
+    double trendingScore = 0.0;
     bool hovering = false;
 
     CCSprite* sprite = nullptr;
 
-    bool init(const ccColor3B& color, const std::optional<Send>& send, const std::optional<Rate>& rate, int index);
+    bool init(const ccColor3B& color, const std::optional<Send>& send, const std::optional<Rate>& rate, int index, double score);
 
 public:
-    static SendChartPoint* create(const ccColor3B& color, const std::optional<Send>& send, int index);
-    static SendChartPoint* create(const std::optional<Rate>& rate);
+    static SendChartPoint* create(const ccColor3B& color, const std::optional<Send>& send, int index, double score);
+    static SendChartPoint* create(const std::optional<Rate>& rate, double score);
 
     void onHover(bool isHovering);
 
     [[nodiscard]] const std::optional<Send>& getSendData() const;
     [[nodiscard]] const std::optional<Rate>& getRateData() const;
     [[nodiscard]] int getSendIndex() const;
+    [[nodiscard]] double getTrendingScore() const;
 
     void setPoint(const LineChartPoint& point);
     [[nodiscard]] std::optional<LineChartPoint> getPoint() const;

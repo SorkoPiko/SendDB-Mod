@@ -10,8 +10,10 @@ class SendInfoBox : public CCNode {
     std::optional<Send> sendData;
     std::optional<Rate> rateData;
     int sendIndex = 0;
+    double trendingScore = 0.0;
 
     CCLabelBMFont* infoLabel = nullptr;
+    CCLabelBMFont* trendingLabel = nullptr;
     CCLabelBMFont* timeLabel = nullptr;
     CCLabelBMFont* timeLabel2 = nullptr;
 
@@ -28,7 +30,7 @@ class SendInfoBox : public CCNode {
 public:
     static SendInfoBox* create();
 
-    void setSendData(const std::optional<Send>& send, int index = 0);
-    void setRateData(const std::optional<Rate>& rate);
+    void setSendData(const std::optional<Send>& send, int index = 0, double trending = 0.0);
+    void setRateData(const std::optional<Rate>& rate, double trending = 0.0);
     void clearData();
 };
