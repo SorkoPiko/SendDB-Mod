@@ -30,8 +30,8 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
 
     ShaderNode* trendingBackground = nullptr;
 
-    EventListener<web::WebTask> leaderboardListener;
-    std::vector<EventListener<web::WebTask>> sendCountListeners;
+    TaskHolder<web::WebResponse> leaderboardListener;
+    std::vector<TaskHolder<web::WebResponse>> sendCountListeners;
     int queryTotal = 0;
     std::vector<int> pageIDs;
     std::vector<int> currentQuery;
@@ -63,7 +63,7 @@ class LeaderboardLayer : public BaseLayer, LevelManagerDelegate, SetIDPopupDeleg
     void finishLoading();
     bool loadNextBatch();
 
-    void keyDown(enumKeyCodes key) override;
+    void keyDown(enumKeyCodes key, double timestamp) override;
 
     void onNextPage();
     void onPrevPage();

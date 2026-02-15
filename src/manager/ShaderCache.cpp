@@ -53,10 +53,10 @@ const Shader* ShaderCache::getShader(const std::string& vertexPath, const std::s
     const auto key = ShaderKey(vertexPath, fragmentPath);
 
     if (const auto it = cache.find(key); it != cache.end()) {
-        if (auto val = it->second) {
-            if (val) return &val.value();
-            return nullptr;
+        if (it->second.has_value()) {
+            return &it->second.value();
         }
+        return nullptr;
     }
 
     return tryLoadShader(key);

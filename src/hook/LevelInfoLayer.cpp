@@ -13,9 +13,9 @@ using namespace geode::prelude;
 
 class $modify(LevelInfoLayer) {
     struct Fields {
-        EventListener<web::WebTask> levelListener;
+        TaskHolder<web::WebResponse> levelListener;
         std::optional<Level> levelInfo;
-        EventListener<web::WebTask> creatorListener;
+        TaskHolder<web::WebResponse> creatorListener;
         std::optional<Creator> creator;
         std::shared_ptr<MultiCallback> callback;
     };

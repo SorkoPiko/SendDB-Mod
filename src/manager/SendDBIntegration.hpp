@@ -7,7 +7,6 @@
 #endif
 
 #include <Geode/Prelude.hpp>
-#include <Geode/loader/Event.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/web.hpp>
 
@@ -20,12 +19,12 @@ using namespace geode::prelude;
 class SendDBIntegration {
     static SendDBIntegration* instance;
 
-    EventListener<web::WebTask> downloadListener;
+    TaskHolder<web::WebResponse> downloadListener;
     std::unique_ptr<web::WebRequest> currentRequest;
     APICache cache{Mod::get()->getSettingValue<int>("cacheTime") * 60};
 
-    void sendPostRequest(const std::string& url, const matjson::Value& body, const std::function<void(const matjson::Value&)>& callback, EventListener<web::WebTask>& listener);
-    void sendGetRequest(const std::string& url, const std::function<void(const matjson::Value&)>& callback, EventListener<web::WebTask>& listener);
+    void sendPostRequest(const std::string& url, const matjson::Value& body, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener);
+    void sendGetRequest(const std::string& url, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener);
 
 public:
     static SendDBIntegration* get() {
@@ -37,10 +36,10 @@ public:
         cache.setCacheDuration(duration);
     }
 
-    void getLevel(int levelID, const std::function<void(std::optional<Level>)>& callback, EventListener<web::WebTask>& listener);
-    std::vector<EventListener<web::WebTask>> getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback);
-    void getCreator(int creatorID, const std::function<void(std::optional<Creator>)>& callback, EventListener<web::WebTask>& listener);
+    void getLevel(int levelID, const std::function<void(std::optional<Level>)>& callback, TaskHolder<web::WebResponse>& listener);
+    std::vector<TaskHolder<web::WebResponse>> getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback);
+    void getCreator(int creatorID, const std::function<void(std::optional<Creator>)>& callback, TaskHolder<web::WebResponse>& listener);
 
-    void getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener);
-    void getTrendingLeaderboard(const TrendingLeaderboardQuery& query, const std::function<void(std::optional<TrendingLeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener);
+    void getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener);
+    void getTrendingLeaderboard(const TrendingLeaderboardQuery& query, const std::function<void(std::optional<TrendingLeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener);
 };

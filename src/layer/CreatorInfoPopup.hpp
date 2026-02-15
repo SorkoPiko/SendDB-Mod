@@ -38,7 +38,7 @@ class CreatorInfoPopup : public FLAlertLayer, public LevelManagerDelegate {
     void loadLevelsFailed(const char* key) override;
     void loadLevelsFailed(const char*, int) override;
 
-    void keyDown(enumKeyCodes key) override;
+    void keyDown(enumKeyCodes key, double timestamp) override;
     void onClose(CCObject*);
 
     void onEnter() override;

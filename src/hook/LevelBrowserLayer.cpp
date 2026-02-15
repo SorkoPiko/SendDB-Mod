@@ -14,7 +14,7 @@ using namespace geode::prelude;
 
 class $modify(LevelBrowserLayer) {
     struct Fields {
-        std::vector<EventListener<web::WebTask>> listeners;
+        std::vector<TaskHolder<web::WebResponse>> listeners;
         std::unordered_map<int, BatchLevel> levels;
     };
 

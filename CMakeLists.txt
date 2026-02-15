@@ -42,7 +42,7 @@ endif()
 
 CPMAddPackage("gh:prevter/rock#6a2d29e")
 CPMAddPackage("gh:camila314/UIBuilder#2ab80ad")
-CPMAddPackage("gh:dankmeme01/cue#211f644")
+CPMAddPackage("gh:SorkoPiko/cue#patch-3")
 CPMAddPackage("gh:hanickadot/compile-time-regular-expressions#eb9577a")
 target_link_libraries(${PROJECT_NAME} rock UIBuilder cue ctre)
 

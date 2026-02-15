@@ -310,6 +310,7 @@ void CreatorInfoPopup::loadLevelsFinished(CCArray* levels, const char* key) {
 
 void CreatorInfoPopup::loadLevelsFinished(CCArray* levels, const char*, int) {
     for (GJGameLevel* level : CCArrayExt<GJGameLevel*>(levels)) {
+        if (!level || level->m_levelName.empty()) continue;
         cache[level->m_levelID.value()] = level;
     }
 
@@ -350,8 +351,8 @@ void CreatorInfoPopup::loadLevelsFailed(const char*, int) {
     downloadLevelInfo();
 }
 
-void CreatorInfoPopup::keyDown(const enumKeyCodes key) {
-    FLAlertLayer::keyDown(key);
+void CreatorInfoPopup::keyDown(const enumKeyCodes key, const double timestamp) {
+    FLAlertLayer::keyDown(key, timestamp);
 
     if (key == KEY_Escape) {
         onClose(nullptr);

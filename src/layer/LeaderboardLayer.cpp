@@ -375,7 +375,6 @@ void LeaderboardLayer::finishLoading() {
 
         cell->setRank(ranks.contains(levelID) ? ranks[levelID] : 0);
         cell->setTrendingScore(trendingScores.contains(levelID) ? trendingScores[levelID] : 0.0);
-
         list->addCell(cell);
     }
 
@@ -421,8 +420,8 @@ bool LeaderboardLayer::loadNextBatch() {
     return true;
 }
 
-void LeaderboardLayer::keyDown(const enumKeyCodes key) {
-    BaseLayer::keyDown(key);
+void LeaderboardLayer::keyDown(const enumKeyCodes key, const double timestamp) {
+    BaseLayer::keyDown(key, timestamp);
 
     if (loading) return;
 

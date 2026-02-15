@@ -11,7 +11,7 @@ using namespace geode::prelude;
 
 class $modify(SendDBProfilePage, ProfilePage) {
     struct Fields {
-        EventListener<web::WebTask> listener;
+        TaskHolder<web::WebResponse> listener;
         std::optional<Creator> creatorInfo;
     };
 

@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <Geode/loader/Log.hpp>
+#include <Geode/utils/general.hpp>
 
 std::string plural(const int num) {
     static std::string s;

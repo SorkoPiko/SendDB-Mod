@@ -2,64 +2,51 @@
 
 SendDBIntegration* SendDBIntegration::instance = nullptr;
 
-void SendDBIntegration::sendPostRequest(const std::string& url, const matjson::Value& body, const std::function<void(const matjson::Value&)>& callback, EventListener<web::WebTask>& listener) {
-    listener.bind([callback](web::WebTask::Event* e) {
-        if (const auto res = e->getValue()) {
-            if (!res->ok()) {
+void SendDBIntegration::sendPostRequest(const std::string& url, const matjson::Value& body, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener) {
+    listener.spawn(
+        web::WebRequest().bodyJSON(body).post(url),
+        [callback](const web::WebResponse& e) {
+            if (e.ok()) {
+                const auto data = e.json().unwrapOr(matjson::Value{});
+                callback(data);
+            } else {
                 matjson::Value ret;
                 matjson::Value defaultVal;
                 defaultVal["message"] = "Malformed response";
-                if (matjson::Value unwrapped = res->json().unwrapOr(defaultVal); unwrapped.contains("message")) {
+                if (matjson::Value unwrapped = e.json().unwrapOr(defaultVal); unwrapped.contains("message")) {
                     ret["error"] = unwrapped["message"];
                 } else {
                     ret["error"] = defaultVal["message"];
                 }
                 callback(ret);
-                return;
             }
-            const auto data = res->json().unwrapOr(matjson::Value{});
-            callback(data);
-        } else if (e->isCancelled()) {
-            matjson::Value ret;
-            ret["error"] = "Request was cancelled.";
-            callback(ret);
         }
-    });
-
-    currentRequest = std::make_unique<web::WebRequest>();
-    currentRequest->bodyJSON(body);
-    listener.setFilter(currentRequest->post(url));
+    );
 }
 
-void SendDBIntegration::sendGetRequest(const std::string& url, const std::function<void(const matjson::Value&)>& callback, EventListener<web::WebTask>& listener) {
-    listener.bind([callback](web::WebTask::Event* e) {
-        if (const auto res = e->getValue()) {
-            if (!res->ok()) {
+void SendDBIntegration::sendGetRequest(const std::string& url, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener) {
+    listener.spawn(
+        web::WebRequest().get(url),
+        [callback](const web::WebResponse& e) {
+            if (e.ok()) {
+                const auto data = e.json().unwrapOr(matjson::Value{});
+                callback(data);
+            } else {
                 matjson::Value ret;
                 matjson::Value defaultVal;
-                defaultVal["message"] = fmt::format("Malformed response: {}", res->string().unwrapOrDefault());
-                if (matjson::Value unwrapped = res->json().unwrapOr(defaultVal); unwrapped.contains("message")) {
+                defaultVal["message"] = fmt::format("Malformed response: {}", e.string().unwrapOrDefault());
+                if (matjson::Value unwrapped = e.json().unwrapOr(defaultVal); unwrapped.contains("message")) {
                     ret["error"] = unwrapped["message"];
                 } else {
                     ret["error"] = defaultVal["message"];
                 }
                 callback(ret);
-                return;
             }
-            const auto data = res->json().unwrapOr(matjson::Value{});
-            callback(data);
-        } else if (e->isCancelled()) {
-            matjson::Value ret;
-            ret["error"] = "Request was cancelled.";
-            callback(ret);
         }
-    });
-
-    currentRequest = std::make_unique<web::WebRequest>();
-    listener.setFilter(currentRequest->get(url));
+    );
 }
 
-void SendDBIntegration::getLevel(const int levelID, const std::function<void(std::optional<Level>)>& callback, EventListener<web::WebTask>& listener) {
+void SendDBIntegration::getLevel(const int levelID, const std::function<void(std::optional<Level>)>& callback, TaskHolder<web::WebResponse>& listener) {
     if (const auto cachedLevel = cache.getLevel(levelID)) {
         callback(cachedLevel.value());
         return;
@@ -87,7 +74,7 @@ void SendDBIntegration::getLevel(const int levelID, const std::function<void(std
     }, listener);
 }
 
-std::vector<EventListener<web::WebTask>> SendDBIntegration::getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback) {
+std::vector<TaskHolder<web::WebResponse>> SendDBIntegration::getLevels(const std::vector<int>& levelIDs, const std::function<void(std::vector<BatchLevel>)>& callback) {
     std::vector<BatchLevel> cachedLevels;
     std::vector<int> uncachedIDs;
 
@@ -111,10 +98,10 @@ std::vector<EventListener<web::WebTask>> SendDBIntegration::getLevels(const std:
     auto allFetchedLevels = std::make_shared<std::vector<BatchLevel>>(cachedLevels);
     auto completedChunks = std::make_shared<std::atomic<size_t>>(0);
 
-    std::vector<EventListener<web::WebTask>> chunkListeners;
+    std::vector<TaskHolder<web::WebResponse>> chunkListeners;
     chunkListeners.reserve(totalChunks);
 
-    auto processChunk = [this, allFetchedLevels, callback, completedChunks, totalChunks](const std::vector<int>& chunkIDs, EventListener<web::WebTask>& chunkListener) {
+    auto processChunk = [this, allFetchedLevels, callback, completedChunks, totalChunks](const std::vector<int>& chunkIDs, TaskHolder<web::WebResponse>& chunkListener) {
         BatchRequest request = {
             chunkIDs
         };
@@ -155,7 +142,7 @@ std::vector<EventListener<web::WebTask>> SendDBIntegration::getLevels(const std:
     return chunkListeners;
 }
 
-void SendDBIntegration::getCreator(const int creatorID, const std::function<void(std::optional<Creator>)>& callback, EventListener<web::WebTask>& listener) {
+void SendDBIntegration::getCreator(const int creatorID, const std::function<void(std::optional<Creator>)>& callback, TaskHolder<web::WebResponse>& listener) {
     if (const auto cachedCreator = cache.getCreator(creatorID)) {
         callback(cachedCreator.value());
         return;
@@ -183,7 +170,7 @@ void SendDBIntegration::getCreator(const int creatorID, const std::function<void
     }, listener);
 }
 
-void SendDBIntegration::getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener) {
+void SendDBIntegration::getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener) {
     if (const auto cachedResponse = cache.getLeaderboard(query)) {
         callback(cachedResponse);
         return;
@@ -206,7 +193,7 @@ void SendDBIntegration::getLeaderboard(const LeaderboardQuery& query, const std:
     }, listener);
 }
 
-void SendDBIntegration::getTrendingLeaderboard(const TrendingLeaderboardQuery& query, const std::function<void(std::optional<TrendingLeaderboardResponse>)>& callback, EventListener<web::WebTask>& listener) {
+void SendDBIntegration::getTrendingLeaderboard(const TrendingLeaderboardQuery& query, const std::function<void(std::optional<TrendingLeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener) {
     if (const auto cachedResponse = cache.getTrendingLeaderboard(query)) {
         callback(cachedResponse);
         return;
