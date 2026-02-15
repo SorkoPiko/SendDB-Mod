@@ -130,7 +130,7 @@ bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Crea
                 .color(secondaryTextColor);
 
         const float sendAverage = creatorInfo.send_count / static_cast<float>(creatorInfo.levels.size());
-        auto averageSendsLabel = Build<CCLabelBMFont>::create(fmt::format("Average Sends: {}", sendAverage).c_str(), "bigFont.fnt")
+        auto averageSendsLabel = Build<CCLabelBMFont>::create(fmt::format("Average Sends: {:.2f}", sendAverage).c_str(), "bigFont.fnt")
                 .scale(0.3f)
                 .intoMenuItem([](auto*) {infoPopup(CreatorPopupInfo::SendAverageSends);})
                 .animationEnabled(false)

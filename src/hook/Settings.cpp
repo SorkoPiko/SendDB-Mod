@@ -6,7 +6,7 @@ using namespace geode::prelude;
 
 $execute {
     listenForSettingChanges<int>("cacheTime", [](const int value) {
-        SendDBIntegration::get()->setCacheDuration(value * 60);
+        SendDBIntegration::get()->getCache().setCacheDuration(value * 60);
     });
 
     listenForSettingChanges<int>("leaderboardPerPage", [](const int value) {

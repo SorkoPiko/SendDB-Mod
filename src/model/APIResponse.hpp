@@ -96,6 +96,22 @@ struct TrendingLeaderboardResponse {
     std::vector<TrendingLeaderboardLevel> levels;
 };
 
+struct LeaderboardCreator {
+    std::string name;
+    int32_t playerID;
+    int32_t accountID;
+    int32_t level_count;
+    int32_t send_count;
+    double trending_score;
+    int32_t rank;
+    int32_t trending_rank;
+};
+
+struct CreatorLeaderboardResponse {
+    int32_t total;
+    std::vector<LeaderboardCreator> creators;
+};
+
 template <>
 struct matjson::Serialize<Send> {
     static Result<Send> fromJson(const Value& value) {
@@ -258,5 +274,34 @@ struct matjson::Serialize<TrendingLeaderboardResponse> {
             levels.push_back(level);
         }
         return Ok(TrendingLeaderboardResponse { total, levels });
+    }
+};
+
+template <>
+struct matjson::Serialize<LeaderboardCreator> {
+    static Result<LeaderboardCreator> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const std::string name, value["name"].asString());
+        GEODE_UNWRAP_INTO(const int32_t playerID, value["player_id"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t accountID, value["account_id"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t level_count, value["level_count"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t send_count, value["send_count"].asInt());
+        GEODE_UNWRAP_INTO(const double trending_score, value["trending_score"].asDouble());
+        GEODE_UNWRAP_INTO(const int32_t rank, value["rank"].asInt());
+        GEODE_UNWRAP_INTO(const int32_t trending_rank, value["trending_rank"].asInt());
+        return Ok(LeaderboardCreator { name, playerID, accountID, level_count, send_count, trending_score, rank, trending_rank });
+    }
+};
+
+template <>
+struct matjson::Serialize<CreatorLeaderboardResponse> {
+    static Result<CreatorLeaderboardResponse> fromJson(const Value& value) {
+        GEODE_UNWRAP_INTO(const int32_t total, value["total"].asInt());
+        GEODE_UNWRAP_INTO(const std::vector<Value> creators_json, value["creators"].asArray());
+        std::vector<LeaderboardCreator> creators;
+        for (const Value& creator_val : creators_json) {
+            GEODE_UNWRAP_INTO(const LeaderboardCreator creator, creator_val.as<LeaderboardCreator>());
+            creators.push_back(creator);
+        }
+        return Ok(CreatorLeaderboardResponse { total, creators });
     }
 };

@@ -36,7 +36,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
                     popup->show();
                 })
                 .parent(menu)
-                .pos({16.0f, -189.0f})
+                .pos({16.0f, -219.0f})
                 .id("chart-button"_spr);
     }
 };

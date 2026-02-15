@@ -215,3 +215,26 @@ void SendDBIntegration::getTrendingLeaderboard(const TrendingLeaderboardQuery& q
         }
     }, listener);
 }
+
+void SendDBIntegration::getCreatorLeaderboard(const CreatorLeaderboardQuery& query, const std::function<void(std::optional<CreatorLeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener) {
+    if (const auto cachedResponse = cache.getCreatorLeaderboard(query)) {
+        callback(cachedResponse);
+        return;
+    }
+
+    sendPostRequest(SERVER_URL "/leaderboard/creators", query, [this, query, callback](const matjson::Value& data) {
+        if (data.contains("error")) {
+            log::error("Failed to get creator leaderboard: {}", data["error"].asString().unwrapOrDefault());
+            callback(std::nullopt);
+        } else {
+            if (const Result<CreatorLeaderboardResponse> result = data.as<CreatorLeaderboardResponse>(); result.isOk()) {
+                const CreatorLeaderboardResponse& response = result.unwrap();
+                cache.cacheCreatorLeaderboard(query, response);
+                callback(response);
+            } else {
+                log::error("Failed to parse creator leaderboard response: {}", result.unwrapErr());
+                callback(std::nullopt);
+            }
+        }
+    }, listener);
+}

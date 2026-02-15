@@ -32,8 +32,8 @@ public:
         return instance;
     }
 
-    void setCacheDuration(const int duration) {
-        cache.setCacheDuration(duration);
+    APICache& getCache() {
+        return cache;
     }
 
     void getLevel(int levelID, const std::function<void(std::optional<Level>)>& callback, TaskHolder<web::WebResponse>& listener);
@@ -42,4 +42,5 @@ public:
 
     void getLeaderboard(const LeaderboardQuery& query, const std::function<void(std::optional<LeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener);
     void getTrendingLeaderboard(const TrendingLeaderboardQuery& query, const std::function<void(std::optional<TrendingLeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener);
+    void getCreatorLeaderboard(const CreatorLeaderboardQuery& query, const std::function<void(std::optional<CreatorLeaderboardResponse>)>& callback, TaskHolder<web::WebResponse>& listener);
 };

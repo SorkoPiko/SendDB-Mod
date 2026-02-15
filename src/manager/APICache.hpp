@@ -78,6 +78,9 @@ class APICache {
     CacheEntry<int> trendingLeaderboardCountCache;
     std::unordered_map<int, CacheEntry<TrendingLeaderboardLevel>> trendingLeaderboardLevelCache;
 
+    CacheEntry<int> creatorLeaderboardCountCache;
+    std::unordered_map<int, CacheEntry<LeaderboardCreator>> leaderboardCreatorCache;
+
 public:
     explicit APICache(const int duration) : cacheDuration(duration) {}
 
@@ -86,13 +89,16 @@ public:
     void cacheCreator(int creatorID, const std::optional<Creator>& creator);
     void cacheLeaderboard(const LeaderboardQuery& query, const LeaderboardResponse& response);
     void cacheTrendingLeaderboard(const TrendingLeaderboardQuery& query, const TrendingLeaderboardResponse& response);
+    void cacheCreatorLeaderboard(const CreatorLeaderboardQuery& query, const CreatorLeaderboardResponse& response);
 
     std::optional<std::optional<Level>> getLevel(int levelID) const;
     std::optional<std::optional<BatchLevel>> getBatchLevel(int levelID) const;
     std::optional<std::optional<Creator>> getCreator(int creatorID) const;
+    std::optional<std::optional<LeaderboardCreator>> getLeaderboardCreator(int creatorID) const;
 
     std::optional<LeaderboardResponse> getLeaderboard(const LeaderboardQuery& query) const;
     std::optional<TrendingLeaderboardResponse> getTrendingLeaderboard(const TrendingLeaderboardQuery& query) const;
+    std::optional<CreatorLeaderboardResponse> getCreatorLeaderboard(const CreatorLeaderboardQuery& query) const;
 
     void setCacheDuration(const int duration) {
         cacheDuration = duration;
