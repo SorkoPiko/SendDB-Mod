@@ -1,7 +1,6 @@
 #include <Geode/modify/LeaderboardsLayer.hpp>
 #include <Geode/Geode.hpp>
 #include <UIBuilder.hpp>
-#include <cue/ListNode.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
 #include <manager/SendDBIntegration.hpp>
 
@@ -55,6 +54,9 @@ class $modify(LeaderboardsLayer) {
 
     void selectLeaderboard(const LeaderboardType type, const LeaderboardStat stat) {
         LeaderboardsLayer::selectLeaderboard(type, stat);
+        if (type == LeaderboardType::Creator && customData) {
+            getCreatorLeaderboard();
+        }
         if (m_fields->button) {
             m_fields->button->setVisible(type == LeaderboardType::Creator);
             getChildByID("right-side-menu")->updateLayout();
