@@ -5,38 +5,62 @@
 #include <model/APIResponse.hpp>
 
 #include <UIBuilder.hpp>
-#include <rock/RoundedRect.hpp>
-#include <utils/Style.hpp>
+#include <layer/CreatorInfoPopup.hpp>
 
 class $modify(GJScoreCell) {
     void loadFromScore(GJUserScore* score) {
         GJScoreCell::loadFromScore(score);
 
         const std::optional<std::optional<LeaderboardCreator>> creatorOpt = SendDBIntegration::get()->getCache().getLeaderboardCreator(score->m_userID);
-        if (creatorOpt.has_value() && creatorOpt->has_value()) {
-            const LeaderboardCreator& creator = creatorOpt->value();
+        if (!creatorOpt.has_value() || !creatorOpt->has_value()) return;
 
-            CCNode* sendContainer = Build<CCNode>::create()
-                    .pos({ 62.0f, 29.0f })
-                    .id("send-container"_spr)
-                    .parent(this);
+        const LeaderboardCreator& creator = creatorOpt->value();
 
-            CCLabelBMFont* sendLabel = Build<CCLabelBMFont>::create(fmt::format("{} sends", creator.send_count).c_str(), "chatFont.fnt")
-                    .scale(0.6f)
-                    .anchorPoint({ 0.0f, 0.5f })
-                    .id("label")
-                    .parent(sendContainer);
+        CCNode* menu = m_mainLayer->getChildByID("stats-menu");
 
-            Build(rock::RoundedRect::create(
-                infoBoxColor,
-                3.0f,
-                sendLabel->getScaledContentSize() + CCSize{ 2.0f, 0.0f }
-            ))
-                    .pos({ -1.0f, 0.0f })
-                    .anchorPoint({ 0.0f, 0.5f })
-                    .parent(sendContainer)
-                    .id("bg")
-                    .zOrder(-1);
+        CCLabelBMFont* label = Build<CCLabelBMFont>::create(fmt::format("{}", creator.send_count).c_str(), "bigFont.fnt")
+                .scale(0.6f)
+                .anchorPoint({ 0.0f, 0.5f })
+                .id("sends-label"_spr)
+                .zOrder(2)
+                .parent(menu)
+                .limitLabelWidth(60.0f, 0.5f, 0.0f);
+
+        label->setLayoutOptions(AxisLayoutOptions::create()
+            ->setScaleLimits(0.1f, 1.0f)
+            ->setRelativeScale(0.45f)
+        );
+
+        CCNode* sprite;
+
+        const std::optional<std::optional<Creator>> creatorInfoOpt = SendDBIntegration::get()->getCache().getCreator(creator.playerID);
+        if (creatorInfoOpt.has_value() && creatorInfoOpt->has_value()) {
+            const Creator& creatorInfo = creatorInfoOpt->value();
+            sprite = Build<CCSprite>::create("logo-circle.png"_spr)
+                    .intoMenuItem([creatorInfo, this](auto*) {
+                        const auto popup = CreatorInfoPopup::create(m_score, creatorInfo);
+                        popup->show();
+                    })
+                    .scale(0.05f)
+                    .anchorPoint({ 0.5f, 0.5f })
+                    .id("sends-icon"_spr)
+                    .zOrder(2)
+                    .parent(menu);
+        } else {
+            sprite = Build<CCSprite>::create("logo-circle.png"_spr)
+                    .scale(0.05f)
+                    .anchorPoint({ 0.5f, 0.5f })
+                    .id("sends-icon"_spr)
+                    .zOrder(2)
+                    .parent(menu);
         }
+
+        sprite->setLayoutOptions(AxisLayoutOptions::create()
+            ->setScaleLimits(0.1f, 1.0f)
+            ->setRelativeScale(0.08f)
+            ->setNextGap(7.0f)
+        );
+
+        menu->updateLayout();
     }
 };

@@ -104,7 +104,7 @@ void SendDBLevelCell::createRankContainer() {
 
     fields.rankContainer = Build<CCNode>::create()
             .anchorPoint({0.5f, 0.5f})
-            .pos({277.0f, m_height / 2.0f})
+            .pos({m_compactView ? 287.0f : 277.0f, m_height / 2.0f - (m_compactView ? 15.0f : 0.0f)})
             .parent(this)
             .visible(false)
             .id("rank-container"_spr);
@@ -131,7 +131,7 @@ void SendDBLevelCell::createTrendingContainer() {
 
     fields.trendingContainer = Build<CCNode>::create()
             .anchorPoint({0.5f, 0.5f})
-            .pos({314.0f, 12.0f})
+            .pos({314.0f, m_compactView ? 45.0f : 12.0f})
             .parent(this)
             .visible(false)
             .id("trending-container"_spr);

@@ -39,7 +39,7 @@ jobs:
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
         with:
-          sdk: "nightly"
+          sdk: "v5.0.0-beta.3"
           configure-args: "-DSKIP_BUILDING_CODEGEN=OFF"
           combine: true
           target: ${{ matrix.config.target }}

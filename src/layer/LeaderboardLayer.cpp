@@ -365,11 +365,13 @@ void LeaderboardLayer::finishLoading() {
     list->clear();
 
     const long long globalStartTime = TimeUtils::getCurrentTimestamp();
-    for (auto level : page) {
-        const auto cell = static_cast<SendDBLevelCell*>(new LevelCell("", 356.f, 90.f));
+    for (const auto& level : page) {
+        bool compact = Loader::get()->isModLoaded("cvolton.compact_lists") && Loader::get()->getLoadedMod("cvolton.compact_lists")->getSettingValue<bool>("enable-compact-lists");
+        const auto cell = static_cast<SendDBLevelCell*>(new LevelCell("", 356.0f, compact ? 50.0f : 90.0f));
+        cell->m_compactView = compact;
         cell->autorelease();
         cell->loadFromLevel(level);
-        cell->setContentSize({356.f, 90.f});
+        cell->setContentSize({356.0f, compact ? 50.0f : 90.0f});
 
         int levelID = level->m_levelID.value();
 
