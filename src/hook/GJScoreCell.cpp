@@ -36,19 +36,17 @@ class $modify(GJScoreCell) {
         const std::optional<std::optional<Creator>> creatorInfoOpt = SendDBIntegration::get()->getCache().getCreator(creator.playerID);
         if (creatorInfoOpt.has_value() && creatorInfoOpt->has_value()) {
             const Creator& creatorInfo = creatorInfoOpt->value();
-            sprite = Build<CCSprite>::create("logo-circle.png"_spr)
+            sprite = Build<CCSprite>::create("logo-small.png"_spr)
                     .intoMenuItem([creatorInfo, this](auto*) {
                         const auto popup = CreatorInfoPopup::create(m_score, creatorInfo);
                         popup->show();
                     })
-                    .scale(0.05f)
                     .anchorPoint({ 0.5f, 0.5f })
                     .id("sends-icon"_spr)
                     .zOrder(2)
                     .parent(menu);
         } else {
-            sprite = Build<CCSprite>::create("logo-circle.png"_spr)
-                    .scale(0.05f)
+            sprite = Build<CCSprite>::create("logo-small.png"_spr)
                     .anchorPoint({ 0.5f, 0.5f })
                     .id("sends-icon"_spr)
                     .zOrder(2)
@@ -57,7 +55,7 @@ class $modify(GJScoreCell) {
 
         sprite->setLayoutOptions(AxisLayoutOptions::create()
             ->setScaleLimits(0.1f, 1.0f)
-            ->setRelativeScale(0.08f)
+            ->setRelativeScale(0.8f)
             ->setNextGap(7.0f)
         );
 

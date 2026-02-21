@@ -47,8 +47,8 @@ class $modify(LevelInfoLayer) {
     void placeButton() {
         const auto menu = getChildByID("other-menu");
 
-        Build<CCSprite>::create("logo-circle.png"_spr)
-                .scale(0.125f)
+        Build<CCSprite>::create("logo-medium.png"_spr)
+                .scale(0.245f)
                 .intoMenuItem([this](auto*) {
                     const auto chart = LevelSendChartPopup::create(m_level, m_level->m_levelID, m_fields->levelInfo, m_fields->creator);
                     chart->show();

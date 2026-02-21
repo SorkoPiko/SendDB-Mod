@@ -33,8 +33,8 @@ class $modify(SendDBProfilePage, ProfilePage) {
     void placeButton() {
         const auto menu = m_mainLayer->getChildByID("main-menu");
 
-        Build<CCSprite>::create("logo-circle.png"_spr)
-                .scale(0.125f)
+        Build<CCSprite>::create("logo-medium.png"_spr)
+                .scale(0.245f)
                 .intoMenuItem([this](auto*) {
                     const auto popup = CreatorInfoPopup::create(m_score, m_fields->creatorInfo);
                     popup->show();
@@ -72,8 +72,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
             ->setScaleLimits(0.0f, 1.0f)
         );
 
-        CCSprite* sprite = Build<CCSprite>::create("logo-circle.png"_spr)
-                .scale(0.05f)
+        CCSprite* sprite = Build<CCSprite>::create("logo-small.png"_spr)
                 .anchorPoint({ 0.5f, 0.5f })
                 .id("sends-icon"_spr)
                 .zOrder(2)
@@ -81,7 +80,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
 
         sprite->setLayoutOptions(AxisLayoutOptions::create()
             ->setScaleLimits(0.0f, 1.0f)
-            ->setRelativeScale(0.08f)
+            ->setRelativeScale(0.8f)
             ->setNextGap(7.0f)
         );
 

@@ -1,5 +1,6 @@
 #include "CreatorInfoPopup.hpp"
 
+#include <node/DiscordNode.hpp>
 #include <node/RankingNode.hpp>
 #include <utils/FormatUtils.hpp>
 #include <utils/PointUtils.hpp>
@@ -45,6 +46,12 @@ bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Crea
             .intoMenuItem([](auto*) {infoPopup(CreatorPopupInfo::Info);})
             .pos({menuSize.x + 5.0f, menuSize.y + 5.0f})
             .id("info-button")
+            .parent(m_buttonMenu);
+
+    Build<DiscordNode>::create()
+            .anchorPoint({0.5f, 0.5f})
+            .pos({menuSize.x - 3.0f, 3.0f})
+            .id("discord-button")
             .parent(m_buttonMenu);
 
     Build<CCLabelBMFont>::create(creator->m_userName.c_str(), "goldFont.fnt")

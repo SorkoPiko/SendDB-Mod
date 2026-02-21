@@ -12,8 +12,9 @@
 	"developer": "SorkoPiko",
 	"description": "View SendDB data in-game",
 	"links": {
+		"homepage": "https://senddb.dev",
 		"source": "https://github.com/SorkoPiko/SendDB-Mod",
-		"community": "https://discord.gg/MeWY462WJv"
+		"community": "https://discord.senddb.dev"
 	},
 	"tags": [
 		"online",

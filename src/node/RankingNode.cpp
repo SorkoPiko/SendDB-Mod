@@ -9,7 +9,7 @@
 Build<CCSprite> getRankingFilterInfo(const RankingFilter& filter) {
     switch (filter) {
         case RankingFilter::SendDB:
-            return Build<CCSprite>::create("logo-circle.png"_spr).scale(1.0f/9.6f);
+            return Build<CCSprite>::create("logo-small.png"_spr).scale(1.0f/1.07f);
         case RankingFilter::Rated:
             return Build<CCSprite>::createSpriteName("GJ_hammerIcon_001.png").scale(1.0f/0.94f);
         case RankingFilter::Unrated:

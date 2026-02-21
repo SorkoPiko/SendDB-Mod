@@ -12,8 +12,8 @@ class $modify(LevelSearchLayer) {
         if (!LevelSearchLayer::init(searchType)) return false;
 
         if (const auto menu = getChildByID("other-filter-menu")) {
-            Build<CCSprite>::create("logo-circle.png"_spr)
-                    .scale(0.154f)
+            Build<CCSprite>::create("logo-medium.png"_spr)
+                    .scale(0.306f)
                     .intoMenuItem([](auto*) {
                         const auto scene = CCScene::create();
                         AppDelegate::get()->m_runningScene = scene;

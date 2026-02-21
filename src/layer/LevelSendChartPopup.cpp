@@ -6,16 +6,17 @@
 #include <Geode/ui/BasedButtonSprite.hpp>
 
 #include <UIBuilder.hpp>
-#include <node/RankingNode.hpp>
-
-#include <node/SendChartNode.hpp>
-#include <node/SwitchNode.hpp>
 #include <rock/RoundedRect.hpp>
+
 #include <utils/FormatUtils.hpp>
 #include <utils/Messages.hpp>
 #include <utils/PointUtils.hpp>
 #include <utils/Style.hpp>
 #include <utils/TimeUtils.hpp>
+#include <node/DiscordNode.hpp>
+#include <node/RankingNode.hpp>
+#include <node/SendChartNode.hpp>
+#include <node/SwitchNode.hpp>
 
 constexpr CCPoint popupSize = {400.0f, 250.0f};
 constexpr CCPoint menuSize = {390.0f, 240.0f};
@@ -80,6 +81,12 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             .pos({menuSize.x + 5.0f, menuSize.y + 5.0f})
             .id("info-button")
             .parent(m_buttonMenu);
+
+    Build<DiscordNode>::create()
+        .anchorPoint({0.5f, 0.5f})
+        .pos({menuSize.x - 3.0f, 3.0f})
+        .id("discord-button")
+        .parent(m_buttonMenu);
 
     Build<CCLabelBMFont>::create(level->m_levelName.c_str(), "goldFont.fnt")
             .anchorPoint({0.5f, 1.0f})

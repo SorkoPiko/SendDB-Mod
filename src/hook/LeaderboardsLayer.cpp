@@ -19,9 +19,8 @@ class $modify(LeaderboardsLayer) {
 
         CCNode* menu = getChildByID("right-side-menu");
 
-        m_fields->button = Build<ButtonSprite>::create(CCSprite::create("logo-circle.png"_spr), 32, 0, 32.0f, 1.0f, true, customData ? "GJ_button_02.png" : "GJ_button_01.png", false)
+        m_fields->button = Build<ButtonSprite>::create(CCSprite::create("logo-small.png"_spr), 32, 0, 32.0f, 1.0f, true, customData ? "GJ_button_02.png" : "GJ_button_01.png", false)
                 .with([](ButtonSprite* sprite) {
-                    sprite->m_subSprite->setScale(0.1f);
                     sprite->updateSpriteOffset({ 0.0f, -1.5f });
                 })
                 .scale(0.6f)

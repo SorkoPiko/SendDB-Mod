@@ -5,6 +5,7 @@
 #include <UIBuilder.hpp>
 #include <hook/LevelCell.hpp>
 #include <manager/SendDBIntegration.hpp>
+#include <node/DiscordNode.hpp>
 #include <node/SwitchNode.hpp>
 #include <utils/Messages.hpp>
 #include <utils/TimeUtils.hpp>
@@ -144,8 +145,14 @@ bool LeaderboardLayer::init() {
                     "OK"
                 )->show();
             })
-            .pos({winSize.width - 32.0f, 32.0f})
+            .pos({winSize.width - 32.0f, 25.0f})
             .id("info-button")
+            .parent(menu);
+
+    Build<DiscordNode>::create()
+            .anchorPoint({0.5f, 0.5f})
+            .pos({winSize.width - 32.0f, 60.0f })
+            .id("discord-button")
             .parent(menu);
 
     filterButton = Build<CCSprite>::createSpriteName("GJ_plusBtn_001.png")
