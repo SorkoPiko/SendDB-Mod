@@ -17,7 +17,7 @@ const Shader* ShaderCache::tryLoadShader(const ShaderKey& shaderKey) {
         const std::filesystem::path vertexPath = Mod::get()->getResourcesDir() / shaderKey.vertexPath;
         const auto vertexSourceFs = file::readString(vertexPath);
         if (!vertexSourceFs) {
-            log::error("failed to read vertex shader at path {}: {}", vertexPath.string(), vertexSourceFs.unwrapErr());
+            log::error("failed to read vertex shader at path {}: {}", geode::utils::string::pathToString(vertexPath), vertexSourceFs.unwrapErr());
             return nullptr;
         }
         vertexSource = *vertexSourceFs;
@@ -31,7 +31,7 @@ const Shader* ShaderCache::tryLoadShader(const ShaderKey& shaderKey) {
         const std::filesystem::path fragmentPath = Mod::get()->getResourcesDir() / shaderKey.fragmentPath;
         const auto fragmentSourceFs = file::readString(fragmentPath);
         if (!fragmentSourceFs) {
-            log::error("failed to read fragment shader at path {}: {}", fragmentPath.string(), fragmentSourceFs.unwrapErr());
+            log::error("failed to read fragment shader at path {}: {}", geode::utils::string::pathToString(fragmentPath), fragmentSourceFs.unwrapErr());
             return nullptr;
         }
         fragmentSource = *fragmentSourceFs;

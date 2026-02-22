@@ -7,14 +7,13 @@
 
 using namespace geode::prelude;
 
-bool customData = false;
-
 class $modify(LeaderboardsLayer) {
     struct Fields {
         TaskHolder<web::WebResponse> creatorListener;
         CCMenuItemSpriteExtra* button = nullptr;
 
         DiscordNode* discordButton = nullptr;
+        bool m_customData = false;
     };
 
     bool init(const LeaderboardType type, const LeaderboardStat stat) {
@@ -22,25 +21,25 @@ class $modify(LeaderboardsLayer) {
 
         CCNode* menu = getChildByID("right-side-menu");
 
-        m_fields->button = Build<ButtonSprite>::create(CCSprite::create("logo-small.png"_spr), 32, 0, 32.0f, 1.0f, true, customData ? "GJ_button_02.png" : "GJ_button_01.png", false)
+        m_fields->button = Build<ButtonSprite>::create(CCSprite::create("logo-small.png"_spr), 32, 0, 32.0f, 1.0f, true, m_fields->m_customData ? "GJ_button_02.png" : "GJ_button_01.png", false)
                 .with([](ButtonSprite* sprite) {
                     sprite->updateSpriteOffset({ 0.0f, -1.5f });
                 })
                 .scale(0.6f)
                 .intoMenuItem([this] {
-                    customData = !customData;
+                    m_fields->m_customData = !m_fields->m_customData;
 
                     const auto button = static_cast<ButtonSprite*>(m_fields->button->getNormalImage());
                     button->m_BGSprite->removeMeAndCleanup();
-                    button->m_BGSprite = Build<CCScale9Sprite>::create(customData ? "GJ_button_02.png" : "GJ_button_01.png", CCRect{ CCPointZero, { 40.0f, 40.0f } })
+                    button->m_BGSprite = Build<CCScale9Sprite>::create(m_fields->m_customData ? "GJ_button_02.png" : "GJ_button_01.png", CCRect{ CCPointZero, { 40.0f, 40.0f } })
                             .contentSize({ 16.0f, 16.0f })
                             .parent(button);
                     button->updateSpriteBGSize();
 
-                    m_fields->discordButton->setVisible(customData && m_type == LeaderboardType::Creator);
+                    m_fields->discordButton->setVisible(m_fields->m_customData && m_type == LeaderboardType::Creator);
                     getChildByID("bottom-right-menu")->updateLayout();
 
-                    if (customData) getCreatorLeaderboard();
+                    if (m_fields->m_customData) getCreatorLeaderboard();
                     else {
                         m_type = LeaderboardType::Default;
                         selectLeaderboard(LeaderboardType::Creator, m_stat);
@@ -52,14 +51,14 @@ class $modify(LeaderboardsLayer) {
 
         menu->updateLayout();
 
-        if (type == LeaderboardType::Creator && customData) {
+        if (type == LeaderboardType::Creator && m_fields->m_customData) {
             getCreatorLeaderboard();
         }
 
         CCNode* rightMenu = getChildByID("bottom-right-menu");
         m_fields->discordButton = Build<DiscordNode>::create()
                 .id("discord-button"_spr)
-                .visible(customData && type == LeaderboardType::Creator)
+                .visible(m_fields->m_customData && type == LeaderboardType::Creator)
                 .parent(rightMenu);
 
         rightMenu->updateLayout();
@@ -69,7 +68,7 @@ class $modify(LeaderboardsLayer) {
 
     void selectLeaderboard(const LeaderboardType type, const LeaderboardStat stat) {
         LeaderboardsLayer::selectLeaderboard(type, stat);
-        if (type == LeaderboardType::Creator && customData) {
+        if (type == LeaderboardType::Creator && m_fields->m_customData) {
             getCreatorLeaderboard();
         }
         if (m_fields->button) {
