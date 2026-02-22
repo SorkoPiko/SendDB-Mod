@@ -379,7 +379,7 @@ void CreatorInfoPopup::onEnter() {
 }
 
 void fixTouchPrioNode(CCNode* node, const int prio) {
-    if (const auto delegate = dynamic_cast<CCTouchDelegate*>(node)) {
+    if (const auto delegate = typeinfo_cast<CCTouchDelegate*>(node)) {
         if (const auto handler = CCTouchDispatcher::get()->findHandler(delegate)) {
             CCTouchDispatcher::get()->setPriority(prio, handler->getDelegate());
         }
