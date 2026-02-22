@@ -9,9 +9,11 @@ using namespace geode::prelude;
 
 class DiscordNode : public CCNode {
     CCMenuItemSpriteExtra* button = nullptr;
+    CCSprite* sprite = nullptr;
     CCParticleSystemQuad* particles = nullptr;
 
     bool init() override;
+    ~DiscordNode() override;
 
 public:
     static DiscordNode* create();

@@ -29,7 +29,7 @@ Build<CCSprite> getRankingFilterInfo(const RankingFilter& filter) {
 bool RankingNode::init(const int ranking, const std::string& descriptionText, const std::optional<int>& total, const std::optional<RankingFilter>& filter1, const std::optional<RankingFilter>& filter2) {
     if (!CCNode::init()) return false;
 
-    setContentSize({140.0f, 40.0f});
+    setContentSize({140.0f, 43.0f});
 
     Build(rock::RoundedRect::create(
         infoBoxColor,
@@ -78,7 +78,7 @@ bool RankingNode::init(const int ranking, const std::string& descriptionText, co
 
     description = Build<CCLabelBMFont>::create(descriptionText.c_str(), "chatFont.fnt")
             .anchorPoint({0.0f, 0.0f})
-            .pos({0.0f, 30.0f})
+            .pos({0.0f, 32.0f})
             .color(secondaryTextColor)
             .scale(0.6f)
             .parent(this);

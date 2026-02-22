@@ -55,7 +55,7 @@ class $modify(GJScoreCell) {
 
         sprite->setLayoutOptions(AxisLayoutOptions::create()
             ->setScaleLimits(0.1f, 1.0f)
-            ->setRelativeScale(0.8f)
+            ->setRelativeScale(0.7f)
             ->setNextGap(7.0f)
         );
 

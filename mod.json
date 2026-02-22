@@ -1,5 +1,5 @@
 {
-	"geode": "5.0.0-beta.3",
+	"geode": "5.0.0-beta.4",
 	"gd": {
 		"win": "2.2081",
 		"android": "2.2081",
@@ -108,14 +108,27 @@
 				"slider": true
 			},
 			"enable-if": "shaders"
+		},
+		"miscellaneous-category": {
+			"name": "Miscellaneous",
+			"type": "title",
+			"description": "Other settings for the mod."
+		},
+		"removeAnimations": {
+			"name": "Remove Animations",
+			"type": "bool",
+			"default": false,
+			"description": "Remove animations & effects from the mod for better performance."
 		}
 	},
 	"resources": {
 		"sprites": [
-			"resources/*.png"
+			"resources/*.png",
+			"resources/previews/*.png"
 		],
 		"files": [
-			"resources/shader/*"
+			"resources/shader/*",
+			"resources/audio/*"
 		]
 	}
 }

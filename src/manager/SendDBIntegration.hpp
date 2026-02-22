@@ -23,8 +23,8 @@ class SendDBIntegration {
     std::unique_ptr<web::WebRequest> currentRequest;
     APICache cache{Mod::get()->getSettingValue<int>("cacheTime") * 60};
 
-    void sendPostRequest(const std::string& url, const matjson::Value& body, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener);
-    void sendGetRequest(const std::string& url, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener);
+    static void sendPostRequest(const std::string& url, const matjson::Value& body, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener);
+    static void sendGetRequest(const std::string& url, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener);
 
 public:
     static SendDBIntegration* get() {

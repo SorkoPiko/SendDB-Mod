@@ -15,6 +15,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
         std::optional<Creator> creatorInfo;
 
         CCLabelBMFont* sendsLabel;
+        CCMenuItemSpriteExtra* button;
     };
 
     void loadPageFromUserInfo(GJUserScore* score){
@@ -31,9 +32,10 @@ class $modify(SendDBProfilePage, ProfilePage) {
     }
 
     void placeButton() {
+        if (m_fields->button) return;
         const auto menu = m_mainLayer->getChildByID("main-menu");
 
-        Build<CCSprite>::create("logo-medium.png"_spr)
+        m_fields->button = Build<CCSprite>::create("logo-medium.png"_spr)
                 .scale(0.245f)
                 .intoMenuItem([this](auto*) {
                     const auto popup = CreatorInfoPopup::create(m_score, m_fields->creatorInfo);

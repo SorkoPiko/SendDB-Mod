@@ -4,6 +4,7 @@
 
 #include <UIBuilder.hpp>
 #include <rock/RoundedRect.hpp>
+#include <utils/Style.hpp>
 
 bool SentLevelNode::init(const CCSize& size, const int _levelID, const int sendCount, const bool accurate) {
     if (!CCNode::init()) return false;
@@ -19,6 +20,14 @@ bool SentLevelNode::init(const CCSize& size, const int _levelID, const int sendC
             .anchorPoint({0.0f, 1.0f})
             .pos({3.0f, size.height})
             .id("name-label")
+            .parent(this);
+
+    Build<CCLabelBMFont>::create(fmt::format("{}", _levelID).c_str(), "chatFont.fnt")
+            .scale(0.25f)
+            .anchorPoint({1.0f, 1.0f})
+            .pos({size.width - 1.0f, size.height - 1.0f})
+            .color({ 100, 100, 100 })
+            .id("id-label")
             .parent(this);
 
     Build<CCLabelBMFont>::create(
