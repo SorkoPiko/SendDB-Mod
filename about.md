@@ -1,5 +1,5 @@
 # SendDB
-Easily track level sends.
+Easily track level sends. View data from [senddb.dev](https://senddb.dev) in-game with this mod!
 
 ## Features
 - <cg>Clean UI and charts</c> for data visualisation
@@ -34,5 +34,5 @@ In order of contribution:
 - [<c-b1ff6d>robotnipper</c>](user:1267081) - UI design help and feedback, quality assurance
 - [<c-ff7760>Prevter</c>](https://github.com/Prevter) - development help
 - [<c-bd34ff>abb2k</c>](user:11684904) - chart inspiration (from [Death Tracker](mod:elohmrow.death_tracker)) and feedback
-- [<c-fdb5ff>RealDJB</c>](user:14158363) - feedback
 - [<c-56ede9>OnlyTrying</c>](user:3675935) - feedback
+- [<c-fdb5ff>RealDJB</c>](user:14158363) - feedback

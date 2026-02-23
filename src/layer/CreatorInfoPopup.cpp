@@ -10,7 +10,7 @@
 constexpr CCPoint popupSize = {350.0f, 200.0f};
 constexpr CCPoint menuSize = {340.0f, 190.0f};
 
-std::unordered_map<int, GJGameLevel*> CreatorInfoPopup::cache = {};
+std::unordered_map<int, Ref<GJGameLevel>> CreatorInfoPopup::cache = {};
 std::set<int> CreatorInfoPopup::failedLevelIDs = {};
 
 bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Creator>& _creatorData) {

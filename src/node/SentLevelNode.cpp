@@ -82,11 +82,14 @@ void SentLevelNode::update(GJGameLevel* level) {
             .scale(0.25f)
             .intoMenuItem([level](auto*) {
                 const auto levelInfo = CCScene::get()->getChildByType<LevelInfoLayer>(0);
-                if (levelInfo && levelInfo->m_level && levelInfo->m_level->m_levelID.value() == level->m_levelID) {
-                    return;
-                }
+                if (!level) return;
 
-                const auto scene = LevelInfoLayer::scene(level, false);
+                GJGameLevel* saved = GameLevelManager::get()->getSavedLevel(level->m_levelID.value());
+                if (!saved) saved = level;
+
+                if (levelInfo && levelInfo->m_level && levelInfo->m_level->m_levelID.value() == saved->m_levelID) return;
+
+                const auto scene = LevelInfoLayer::scene(saved, false);
                 CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5, scene));
             })
             .pos({getContentSize().width - 20.0f, getContentSize().height / 2.0f})

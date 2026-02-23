@@ -20,7 +20,7 @@ class CreatorInfoPopup : public FLAlertLayer, public LevelManagerDelegate {
     std::set<int> levelIDsToFetch;
     std::set<int> pendingLevelIDs;
     std::unordered_map<int, SentLevelNode*> levelNodes;
-    static std::unordered_map<int, GJGameLevel*> cache;
+    static std::unordered_map<int, Ref<GJGameLevel>> cache;
     static std::set<int> failedLevelIDs;
 
     bool init(const GJUserScore* creator, const std::optional<Creator>& _creatorData);

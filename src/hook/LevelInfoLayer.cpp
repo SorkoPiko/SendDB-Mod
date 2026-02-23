@@ -34,14 +34,30 @@ class $modify(LevelInfoLayer) {
             }
         }, m_fields->levelListener);
 
-        SendDBIntegration::get()->getCreator(level->m_userID.value(), [this](const std::optional<Creator>& creatorData) {
-            if (creatorData.has_value()) {
-                m_fields->creator = creatorData;
-                (*m_fields->callback)(2);
-            }
-        }, m_fields->creatorListener);
+        if (level->m_userID.value() > 0) {
+            SendDBIntegration::get()->getCreator(level->m_userID.value(), [this](const std::optional<Creator>& creatorData) {
+                if (creatorData.has_value()) {
+                    m_fields->creator = creatorData;
+                    (*m_fields->callback)(2);
+                }
+            }, m_fields->creatorListener);
+        }
 
         return true;
+    }
+
+    void levelDownloadFinished(GJGameLevel* level) {
+        LevelInfoLayer::levelDownloadFinished(level);
+        if (!level) return;
+
+        if (level->m_userID.value() > 0) {
+            SendDBIntegration::get()->getCreator(level->m_userID.value(), [this](const std::optional<Creator>& creatorData) {
+                if (creatorData.has_value()) {
+                    m_fields->creator = creatorData;
+                    (*m_fields->callback)(2);
+                }
+            }, m_fields->creatorListener);
+        }
     }
 
     void placeButton() {
