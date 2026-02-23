@@ -1,5 +1,5 @@
 # SendDB
-Easily track level sends. View data from [senddb.dev](https://senddb.dev) in-game with this mod!
+Easily track level sends. View data from [SendDB](https://senddb.dev) in-game with this mod!
 
 ## Features
 - <cg>Clean UI and charts</c> for data visualisation
