@@ -101,7 +101,6 @@ std::optional<std::optional<LeaderboardCreator>> APICache::getLeaderboardCreator
     for (const auto& entry: leaderboardCreatorCache | std::views::values) {
         const auto& [creator, timestamp] = entry;
         if (creator.playerID == creatorID && currentTime - timestamp <= cacheDuration) {
-            printf("MATCH\n");
             return creator;
         }
     }

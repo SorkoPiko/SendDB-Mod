@@ -10,27 +10,19 @@ constexpr float maxAudioDistance = 75.0f;
 constexpr float maxPulseDistance = 150.0f;
 
 FMOD::Channel* create() {
-    return FMODAudioEngine::get()->channelForChannelID(FMODAudioEngine::get()->playEffectAdvanced(
-        "club.mp3"_spr,
-        1.0f,
-        0.0f,
-        3.0f,
-        0.0f,
-        false,
-        false,
-        0,
-        0,
-        0,
-        0,
-        true,
-        0,
-        false,
-        false,
-        0,
-        0,
-        0.0f,
-        0
-    ));
+    FMOD::Sound* sound;
+    FMOD::Channel* channel;
+    FMOD::System* system = FMODAudioEngine::sharedEngine()->m_system;
+
+    system->createSound(
+        string::pathToString(Mod::get()->getResourcesDir() / "club.mp3").c_str(),
+        FMOD_DEFAULT | FMOD_LOOP_NORMAL | FMOD_2D,
+        nullptr,
+        &sound
+    );
+    system->playSound(sound, nullptr, false, &channel);
+    channel->setVolume(0.0f);
+    return channel;
 }
 
 AudioManager::AudioManager() {
@@ -58,7 +50,10 @@ void AudioManager::update(const float delta) {
     }
 
     const CCPoint pos = getMousePos();
-    if (pos.equals(CCPointZero)) return;
+    if (pos.equals(CCPointZero)) {
+        channel->setVolume(0.0f);
+        return;
+    }
 
     std::vector<CCPoint> distanceSorted;
     for (const auto& source : sources) {
@@ -73,7 +68,7 @@ void AudioManager::update(const float delta) {
     const float distance = (closestPoint - pos).getLength();
 
     const float volume = 1.0f - std::pow(std::min(distance / maxAudioDistance, 1.0f), 3);
-    channel->setVolume(volume * 3.0f);
+    channel->setVolume(volume * 2.0f);
 }
 
 void AudioManager::pulseSources() const {

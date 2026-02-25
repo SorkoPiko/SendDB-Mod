@@ -75,11 +75,12 @@ bool DiscordNode::init() {
     if (animations) {
         sprite->runAction(CCRepeatForever::create(
             CCSequence::create(
-                CCEaseInOut::create(CCRotateTo::create(1.5f, 2), 2.0f),
-                CCEaseInOut::create(CCRotateTo::create(1.5f, -2), 2.0f),
+                CCEaseInOut::create(CCRotateTo::create(1.5f, 2.0f), 2.0f),
+                CCEaseInOut::create(CCRotateTo::create(1.5f, -2.0f), 2.0f),
                 nullptr
             )
         ));
+        sprite->setRotation(2.0f);
     }
 
     return true;
