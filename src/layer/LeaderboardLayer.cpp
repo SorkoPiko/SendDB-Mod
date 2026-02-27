@@ -149,9 +149,17 @@ bool LeaderboardLayer::init() {
             .id("info-button")
             .parent(menu);
 
+    Build<CCSprite>::createSpriteName("geode.loader/homepage.png")
+            .intoMenuItem([](auto*) {
+                web::openLinkInBrowser("https://senddb.dev/levels");
+            })
+            .pos({winSize.width - 32.0f, 100.0f})
+            .id("website-button")
+            .parent(menu);
+
     Build<DiscordNode>::create()
             .anchorPoint({0.5f, 0.5f})
-            .pos({winSize.width - 32.0f, 60.0f })
+            .pos({winSize.width - 32.0f, 60.0f})
             .id("discord-button")
             .parent(menu);
 

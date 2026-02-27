@@ -6,7 +6,6 @@
 
 bool DiscordNode::init() {
     if (!CCNode::init()) return false;
-    AudioManager::get().registerSource(this);
 
     setContentSize({ 35.0f, 35.0f });
     setAnchorPoint({ 0.5f, 0.5f });
@@ -86,7 +85,13 @@ bool DiscordNode::init() {
     return true;
 }
 
-DiscordNode::~DiscordNode() {
+void DiscordNode::onEnter() {
+    CCNode::onEnter();
+    AudioManager::get().registerSource(this);
+}
+
+void DiscordNode::onExit() {
+    CCNode::onExit();
     AudioManager::get().unregisterSource(this);
 }
 

@@ -13,7 +13,9 @@ class DiscordNode : public CCNode {
     CCParticleSystemQuad* particles = nullptr;
 
     bool init() override;
-    ~DiscordNode() override;
+
+    void onEnter() override;
+    void onExit() override;
 
 public:
     static DiscordNode* create();

@@ -11,6 +11,8 @@ using namespace geode::prelude;
 class AudioManager : public CCObject {
     std::vector<CCNode*> sources;
     FMOD::Channel* channel = nullptr;
+    float musicVolume;
+    bool musicVolumeSet = false;
 
     AudioManager();
 

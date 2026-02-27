@@ -42,7 +42,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
                     popup->show();
                 })
                 .parent(menu)
-                .pos({16.0f, -219.0f})
+                .pos({16.0f, Loader::get()->isModLoaded("cvolton.betterinfo") ? -189.0f : -219.0f})
                 .id("chart-button"_spr);
     }
 
@@ -67,6 +67,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
                 .anchorPoint({ 0.0f, 0.0f })
                 .contentSize(CCPoint{ 0.6f, 0.6f } * m_fields->sendsLabel->getContentSize())
                 .id("sends-text-node"_spr)
+                .zOrder(1)
                 .parent(menu);
 
         textNode->addChild(m_fields->sendsLabel);
@@ -77,7 +78,7 @@ class $modify(SendDBProfilePage, ProfilePage) {
         CCSprite* sprite = Build<CCSprite>::create("logo-small.png"_spr)
                 .anchorPoint({ 0.5f, 0.5f })
                 .id("sends-icon"_spr)
-                .zOrder(2)
+                .zOrder(1)
                 .parent(menu);
 
         sprite->setLayoutOptions(AxisLayoutOptions::create()

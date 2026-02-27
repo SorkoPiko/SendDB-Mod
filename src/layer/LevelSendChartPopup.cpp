@@ -83,17 +83,29 @@ bool LevelSendChartPopup::init(const GJGameLevel* level, const int _levelID, con
             .parent(m_buttonMenu);
 
     Build<DiscordNode>::create()
-        .anchorPoint({0.5f, 0.5f})
-        .pos({menuSize.x - 3.0f, 3.0f})
-        .id("discord-button")
-        .parent(m_buttonMenu);
+            .anchorPoint({0.5f, 0.5f})
+            .pos({menuSize.x - 3.0f, 3.0f})
+            .id("discord-button")
+            .zOrder(3)
+            .parent(m_buttonMenu);
 
-    Build<CCLabelBMFont>::create(level->m_levelName.c_str(), "goldFont.fnt")
+    auto title = Build<CCLabelBMFont>::create(level->m_levelName.c_str(), "goldFont.fnt")
             .anchorPoint({0.5f, 1.0f})
             .pos({menuSize.x / 2.0f, menuSize.y + 2.0f})
             .scale(0.9f)
             .id("title-label")
             .parent(m_buttonMenu);
+
+    Build(EditorButtonSprite::createWithSprite("share.png"_spr, 0.85f, EditorBaseColor::Gray))
+            .scale(0.5f)
+            .intoMenuItem([this](auto*) {
+                web::openLinkInBrowser(fmt::format("https://senddb.dev/level#{}", levelID));
+            })
+            .anchorPoint({0.5f, 0.5f})
+            .parent(m_buttonMenu)
+            .matchPos(title)
+            .move({title->getScaledContentWidth() / 2.0f + 12.0f, -title->getScaledContentHeight() / 2.0f - 3.0f})
+            .id("open-button");
 
     Build<CCLabelBMFont>::create(fmt::format("by {}", level->m_creatorName.empty() ? "Unknown" : level->m_creatorName).c_str(), "goldFont.fnt")
             .anchorPoint({0.0f, 1.0f})

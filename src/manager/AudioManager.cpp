@@ -37,6 +37,11 @@ void AudioManager::update(const float delta) {
     channel->isPlaying(&isPlaying);
     if (!isPlaying) channel = create();
 
+    FMODAudioEngine* audioEngine = FMODAudioEngine::sharedEngine();
+    if (musicVolumeSet) audioEngine->setBackgroundMusicVolume(musicVolume);
+    else musicVolume = audioEngine->getBackgroundMusicVolume();
+    musicVolumeSet = false;
+
     if (sources.empty()) {
         channel->setVolume(0.0f);
         return;
@@ -57,9 +62,15 @@ void AudioManager::update(const float delta) {
 
     std::vector<CCPoint> distanceSorted;
     for (const auto& source : sources) {
-        if (!source) continue;
+        if (!source || !source->m_bVisible) continue;
         distanceSorted.push_back(source->convertToWorldSpace(source->getContentSize() * source->getAnchorPoint()));
     }
+
+    if (distanceSorted.empty()) {
+        channel->setVolume(0.0f);
+        return;
+    }
+
     std::ranges::sort(distanceSorted, [&pos](const CCPoint& a, const CCPoint& b) {
         return (a - pos).getLengthSq() < (b - pos).getLengthSq();
     });
@@ -69,6 +80,8 @@ void AudioManager::update(const float delta) {
 
     const float volume = 1.0f - std::pow(std::min(distance / maxAudioDistance, 1.0f), 3);
     channel->setVolume(volume * 2.0f);
+    audioEngine->setBackgroundMusicVolume(musicVolume * (1.0f - volume));
+    musicVolumeSet = true;
 }
 
 void AudioManager::pulseSources() const {

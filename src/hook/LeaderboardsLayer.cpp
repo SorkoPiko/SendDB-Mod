@@ -15,6 +15,7 @@ class $modify(LeaderboardsLayer) {
         CCMenuItemSpriteExtra* button = nullptr;
 
         DiscordNode* discordButton = nullptr;
+        CCMenuItemSpriteExtra* websiteButton = nullptr;
     };
 
     bool init(const LeaderboardType type, const LeaderboardStat stat) {
@@ -38,6 +39,7 @@ class $modify(LeaderboardsLayer) {
                     button->updateSpriteBGSize();
 
                     m_fields->discordButton->setVisible(customData && m_type == LeaderboardType::Creator);
+                    m_fields->websiteButton->setVisible(customData && m_type == LeaderboardType::Creator);
                     getChildByID("bottom-right-menu")->updateLayout();
 
                     if (customData) getCreatorLeaderboard();
@@ -57,9 +59,20 @@ class $modify(LeaderboardsLayer) {
         }
 
         CCNode* rightMenu = getChildByID("bottom-right-menu");
+
+        m_fields->websiteButton = Build<CCSprite>::createSpriteName("geode.loader/homepage.png")
+                .intoMenuItem([](auto*) {
+                    web::openLinkInBrowser("https://senddb.dev/creators");
+                })
+                .id("website-button"_spr)
+                .visible(customData && type == LeaderboardType::Creator)
+                .zOrder(-3)
+                .parent(rightMenu);
+
         m_fields->discordButton = Build<DiscordNode>::create()
                 .id("discord-button"_spr)
                 .visible(customData && type == LeaderboardType::Creator)
+                .zOrder(-3)
                 .parent(rightMenu);
 
         rightMenu->updateLayout();
