@@ -8,7 +8,7 @@
 	},
 	"id": "sorkopiko.senddb",
 	"name": "SendDB",
-	"version": "v1.0.0",
+	"version": "v1.1.0",
 	"developer": "SorkoPiko",
 	"description": "View SendDB data in-game",
 	"links": {
@@ -22,7 +22,7 @@
 		"utility"
 	],
 	"dependencies": {
-		"geode.node-ids": ">=v1.22.0-beta.2"
+		"geode.node-ids": ">=v1.23.0"
 	},
 	"settings": {
 		"api-category": {
