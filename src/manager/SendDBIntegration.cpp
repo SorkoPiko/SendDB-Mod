@@ -148,7 +148,7 @@ void SendDBIntegration::getCreator(const int creatorID, const std::function<void
         return;
     }
 
-    sendGetRequest(fmt::format(SERVER_URL "/creator/", creatorID), [this, callback, creatorID](const matjson::Value& data) {
+    sendGetRequest(fmt::format(SERVER_URL "/creator/{}", creatorID), [this, callback, creatorID](const matjson::Value& data) {
         if (data.contains("error")) {
             const std::string error = data["error"].asString().unwrapOrDefault();
             if (error == "Creator not found") {
