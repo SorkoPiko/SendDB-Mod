@@ -12,7 +12,7 @@ std::string plural(const int num) {
 
 std::string ago(const int num, const std::string& unit) {
     static std::string s;
-    s = std::to_string(num) + " " + unit + (num == 1 ? "" : "s") + " ago";
+    s = fmt::format("{} {}{} ago", num, unit, num == 1 ? "" : "s");
     return s;
 }
 

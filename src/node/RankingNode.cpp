@@ -67,7 +67,7 @@ bool RankingNode::init(const int ranking, const std::string& descriptionText, co
 
     label->setString(fmt::format("#{}", ranking).c_str());
     if (total.has_value()) {
-        Build<CCLabelBMFont>::create(("/" + std::to_string(total.value())).c_str(), "gjFont16.fnt")
+        Build<CCLabelBMFont>::create(fmt::format("/{}", total.value()).c_str(), "gjFont16.fnt")
                 .scale(0.8f)
                 .anchorPoint({0.0f, 0.0f})
                 .color(secondaryColor)

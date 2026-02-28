@@ -127,7 +127,7 @@ void SendInfoBox::prepareSend() {
 
     const auto [timestamp] = sendData.value();
 
-    infoLabel->setString(("Send #" + std::to_string(sendIndex)).c_str());
+    infoLabel->setString(fmt::format("Send #{}", sendIndex).c_str());
     trendingLabel->setString(fmt::format("Score: {}", trendingScore ? fmt::format("{:.2f}", trendingScore) : "N/A").c_str());
     timeLabel->setString(TimeUtils::timestampToDateTime(timestamp).c_str());
 

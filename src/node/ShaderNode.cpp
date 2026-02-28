@@ -239,7 +239,7 @@ void ShaderNode::updateSprites(const int newSpriteCount) {
     allocatedSprites = newSpriteCount;
 
     for (size_t i = 1; i <= allocatedSprites; ++i) {
-        const auto uniform = glGetUniformLocation(shader.program, ("sprite" + std::to_string(i)).c_str());
+        const auto uniform = glGetUniformLocation(shader.program, fmt::format("sprite{}", std::to_string(i)).c_str());
         glUniform1i(uniform, i);
     }
 }

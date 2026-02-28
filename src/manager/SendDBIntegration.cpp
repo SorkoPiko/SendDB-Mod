@@ -52,7 +52,7 @@ void SendDBIntegration::getLevel(const int levelID, const std::function<void(std
         return;
     }
 
-    sendGetRequest(SERVER_URL "/level/" + std::to_string(levelID), [this, callback, levelID](const matjson::Value& data) {
+    sendGetRequest(fmt::format(SERVER_URL "/level/{}", levelID), [this, callback, levelID](const matjson::Value& data) {
         if (data.contains("error")) {
             const std::string error = data["error"].asString().unwrapOrDefault();
             if (error == "Level not found") {
@@ -148,7 +148,7 @@ void SendDBIntegration::getCreator(const int creatorID, const std::function<void
         return;
     }
 
-    sendGetRequest(SERVER_URL "/creator/" + std::to_string(creatorID), [this, callback, creatorID](const matjson::Value& data) {
+    sendGetRequest(fmt::format(SERVER_URL "/creator/", creatorID), [this, callback, creatorID](const matjson::Value& data) {
         if (data.contains("error")) {
             const std::string error = data["error"].asString().unwrapOrDefault();
             if (error == "Creator not found") {

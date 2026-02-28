@@ -14,7 +14,7 @@ void SendDBLevelCell::setLevelInfo(const std::optional<BatchLevel>& info) {
 
         const int sendCount = fields.levelInfo->send_count;
         const bool accurate = fields.levelInfo->accurate;
-        fields.sendLabel->setString((std::to_string(sendCount) + (accurate ? "" : "?") + (sendCount == 1 ? " send" : " sends")).c_str());
+        fields.sendLabel->setString(fmt::format("{}{}{}", sendCount, accurate ? "" : "?", sendCount == 1 ? " send" : " sends").c_str());
         fields.sendContainer->setVisible(true);
     } else {
         if (fields.sendContainer) fields.sendContainer->setVisible(false);
@@ -31,7 +31,7 @@ void SendDBLevelCell::setRank(const int rank) {
 
     if (!fields.rankContainer) createRankContainer();
 
-    fields.rankLabel->setString(("#" + std::to_string(rank)).c_str());
+    fields.rankLabel->setString(fmt::format("#{}", rank).c_str());
     fields.rankContainer->setVisible(true);
     fields.rankBg->setContentSize(fields.rankLabel->getScaledContentSize() + CCSize(2.0f, 0.0f));
 }
@@ -46,7 +46,7 @@ void SendDBLevelCell::setTrendingScore(double score) {
 
     if (!fields.trendingContainer) createTrendingContainer();
 
-    fields.trendingLabel->setString((std::string("Score: ") + fmt::format("{:.2f}", score)).c_str());
+    fields.trendingLabel->setString(fmt::format("Score: {:.2f}", score).c_str());
     fields.trendingLabel->limitLabelWidth(100.0f, 0.5f, 0.0f);
     fields.trendingContainer->setVisible(true);
     fields.trendingBg->setContentSize(fields.trendingLabel->getScaledContentSize() + CCSize(2.0f, 0.0f));

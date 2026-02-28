@@ -20,8 +20,8 @@ class AudioManager : public CCObject {
     void pulseSources() const;
 
 public:
-    static AudioManager& get() {
-        static AudioManager instance;
+    static AudioManager* get() {
+        static auto instance = new AudioManager();
         return instance;
     }
 

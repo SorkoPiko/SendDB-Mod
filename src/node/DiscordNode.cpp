@@ -87,12 +87,12 @@ bool DiscordNode::init() {
 
 void DiscordNode::onEnter() {
     CCNode::onEnter();
-    AudioManager::get().registerSource(this);
+    AudioManager::get()->registerSource(this);
 }
 
 void DiscordNode::onExit() {
     CCNode::onExit();
-    AudioManager::get().unregisterSource(this);
+    AudioManager::get()->unregisterSource(this);
 }
 
 DiscordNode* DiscordNode::create() {

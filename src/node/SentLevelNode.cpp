@@ -31,7 +31,7 @@ bool SentLevelNode::init(const CCSize& size, const int _levelID, const int sendC
             .parent(this);
 
     Build<CCLabelBMFont>::create(
-        (std::to_string(sendCount) + (accurate ? "" : "?") + (sendCount == 1 ? " send" : " sends")).c_str(),
+        fmt::format("{}{} {}", sendCount, accurate ? "" : "?", sendCount == 1 ? "send" : "sends").c_str(),
         "chatFont.fnt"
     )
             .scale(0.5f)

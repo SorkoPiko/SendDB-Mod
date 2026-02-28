@@ -22,7 +22,11 @@
 		"utility"
 	],
 	"dependencies": {
-		"geode.node-ids": ">=v1.23.0"
+		"geode.node-ids": ">=v1.23.0",
+		"camila314.geode-uri": {
+			"version": ">=v1.0.3",
+			"required": false
+		}
 	},
 	"settings": {
 		"api-category": {
