@@ -14,7 +14,7 @@ void SendDBLevelCell::setLevelInfo(const std::optional<BatchLevel>& info) {
 
         const int sendCount = fields.levelInfo->send_count;
         const bool accurate = fields.levelInfo->accurate;
-        fields.sendLabel->setString(fmt::format("{}{}{}", sendCount, accurate ? "" : "?", sendCount == 1 ? " send" : " sends").c_str());
+        fields.sendLabel->setString(fmt::format("{}{} {}", sendCount, accurate ? "" : "?", sendCount == 1 ? "send" : "sends").c_str());
         fields.sendContainer->setVisible(true);
     } else {
         if (fields.sendContainer) fields.sendContainer->setVisible(false);
