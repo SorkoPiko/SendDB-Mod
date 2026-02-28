@@ -20,7 +20,7 @@ class $modify(LevelBrowserLayer) {
 
     void setupLevelBrowser(CCArray* levels) {
         LevelBrowserLayer::setupLevelBrowser(levels);
-        if (!m_list->m_listView) return;
+        if (!m_list->m_listView || !Mod::get()->getSettingValue<bool>("showSendLabel")) return;
 
         levels = updateResultArray(levels);
 
@@ -41,7 +41,7 @@ class $modify(LevelBrowserLayer) {
     }
 
     void refreshSendLabels() {
-        if (!m_list->m_listView) return;
+        if (!m_list->m_listView || !Mod::get()->getSettingValue<bool>("showSendLabel")) return;
 
         const auto cells = m_list->m_listView->m_tableView->m_contentLayer->getChildrenExt();
         for (const auto child : cells) {

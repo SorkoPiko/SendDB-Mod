@@ -62,7 +62,7 @@ bool CreatorInfoPopup::init(const GJUserScore* creator, const std::optional<Crea
             .id("title-label")
             .parent(m_buttonMenu);
 
-    Build(EditorButtonSprite::createWithSprite("share.png"_spr, 1.0f, EditorBaseColor::Gray))
+    Build(EditorButtonSprite::createWithSprite("share.png"_spr, 0.85f, EditorBaseColor::Gray))
             .scale(0.5f)
             .intoMenuItem([this](auto*) {
                 web::openLinkInBrowser(fmt::format("https://senddb.dev/creator#{}", playerID));
