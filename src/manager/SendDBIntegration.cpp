@@ -2,9 +2,11 @@
 
 SendDBIntegration* SendDBIntegration::instance = nullptr;
 
+std::string userAgent = fmt::format("Geode/{}", Mod::get()->getVersion().toNonVString());
+
 void SendDBIntegration::sendPostRequest(const std::string& url, const matjson::Value& body, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener) {
     listener.spawn(
-        web::WebRequest().header("User-Agent", "Geode/1.0").bodyJSON(body).post(url),
+        web::WebRequest().userAgent(userAgent).bodyJSON(body).post(url),
         [callback](const web::WebResponse& e) {
             if (e.ok()) {
                 const auto data = e.json().unwrapOr(matjson::Value{});
@@ -26,7 +28,7 @@ void SendDBIntegration::sendPostRequest(const std::string& url, const matjson::V
 
 void SendDBIntegration::sendGetRequest(const std::string& url, const std::function<void(const matjson::Value&)>& callback, TaskHolder<web::WebResponse>& listener) {
     listener.spawn(
-        web::WebRequest().header("User-Agent", "Geode/1.0").get(url),
+        web::WebRequest().userAgent(userAgent).get(url),
         [callback](const web::WebResponse& e) {
             if (e.ok()) {
                 const auto data = e.json().unwrapOr(matjson::Value{});
